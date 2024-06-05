@@ -21,12 +21,6 @@ class ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: ElevatedButton(
-        onPressed: _logOut,
-        child: const Text('Logout'),
-      ),
-    );
+    return Container(color: Colors.white, child: const Text("heso"));
   }
 }

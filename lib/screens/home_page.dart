@@ -1,15 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:vup_chat/screens/chat_page.dart';
+import 'package:vup_chat/screens/profile_page.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  static const List<Widget> _widgetOptions = <Widget>[
+    ChatPage(),
+    ProfilePage()
+  ];
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  var _index = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _index = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: const ChatPage(),
+      body: HomePage._widgetOptions.elementAt(_index),
       bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.red,
+        selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey.shade600,
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
@@ -24,6 +43,8 @@ class HomePage extends StatelessWidget {
             label: "Profile",
           ),
         ],
+        currentIndex: _index,
+        onTap: _onItemTapped,
       ),
     );
   }
