@@ -37,6 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   bluesky: ^0.16.0
   bluesky_chat: ^0.2.0
+  flutter_secure_storage: ^9.2.2
 
 dev_dependencies:
   flutter_test:
