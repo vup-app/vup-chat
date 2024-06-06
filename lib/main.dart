@@ -6,6 +6,7 @@ import 'package:vup_chat/screens/home_page.dart';
 
 const FlutterSecureStorage storage = FlutterSecureStorage();
 Bluesky? session;
+String? did;
 
 void main() async {
   // grab login credentials and try to log in

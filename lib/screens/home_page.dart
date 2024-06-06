@@ -15,7 +15,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  var _index = 0;
+  var _index = 1;
 
   void _onItemTapped(int index) {
     setState(() {

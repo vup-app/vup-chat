@@ -1,12 +1,9 @@
-import 'dart:io';
-import 'dart:typed_data';
-
-import 'package:bluesky/bluesky.dart';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/bsky/log_out.dart';
+import 'package:vup_chat/bsky/profile_actions.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/screens/login_page.dart';
-import 'package:atproto_core/atproto_core.dart';
+import 'package:flutter/src/widgets/image.dart' as img;
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,47 +13,13 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
-  String? displayName;
-  String? description;
-  Blob? avatarUrl;
-  Blob? bannerUrl;
-  Uint8List? avatarBytes;
-  Uint8List? bannerBytes;
+  Future<PersonalProfileInfo>? _profileInfoFuture;
 
   @override
   void initState() {
     super.initState();
-    _fetchProfile();
+    _profileInfoFuture = fetchProfile(false);
   }
-
-  Future<void> _fetchProfile() async {
-    if (session == null) {
-      _logOut();
-    }
-    final response = await session!.actor.getProfileRecord();
-    setState(() {
-      displayName = response.data.displayName;
-      description = response.data.description;
-      avatarUrl = response.data.avatar;
-      bannerUrl = response.data.banner;
-    });
-    if (avatarUrl != null) {
-      // avatarBytes = await _fetchBlobBytes(avatarUrl!);
-    }
-    if (bannerUrl != null) {
-      // bannerBytes = await _fetchBlobBytes(bannerUrl!);
-    }
-    setState(() {});
-  }
-
-  // Future<Uint8List> _fetchBlobBytes(Blob blob) async {
-  //   // Assuming blob contains a URL to the image, you need to fetch the bytes from the URL.
-  //   final response = await HttpClient()
-  //       .getUrl(Uri.parse(blob.url))
-  //       .then((req) => req.close());
-  //   return response.fold<Uint8List>(
-  //       Uint8List(0), (previous, element) => previous + element);
-  // }
 
   Future<void> _logOut() async {
     session = await tryLogOut();
@@ -70,7 +33,7 @@ class ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(displayName ?? 'Profile'),
+        title: const Text('Profile'), // Use a default title
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -78,49 +41,59 @@ class ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      body: displayName == null
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: FutureBuilder<PersonalProfileInfo>(
+        future: _profileInfoFuture,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            final profileInfo = snapshot.data!;
+            return SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (bannerBytes != null)
-                    // Image.memory(
-                    //   bannerBytes!,
-                    //   fit: BoxFit.cover,
-                    //   width: double.infinity,
-                    //   height: 200,
-                    // ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          if (avatarBytes != null)
-                            CircleAvatar(
-                              radius: 40,
-                              backgroundImage: MemoryImage(avatarBytes!),
-                            ),
-                          const SizedBox(width: 16),
-                          Text(
-                            displayName!,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                  if (profileInfo.banner != null)
+                    img.Image.memory(
+                      profileInfo.banner!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: 200,
                     ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        if (profileInfo.avatar != null)
+                          CircleAvatar(
+                              radius: 40,
+                              backgroundImage:
+                                  MemoryImage(profileInfo.avatar!)),
+                        const SizedBox(width: 16),
+                        Text(
+                          profileInfo.displayName ?? '',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
                     child: Text(
-                      description ?? '',
+                      profileInfo.description ?? '',
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),
                 ],
               ),
-            ),
+            );
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          // Show a loading indicator while waiting
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
     );
   }
 }

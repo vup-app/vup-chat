@@ -18,5 +18,7 @@ Future<Bluesky?> tryLogIn(String? user, String? password) async {
     session.data,
   );
 
+  did = (await bluesky.server.getSession()).data.did;
+
   return bluesky;
 }
