@@ -1,16 +1,26 @@
 # vup_chat
 
-A new Flutter project.
+A cross-platform, ATProto & S5 powered chat client.
 
-## Getting Started
+### Goal:
 
-This project is a starting point for a Flutter application.
+Create a chat platform that is fully compatible with Bluesky, but when both users are using vup chat, the connection
+upgrades to a E2EE S5 streams based implementation.
 
-A few resources to get you started if this is your first Flutter project:
+### Roadmap:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- [ ] Basic text chatting between bsky users
+- [ ] Bsky profile editing
+- [ ] Sending images & videos
+- [ ] Push notifications ATProto
+- [ ] UI overhaul v1
+- [ ] S5 streams between users
+- [ ] Push notifications S5 Streams
+- [ ] Video & Voice call
+- [ ] Group Chats
+- [ ] UI overhaul v2
+- [ ] Larger ATProto chat rooms (discord-ish)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Acknowledgement
+
+This work is supported by a [Sia Foundation](https://sia.tech/) grant

@@ -39,6 +39,7 @@ dependencies:
   bluesky_chat: ^0.2.0
   flutter_secure_storage: ^9.2.2
   did_plc: ^0.0.19
+  provider: ^6.1.2
 
 dev_dependencies:
   flutter_test:
