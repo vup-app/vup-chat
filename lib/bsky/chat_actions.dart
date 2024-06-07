@@ -8,3 +8,10 @@ Future<ListConvosOutput?> getChatTimeline() async {
   }
   return null;
 }
+
+Future<void> sendMessage(String text, String uid) async {
+  if (chatSession != null) {
+    await chatSession!.convo
+        .sendMessage(convoId: uid, message: MessageInput(text: text));
+  }
+}

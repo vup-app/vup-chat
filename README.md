@@ -9,7 +9,7 @@ upgrades to a E2EE S5 streams based implementation.
 
 ### Roadmap:
 
-- [ ] Basic text chatting between bsky users
+- [x] Basic text chatting between bsky users
 - [ ] Bsky profile editing
 - [ ] Sending images & videos
 - [ ] Push notifications ATProto

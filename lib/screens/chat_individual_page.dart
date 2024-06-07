@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/main.dart';
 import 'package:bluesky_chat/bluesky_chat.dart';
 
@@ -83,7 +84,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
       setState(() {
         _messages = cachedMessages;
       });
-      _scrollToBottom();
+      _jumpToBottom();
     }
   }
 
@@ -94,6 +95,12 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
           curve: Curves.elasticOut);
     } else {
       Timer(const Duration(milliseconds: 200), () => _scrollToBottom());
+    }
+  }
+
+  void _jumpToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
     }
   }
 
@@ -170,12 +177,18 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                       hintText: 'Type a message',
                       border: OutlineInputBorder(),
                     ),
+                    textInputAction: TextInputAction.go,
+                    onSubmitted: (_) {
+                      sendMessage(_messageController.text, widget.id);
+                      _messageController.clear();
+                    },
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: () {
-                    // Handle send message logic here
+                    sendMessage(_messageController.text, widget.id);
+                    _messageController.clear();
                   },
                 ),
               ],
