@@ -5,6 +5,7 @@ import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/main.dart';
+import 'package:vup_chat/widgets/chat_page_list_item.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -58,7 +59,8 @@ class ChatPageState extends State<ChatPage> {
         if (oldConversations[i].id != newConversations[i].id) {
           _listKey.currentState?.removeItem(
             i,
-            (context, animation) => _buildItem(oldConversations[i], animation),
+            (context, animation) =>
+                buildChatPageListItem(oldConversations[i], animation, context),
             duration: const Duration(milliseconds: 300),
           );
           _listKey.currentState?.insertItem(
@@ -69,7 +71,8 @@ class ChatPageState extends State<ChatPage> {
       } else {
         _listKey.currentState?.removeItem(
           i,
-          (context, animation) => _buildItem(oldConversations[i], animation),
+          (context, animation) =>
+              buildChatPageListItem(oldConversations[i], animation, context),
           duration: const Duration(milliseconds: 300),
         );
       }
@@ -126,28 +129,11 @@ class ChatPageState extends State<ChatPage> {
             initialItemCount: _conversations.length,
             itemBuilder: (context, index, animation) {
               final convo = _conversations[index];
-              return _buildItem(convo, animation);
+              return buildChatPageListItem(convo, animation, context);
             },
           ),
         );
       },
-    );
-  }
-
-  Widget _buildItem(ConvoView convo, Animation<double> animation) {
-    return SizeTransition(
-      sizeFactor: animation,
-      child: ListTile(
-        title: Text(convo.members.map((m) => m.displayName).join(', ')),
-        subtitle: Text(convo.lastMessage!.toJson()['text']),
-        leading: convo.members.first.avatar != null
-            ? CircleAvatar(
-                backgroundImage: NetworkImage(convo.members.first.avatar!))
-            : const CircleAvatar(child: Icon(Icons.person)),
-        onTap: () {
-          // Handle navigation to chat detail
-        },
-      ),
     );
   }
 }

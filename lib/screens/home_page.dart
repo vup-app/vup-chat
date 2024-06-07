@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vup_chat/screens/chat_page.dart';
+import 'package:vup_chat/screens/chat_list_page.dart';
 import 'package:vup_chat/screens/profile_page.dart';
 
 class HomePage extends StatefulWidget {
