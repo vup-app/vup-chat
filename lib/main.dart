@@ -1,4 +1,5 @@
 import 'package:bluesky/bluesky.dart';
+import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
@@ -6,6 +7,7 @@ import 'package:vup_chat/screens/home_page.dart';
 
 const FlutterSecureStorage storage = FlutterSecureStorage();
 Bluesky? session;
+BlueskyChat? chatSession;
 String? did;
 
 void main() async {

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vup_chat/bsky/log_out.dart';
-import 'package:vup_chat/main.dart';
-import 'package:vup_chat/screens/login_page.dart';
+import 'package:vup_chat/bsky/chat_actions.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -11,12 +9,10 @@ class ChatPage extends StatefulWidget {
 }
 
 class ChatPageState extends State<ChatPage> {
-  Future<void> _logOut() async {
-    session = await tryLogOut();
-    if (mounted && session == null) {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const LoginPage()));
-    }
+  @override
+  void initState() {
+    getChatTimeline();
+    super.initState();
   }
 
   @override
