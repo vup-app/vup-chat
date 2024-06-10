@@ -10,7 +10,7 @@ Future<ListConvosOutput?> getChatTimeline() async {
 }
 
 Future<void> sendMessage(String text, String uid) async {
-  if (chatSession != null) {
+  if (chatSession != null && text.isNotEmpty) {
     await chatSession!.convo
         .sendMessage(convoId: uid, message: MessageInput(text: text));
   }

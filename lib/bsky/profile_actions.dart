@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bluesky/bluesky.dart';
@@ -26,18 +27,15 @@ Future<PersonalProfileInfo> fetchProfile(bool update) async {
   Uint8List? avatarBytes;
   Uint8List? bannerBytes;
 
-  // TODO fix this horrible manual substringing
   if (avatarBlob != null) {
-    String cid = avatarBlob.toJson()['ref'].toString();
-    cid = cid.substring(14, cid.length - 1);
+    String cid = BlobRef.fromJson(avatarBlob.toJson()['ref']).link;
     if (did != null) {
       avatarBytes = (await session!.sync.getBlob(cid: cid, did: did!)).data;
     }
   }
 
   if (bannerBlob != null) {
-    String cid = bannerBlob.toJson()['ref'].toString();
-    cid = cid.substring(14, cid.length - 1);
+    String cid = BlobRef.fromJson(bannerBlob.toJson()['ref']).link;
     if (did != null) {
       bannerBytes = (await session!.sync.getBlob(cid: cid, did: did!)).data;
     }
