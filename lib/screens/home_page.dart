@@ -35,11 +35,11 @@ class _HomePageState extends State<HomePage> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.message),
+            icon: Icon(Icons.message_outlined),
             label: "Chats",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_box),
+            icon: Icon(Icons.account_circle_outlined),
             label: "Profile",
           ),
         ],

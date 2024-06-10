@@ -11,10 +11,10 @@ upgrades to a E2EE S5 streams based implementation.
 
 - [x] Basic text chatting between bsky users
 - [ ] Bsky profile editing
-- [ ] Sending images & videos
 - [ ] Push notifications ATProto
 - [ ] UI overhaul v1
 - [ ] S5 streams between users
+- [ ] Sending images & videos
 - [ ] Push notifications S5 Streams
 - [ ] Video & Voice call
 - [ ] Group Chats

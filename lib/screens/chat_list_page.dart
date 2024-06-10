@@ -5,6 +5,7 @@ import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/main.dart';
+import 'package:vup_chat/screens/search_actor.page.dart';
 import 'package:vup_chat/widgets/chat_page_list_item.dart';
 
 class ChatPage extends StatefulWidget {
@@ -109,31 +110,40 @@ class ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<ListConvosOutput?>(
-      future: _futureConvos,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting &&
-            _conversations.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (_conversations.isEmpty) {
-          return const Center(child: Text('No conversations found.'));
-        }
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.message_outlined),
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const SearchActorPage()));
+        },
+      ),
+      body: FutureBuilder<ListConvosOutput?>(
+        future: _futureConvos,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              _conversations.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (_conversations.isEmpty) {
+            return const Center(child: Text('No conversations found.'));
+          }
 
-        return RefreshIndicator(
-          key: _refreshIndicatorKey,
-          onRefresh: refreshConversations,
-          child: AnimatedList(
-            key: _listKey,
-            initialItemCount: _conversations.length,
-            itemBuilder: (context, index, animation) {
-              final convo = _conversations[index];
-              return buildChatPageListItem(convo, animation, context);
-            },
-          ),
-        );
-      },
+          return RefreshIndicator(
+            key: _refreshIndicatorKey,
+            onRefresh: refreshConversations,
+            child: AnimatedList(
+              key: _listKey,
+              initialItemCount: _conversations.length,
+              itemBuilder: (context, index, animation) {
+                final convo = _conversations[index];
+                return buildChatPageListItem(convo, animation, context);
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }
