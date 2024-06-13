@@ -1,9 +1,12 @@
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
+import 'package:vup_chat/constants.dart';
 import 'package:vup_chat/screens/home_page.dart';
+import 'package:vup_chat/theme.dart';
 
 const FlutterSecureStorage storage = FlutterSecureStorage();
 Bluesky? session;
@@ -18,19 +21,40 @@ void main() async {
   runApp(const VupChat());
 }
 
-class VupChat extends StatelessWidget {
+class VupChat extends StatefulWidget {
   const VupChat({super.key});
 
   @override
+  VupChatState createState() => VupChatState();
+}
+
+class VupChatState extends State<VupChat> {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  void _toggleTheme() {
+    setState(() {
+      _themeMode =
+          _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Vup Chat',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
-        useMaterial3: true,
-      ),
-      debugShowCheckedModeBanner: false,
-      home: const HomePage(),
+    return ScreenUtilInit(
+      designSize: const Size(360, 800),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      // Use builder only if you need to use library outside ScreenUtilInit context
+      builder: (_, child) {
+        return MaterialApp(
+          title: 'Vup Chat',
+          theme: getLightTheme(),
+          darkTheme: getDarkTheme(),
+          themeMode: _themeMode,
+          debugShowCheckedModeBanner: false,
+          home: const HomePage(),
+        );
+      },
     );
   }
 }
