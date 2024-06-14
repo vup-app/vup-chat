@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:vup_chat/bsky/log_out.dart';
 import 'package:vup_chat/bsky/profile_actions.dart';
 import 'package:vup_chat/main.dart';
@@ -32,68 +34,190 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'), // Use a default title
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logOut,
-          ),
-        ],
-      ),
       body: FutureBuilder<PersonalProfileInfo>(
         future: _profileInfoFuture,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final profileInfo = snapshot.data!;
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (profileInfo.banner != null)
-                    img.Image.memory(
-                      profileInfo.banner!,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: 200,
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        if (profileInfo.avatar != null)
-                          CircleAvatar(
-                              radius: 40,
-                              backgroundImage:
-                                  MemoryImage(profileInfo.avatar!)),
-                        const SizedBox(width: 16),
-                        Text(
-                          profileInfo.displayName ?? '',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      profileInfo.description ?? '',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          // Show a loading indicator while waiting
-          return const Center(child: CircularProgressIndicator());
+          return AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            child: _buildContent(snapshot),
+          );
         },
       ),
+    );
+  }
+
+  Widget _buildContent(AsyncSnapshot<PersonalProfileInfo> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return _buildShimmerPlaceholder();
+    } else if (snapshot.hasData) {
+      final profileInfo = snapshot.data!;
+      return Stack(
+        children: [
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (profileInfo.banner != null)
+                  Stack(
+                    children: [
+                      img.Image.memory(
+                        profileInfo.banner!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: 200.h,
+                      ),
+                      Positioned(
+                        top: 16.h,
+                        right: 16.w,
+                        child: IconButton(
+                          icon: const Icon(Icons.logout,
+                              color: Colors.white, size: 30),
+                          onPressed: _logOut,
+                          style: ButtonStyle(
+                            shadowColor: WidgetStateProperty.all(
+                                Colors.black.withOpacity(0.5)),
+                            elevation: WidgetStateProperty.all(5),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 16.w,
+                        top: (200.h - 120.w) /
+                            2, // Calculate top position for vertical centering
+                        child: CircleAvatar(
+                          radius: 60.w,
+                          backgroundColor: Colors.blue,
+                          child: CircleAvatar(
+                            radius: 55.w,
+                            backgroundImage: profileInfo.avatar != null
+                                ? MemoryImage(profileInfo.avatar!)
+                                : null,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                Padding(
+                  padding: EdgeInsets.all(16.w),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              profileInfo.displayName ?? '',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (profileInfo.description != null)
+                              Text(
+                                profileInfo.description!,
+                                style: const TextStyle(
+                                  fontSize: 14, // Smaller text size
+                                  color: Colors.grey,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    } else if (snapshot.hasError) {
+      return Center(child: Text('Error: ${snapshot.error}'));
+    }
+    // Show a loading indicator while waiting
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  Widget _buildShimmerPlaceholder() {
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                period: const Duration(milliseconds: 500),
+                child: Container(
+                  width: double.infinity,
+                  height: 200.h,
+                  color: Colors.grey,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Row(
+                  children: [
+                    Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                      period: const Duration(milliseconds: 500),
+                      child: CircleAvatar(
+                        radius: 40.w,
+                        backgroundColor: Colors.grey,
+                      ),
+                    ),
+                    SizedBox(width: 16.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            period: const Duration(milliseconds: 500),
+                            child: Container(
+                              width: 150.w,
+                              height: 24.h,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Shimmer.fromColors(
+                            baseColor: Colors.grey[300]!,
+                            highlightColor: Colors.grey[100]!,
+                            period: const Duration(milliseconds: 500),
+                            child: Container(
+                              width: 200.w,
+                              height: 14.h,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          top: 16.h,
+          right: 16.w,
+          child: Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            period: const Duration(milliseconds: 500),
+            child: Container(
+              width: 30.w,
+              height: 30.h,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

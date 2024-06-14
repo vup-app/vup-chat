@@ -71,6 +71,8 @@ class SearchActorPageState extends State<SearchActorPage> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: Signify which users you can and cannot chat with
+    // TODO: Add follow request button to those you cannot chat with
     return Scaffold(
       appBar: AppBar(
         title: const Text('Search Users'),

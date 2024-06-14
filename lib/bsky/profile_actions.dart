@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bluesky/bluesky.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vup_chat/main.dart';
 
 class PersonalProfileInfo {
@@ -11,34 +13,62 @@ class PersonalProfileInfo {
 
   PersonalProfileInfo(
       this.displayName, this.description, this.avatar, this.banner);
+
+  Map<String, dynamic> toJson() {
+    return {
+      'displayName': displayName,
+      'description': description,
+      'avatar': avatar != null ? base64Encode(avatar!) : null,
+      'banner': banner != null ? base64Encode(banner!) : null,
+    };
+  }
+
+  static PersonalProfileInfo fromJson(Map<String, dynamic> json) {
+    return PersonalProfileInfo(
+      json['displayName'] as String?,
+      json['description'] as String?,
+      json['avatar'] != null ? base64Decode(json['avatar']) : null,
+      json['banner'] != null ? base64Decode(json['banner']) : null,
+    );
+  }
 }
 
 Future<PersonalProfileInfo> fetchProfile(bool update) async {
-  // TODO: Caching personal profile for offline
-  // TODO: Pull down refresh on personal profile
-  final response = await session!.actor.getProfileRecord();
+  final prefs = await SharedPreferences.getInstance();
+  final cachedProfile = prefs.getString('cached_profile');
 
-  String? displayName = response.data.displayName;
-  String? description = response.data.description;
-  Blob? avatarBlob = response.data.avatar;
-  Blob? bannerBlob = response.data.banner;
+  if (cachedProfile != null && !update) {
+    return PersonalProfileInfo.fromJson(jsonDecode(cachedProfile));
+  } else {
+    final response = await session!.actor.getProfileRecord();
 
-  Uint8List? avatarBytes;
-  Uint8List? bannerBytes;
+    String? displayName = response.data.displayName;
+    String? description = response.data.description;
+    Blob? avatarBlob = response.data.avatar;
+    Blob? bannerBlob = response.data.banner;
 
-  if (avatarBlob != null) {
-    String cid = BlobRef.fromJson(avatarBlob.toJson()['ref']).link;
-    if (did != null) {
-      avatarBytes = (await session!.sync.getBlob(cid: cid, did: did!)).data;
+    Uint8List? avatarBytes;
+    Uint8List? bannerBytes;
+
+    if (avatarBlob != null) {
+      String cid = BlobRef.fromJson(avatarBlob.toJson()['ref']).link;
+      if (did != null) {
+        avatarBytes = (await session!.sync.getBlob(cid: cid, did: did!)).data;
+      }
     }
-  }
 
-  if (bannerBlob != null) {
-    String cid = BlobRef.fromJson(bannerBlob.toJson()['ref']).link;
-    if (did != null) {
-      bannerBytes = (await session!.sync.getBlob(cid: cid, did: did!)).data;
+    if (bannerBlob != null) {
+      String cid = BlobRef.fromJson(bannerBlob.toJson()['ref']).link;
+      if (did != null) {
+        bannerBytes = (await session!.sync.getBlob(cid: cid, did: did!)).data;
+      }
     }
+
+    final profile =
+        PersonalProfileInfo(displayName, description, avatarBytes, bannerBytes);
+
+    await prefs.setString('cached_profile', jsonEncode(profile.toJson()));
+
+    return profile;
   }
-  return PersonalProfileInfo(
-      displayName, description, avatarBytes, bannerBytes);
 }
