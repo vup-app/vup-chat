@@ -42,6 +42,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   void dispose() {
     _timer?.cancel();
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -57,8 +58,6 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
           _messages = newMessages;
           _cacheMessages();
         });
-        // TODO: Make this only happen when near bottom of messages
-        _scrollToBottom();
       }
     }
   }
@@ -84,30 +83,23 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
       setState(() {
         _messages = cachedMessages;
       });
-      _jumpToBottom();
     }
   }
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.elasticOut);
+      _scrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.elasticOut,
+      );
     } else {
       Timer(const Duration(milliseconds: 200), () => _scrollToBottom());
     }
   }
 
-  void _jumpToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // TODO: Make this not look like it's scrolling (Maybe build from bottom up?)
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -123,6 +115,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
             Navigator.pop(context);
           },
         ),
+        backgroundColor: Theme.of(context).cardColor,
       ),
       body: Column(
         children: [
@@ -132,8 +125,9 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
               physics: const BouncingScrollPhysics(
                   decelerationRate: ScrollDecelerationRate.fast),
               controller: _scrollController,
+              reverse: true,
               itemBuilder: (context, index) {
-                final message = _messages[_messages.length - 1 - index];
+                final message = _messages[index];
                 final isMe = message.sender.did == did;
 
                 return Align(
@@ -152,13 +146,17 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                       margin: const EdgeInsets.symmetric(
                           vertical: 5, horizontal: 10),
                       decoration: BoxDecoration(
-                        color: isMe ? Colors.blue : Colors.grey.shade300,
+                        color: isMe
+                            ? Theme.of(context).primaryColor
+                            : Colors.grey.shade300,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: SelectableText(
                         message.text,
                         style: TextStyle(
-                            color: isMe ? Colors.white : Colors.black),
+                            color: isMe
+                                ? Theme.of(context).cardColor
+                                : Colors.black),
                       ),
                     ),
                   ),

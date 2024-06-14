@@ -172,7 +172,9 @@ class LoginPageState extends State<LoginPage>
                     width: double.infinity,
                     height: 40.h,
                     decoration: BoxDecoration(
-                      color: _isLoginFailed ? Colors.red : defaultAccentColor,
+                      color: _isLoginFailed
+                          ? Colors.red
+                          : Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: ElevatedButton(
@@ -184,7 +186,7 @@ class LoginPageState extends State<LoginPage>
                             side: BorderSide(
                               color: _isLoginFailed
                                   ? Colors.red
-                                  : defaultAccentColor,
+                                  : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
@@ -204,7 +206,8 @@ class LoginPageState extends State<LoginPage>
                   },
                   text: "Development funded by https://sia.tech",
                   style: const TextStyle(color: Colors.grey),
-                  linkStyle: const TextStyle(color: defaultAccentColor),
+                  linkStyle:
+                      TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
                 SizedBox(
                   height: 50.h,

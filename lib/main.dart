@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
-import 'package:vup_chat/screens/home_page.dart';
 import 'package:vup_chat/theme.dart';
 import 'package:vup_chat/widgets/init_router.dart';
 
@@ -29,14 +28,14 @@ class VupChat extends StatefulWidget {
 }
 
 class VupChatState extends State<VupChat> {
-  ThemeMode _themeMode = ThemeMode.system;
+  final ThemeMode _themeMode = ThemeMode.system;
 
-  void _toggleTheme() {
-    setState(() {
-      _themeMode =
-          _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    });
-  }
+  // void _toggleTheme() {
+  //   setState(() {
+  //     _themeMode =
+  //         _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
