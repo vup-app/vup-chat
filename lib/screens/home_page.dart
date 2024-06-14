@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vup_chat/screens/chat_list_page.dart';
+import 'package:vup_chat/screens/login_page.dart';
 import 'package:vup_chat/screens/profile_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,6 +22,13 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _index = index;
     });
+  }
+
+  Future<void> _logOut() async {
+    if (mounted) {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => const LoginPage()));
+    }
   }
 
   @override

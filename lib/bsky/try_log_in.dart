@@ -10,10 +10,15 @@ Future<Bluesky?> tryLogIn(String? user, String? password) async {
       return null;
     }
   }
-  final session = await createSession(
-    identifier: user,
-    password: password,
-  );
+  XRPCResponse<Session> session;
+  try {
+    session = await createSession(
+      identifier: user,
+      password: password,
+    );
+  } catch (_) {
+    return null;
+  }
 
   Bluesky blueskySession = Bluesky.fromSession(
     session.data,

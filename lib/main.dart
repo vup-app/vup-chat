@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
-import 'package:vup_chat/constants.dart';
 import 'package:vup_chat/screens/home_page.dart';
 import 'package:vup_chat/theme.dart';
+import 'package:vup_chat/widgets/init_router.dart';
 
 const FlutterSecureStorage storage = FlutterSecureStorage();
 Bluesky? session;
@@ -52,7 +52,7 @@ class VupChatState extends State<VupChat> {
           darkTheme: getDarkTheme(),
           themeMode: _themeMode,
           debugShowCheckedModeBanner: false,
-          home: const HomePage(),
+          home: const InitRouter(),
         );
       },
     );
