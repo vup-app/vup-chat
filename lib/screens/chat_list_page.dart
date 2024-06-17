@@ -8,14 +8,16 @@ import 'package:vup_chat/main.dart';
 import 'package:vup_chat/screens/search_actor.page.dart';
 import 'package:vup_chat/widgets/chat_page_list_item.dart';
 
-class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+class ChatListPage extends StatefulWidget {
+  final void Function(ConvoView convo)? onChatSelected;
+
+  const ChatListPage({super.key, this.onChatSelected});
 
   @override
-  ChatPageState createState() => ChatPageState();
+  ChatListPageState createState() => ChatListPageState();
 }
 
-class ChatPageState extends State<ChatPage> {
+class ChatListPageState extends State<ChatListPage> {
   final _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   late Future<ListConvosOutput?> _futureConvos;
@@ -60,8 +62,8 @@ class ChatPageState extends State<ChatPage> {
         if (oldConversations[i].id != newConversations[i].id) {
           _listKey.currentState?.removeItem(
             i,
-            (context, animation) =>
-                buildChatPageListItem(oldConversations[i], animation, context),
+            (context, animation) => buildChatListPageListItem(
+                oldConversations[i], animation, context, widget.onChatSelected),
             duration: const Duration(milliseconds: 300),
           );
           _listKey.currentState?.insertItem(
@@ -72,8 +74,8 @@ class ChatPageState extends State<ChatPage> {
       } else {
         _listKey.currentState?.removeItem(
           i,
-          (context, animation) =>
-              buildChatPageListItem(oldConversations[i], animation, context),
+          (context, animation) => buildChatListPageListItem(
+              oldConversations[i], animation, context, widget.onChatSelected),
           duration: const Duration(milliseconds: 300),
         );
       }
@@ -138,7 +140,8 @@ class ChatPageState extends State<ChatPage> {
               initialItemCount: _conversations.length,
               itemBuilder: (context, index, animation) {
                 final convo = _conversations[index];
-                return buildChatPageListItem(convo, animation, context);
+                return buildChatListPageListItem(
+                    convo, animation, context, widget.onChatSelected);
               },
             ),
           );

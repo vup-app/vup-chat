@@ -63,7 +63,6 @@ class ProfilePageState extends State<ProfilePage> {
                       img.Image.memory(
                         profileInfo.banner!,
                         fit: BoxFit.cover,
-                        width: double.infinity,
                         height: 200.h,
                       ),
                       Positioned(
@@ -82,13 +81,12 @@ class ProfilePageState extends State<ProfilePage> {
                       ),
                       Positioned(
                         left: 16.w,
-                        top: (200.h - 120.w) /
-                            2, // Calculate top position for vertical centering
+                        top: 20.h,
                         child: CircleAvatar(
-                          radius: 60.w,
+                          radius: 80.h,
                           backgroundColor: Colors.blue,
                           child: CircleAvatar(
-                            radius: 55.w,
+                            radius: 75.h,
                             backgroundImage: profileInfo.avatar != null
                                 ? MemoryImage(profileInfo.avatar!)
                                 : null,
@@ -150,7 +148,6 @@ class ProfilePageState extends State<ProfilePage> {
                 highlightColor: Colors.grey[100]!,
                 period: const Duration(milliseconds: 500),
                 child: Container(
-                  width: double.infinity,
                   height: 200.h,
                   color: Colors.grey,
                 ),
