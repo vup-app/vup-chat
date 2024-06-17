@@ -72,3 +72,7 @@ Future<PersonalProfileInfo> fetchProfile(bool update) async {
     return profile;
   }
 }
+
+Future<void> followUser(String did) async {
+  await session!.graph.follow(did: did);
+}

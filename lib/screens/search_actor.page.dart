@@ -1,6 +1,8 @@
 import 'package:bluesky/bluesky.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
+import 'package:vup_chat/bsky/profile_actions.dart';
 import 'package:vup_chat/main.dart';
 import 'package:flutter/src/widgets/scroll_view.dart' as fscroll;
 import 'package:vup_chat/screens/chat_individual_page.dart';
@@ -15,6 +17,7 @@ class SearchActorPage extends StatefulWidget {
 class SearchActorPageState extends State<SearchActorPage> {
   final TextEditingController _controller = TextEditingController();
   List<Actor> _actors = [];
+  List<ActorProfile> _profiles = [];
 
   @override
   void initState() {
@@ -43,9 +46,15 @@ class SearchActorPageState extends State<SearchActorPage> {
 
     // Replace with your actual session and search method
     if (session != null) {
-      final response = await session!.actor.searchActors(term: term);
+      final List<Actor> actors =
+          (await session!.actor.searchActors(term: term)).data.actors;
+      final List<ActorProfile> profiles = (await session!.actor
+              .getProfiles(actors: actors.map((actor) => actor.did).toList()))
+          .data
+          .profiles;
       setState(() {
-        _actors = response.data.actors;
+        _actors = actors;
+        _profiles = profiles;
       });
     }
   }
@@ -71,7 +80,6 @@ class SearchActorPageState extends State<SearchActorPage> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Signify which users you can and cannot chat with
     // TODO: Add follow request button to those you cannot chat with
     return Scaffold(
       appBar: AppBar(
@@ -85,7 +93,8 @@ class SearchActorPageState extends State<SearchActorPage> {
               itemCount: _actors.length,
               itemBuilder: (context, index) {
                 final actor = _actors[index];
-                return _buildActorListItem(actor, context);
+                final profile = _profiles[index];
+                return _buildActorListItem(actor, context, profile);
               },
             ),
           ),
@@ -104,14 +113,98 @@ class SearchActorPageState extends State<SearchActorPage> {
     );
   }
 
-  Widget _buildActorListItem(Actor actor, BuildContext context) {
+  Widget _buildActorListItem(
+      Actor actor, BuildContext context, ActorProfile profile) {
     final String? title = actor.displayName;
-    final CircleAvatar avatar = actor.avatar != null
-        ? CircleAvatar(backgroundImage: NetworkImage(actor.avatar!))
-        : const CircleAvatar(child: Icon(Icons.person));
+    final CircleAvatar avatar = CircleAvatar(
+      backgroundImage:
+          actor.avatar != null ? NetworkImage(actor.avatar!) : null,
+      child: const Icon(Icons.person),
+    );
+
+    late Widget allowIncomingMessages;
+
+    String status = "none"; // Default status, change as per your logic
+
+    try {
+      if (profile.associated != null && profile.associated!.chat != null) {
+        status = profile.associated!.chat!.allowIncoming ?? "none";
+      }
+    } catch (e) {
+      print("Error fetching status: $e");
+    }
+
+    switch (status) {
+      case "none":
+        allowIncomingMessages = Container(
+          width: 10,
+          height: 10,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.red,
+          ),
+        );
+        break;
+      case "following":
+        allowIncomingMessages = Container(
+          width: 10,
+          height: 10,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.yellow,
+          ),
+        );
+        break;
+      case "all":
+        allowIncomingMessages = Container(
+          width: 10,
+          height: 10,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.green,
+          ),
+        );
+        break;
+      default:
+        allowIncomingMessages = Container(
+          width: 10,
+          height: 10,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.grey,
+          ),
+        );
+    }
+
+    // TODO, fix align and make this dissapear
+    bool showFollow = true;
+
     return ListTile(
       title: Text(title ?? "null"),
       leading: avatar,
+      trailing: SizedBox(
+        width: 55,
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Row(
+            children: [
+              if (!showFollow || profile.isNotFollowing)
+                IconButton(
+                  icon: const Icon(Icons.person_add),
+                  onPressed: () {
+                    // Update showFollow state and perform action
+                    setState(() {
+                      showFollow = false;
+                    });
+                    followUser(profile.did);
+                  },
+                ),
+              const SizedBox(width: 5),
+              allowIncomingMessages,
+            ],
+          ),
+        ),
+      ),
       onTap: () {
         _pushToIndividualChatPage(context, actor, avatar);
       },
