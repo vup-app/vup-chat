@@ -64,6 +64,7 @@ class ProfilePageState extends State<ProfilePage> {
                         profileInfo.banner!,
                         fit: BoxFit.cover,
                         height: 200.h,
+                        width: double.infinity,
                       ),
                       Positioned(
                         top: 16.h,
@@ -149,6 +150,7 @@ class ProfilePageState extends State<ProfilePage> {
                 period: const Duration(milliseconds: 500),
                 child: Container(
                   height: 200.h,
+                  width: double.infinity,
                   color: Colors.grey,
                 ),
               ),

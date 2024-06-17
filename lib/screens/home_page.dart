@@ -4,6 +4,7 @@ import 'package:vup_chat/constants.dart';
 import 'package:vup_chat/screens/chat_list_page.dart';
 import 'package:vup_chat/screens/profile_page.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
+import 'package:vup_chat/screens/search_actor.page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -47,6 +48,12 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _onNewChatSelected() {
+    setState(() {
+      rightWidget = const SearchActorPage();
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -61,10 +68,17 @@ class _HomePageState extends State<HomePage> {
             body: Row(
               children: [
                 Expanded(
-                  child: ChatListPage(onChatSelected: _onChatSelected),
+                  flex: 1,
+                  child: ChatListPage(
+                    onChatSelected: _onChatSelected,
+                    onNewChatSelected: _onNewChatSelected,
+                  ),
                 ),
                 const VerticalDivider(),
-                Expanded(child: rightWidget),
+                Expanded(
+                  flex: 2,
+                  child: rightWidget,
+                ),
               ],
             ),
           );

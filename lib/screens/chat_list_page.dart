@@ -10,8 +10,9 @@ import 'package:vup_chat/widgets/chat_page_list_item.dart';
 
 class ChatListPage extends StatefulWidget {
   final void Function(ConvoView convo)? onChatSelected;
+  final void Function()? onNewChatSelected;
 
-  const ChatListPage({super.key, this.onChatSelected});
+  const ChatListPage({super.key, this.onChatSelected, this.onNewChatSelected});
 
   @override
   ChatListPageState createState() => ChatListPageState();
@@ -116,8 +117,14 @@ class ChatListPageState extends State<ChatListPage> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.message_outlined),
         onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const SearchActorPage()));
+          if (widget.onNewChatSelected != null) {
+            widget.onNewChatSelected!.call();
+          } else {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const SearchActorPage()));
+          }
         },
       ),
       body: FutureBuilder<ListConvosOutput?>(
