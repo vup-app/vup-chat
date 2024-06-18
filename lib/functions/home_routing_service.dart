@@ -1,6 +1,7 @@
 import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
+import 'package:vup_chat/screens/profile_page.dart';
 import 'package:vup_chat/screens/search_actor.page.dart';
 import 'package:vup_chat/screens/settings_page.dart';
 
@@ -29,5 +30,9 @@ class HomeRoutingService {
 
   void navigateToSettings() {
     onRightPanelChanged(const SettingsPage());
+  }
+
+  void navigateToProfile() {
+    onRightPanelChanged(const ProfilePage());
   }
 }

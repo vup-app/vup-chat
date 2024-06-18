@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
-import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
 import 'package:bluesky_chat/bluesky_chat.dart';
+import 'package:vup_chat/widgets/app_bar_back.dart';
 
 class ChatIndividualPage extends StatefulWidget {
   final String id;
@@ -111,14 +111,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
             Text(widget.otherName),
           ],
         ),
-        leading: (!isDesktop())
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-              )
-            : Container(),
+        leading: backButton(context),
         backgroundColor: Theme.of(context).cardColor,
       ),
       body: Center(

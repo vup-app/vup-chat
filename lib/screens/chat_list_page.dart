@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/main.dart';
+import 'package:vup_chat/screens/profile_page.dart';
 import 'package:vup_chat/screens/search_actor.page.dart';
 import 'package:vup_chat/screens/settings_page.dart';
 import 'package:vup_chat/widgets/chat_page_list_item.dart';
@@ -124,6 +125,15 @@ class ChatListPageState extends State<ChatListPage> {
     }
   }
 
+  void _navToProfile() async {
+    if (widget.homeRoutingService != null) {
+      widget.homeRoutingService!.navigateToProfile();
+    } else {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const ProfilePage()));
+    }
+  }
+
   Drawer _buildDrawer() {
     return Drawer(
       child: ListView(
@@ -135,6 +145,13 @@ class ChatListPageState extends State<ChatListPage> {
             title: const Text('Settings'),
             onTap: () {
               _navToSettings();
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: const Text('Profile'),
+            onTap: () {
+              _navToProfile();
             },
           ),
         ],
