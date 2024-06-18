@@ -4,15 +4,16 @@ import 'dart:convert';
 import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
+import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/screens/search_actor.page.dart';
+import 'package:vup_chat/screens/settings_page.dart';
 import 'package:vup_chat/widgets/chat_page_list_item.dart';
 
 class ChatListPage extends StatefulWidget {
-  final void Function(ConvoView convo)? onChatSelected;
-  final void Function()? onNewChatSelected;
+  final HomeRoutingService? homeRoutingService;
 
-  const ChatListPage({super.key, this.onChatSelected, this.onNewChatSelected});
+  const ChatListPage({super.key, this.homeRoutingService});
 
   @override
   ChatListPageState createState() => ChatListPageState();
@@ -64,7 +65,10 @@ class ChatListPageState extends State<ChatListPage> {
           _listKey.currentState?.removeItem(
             i,
             (context, animation) => buildChatListPageListItem(
-                oldConversations[i], animation, context, widget.onChatSelected),
+                oldConversations[i],
+                animation,
+                context,
+                widget.homeRoutingService),
             duration: const Duration(milliseconds: 300),
           );
           _listKey.currentState?.insertItem(
@@ -75,8 +79,8 @@ class ChatListPageState extends State<ChatListPage> {
       } else {
         _listKey.currentState?.removeItem(
           i,
-          (context, animation) => buildChatListPageListItem(
-              oldConversations[i], animation, context, widget.onChatSelected),
+          (context, animation) => buildChatListPageListItem(oldConversations[i],
+              animation, context, widget.homeRoutingService),
           duration: const Duration(milliseconds: 300),
         );
       }
@@ -111,14 +115,41 @@ class ChatListPageState extends State<ChatListPage> {
     await _loadConversations();
   }
 
+  void _navToSettings() async {
+    if (widget.homeRoutingService != null) {
+      widget.homeRoutingService!.navigateToSettings();
+    } else {
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const SettingsPage()));
+    }
+  }
+
+  Drawer _buildDrawer() {
+    return Drawer(
+      child: ListView(
+        reverse: true,
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Settings'),
+            onTap: () {
+              _navToSettings();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.message_outlined),
         onPressed: () {
-          if (widget.onNewChatSelected != null) {
-            widget.onNewChatSelected!.call();
+          if (widget.homeRoutingService != null) {
+            widget.homeRoutingService!.onNewChatSelected();
           } else {
             Navigator.push(
                 context,
@@ -127,6 +158,10 @@ class ChatListPageState extends State<ChatListPage> {
           }
         },
       ),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).cardColor,
+      ),
+      drawer: _buildDrawer(),
       body: FutureBuilder<ListConvosOutput?>(
         future: _futureConvos,
         builder: (context, snapshot) {
@@ -148,7 +183,7 @@ class ChatListPageState extends State<ChatListPage> {
               itemBuilder: (context, index, animation) {
                 final convo = _conversations[index];
                 return buildChatListPageListItem(
-                    convo, animation, context, widget.onChatSelected);
+                    convo, animation, context, widget.homeRoutingService);
               },
             ),
           );

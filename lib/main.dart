@@ -3,11 +3,13 @@ import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
 import 'package:vup_chat/theme.dart';
 import 'package:vup_chat/widgets/init_router.dart';
 
 const FlutterSecureStorage storage = FlutterSecureStorage();
+late SharedPreferences preferences;
 Bluesky? session;
 BlueskyChat? chatSession;
 String? did;
@@ -16,6 +18,7 @@ void main() async {
   // grab login credentials and try to log in
   WidgetsFlutterBinding.ensureInitialized();
   session = await tryLogIn(null, null);
+  preferences = await SharedPreferences.getInstance();
 
   runApp(const VupChat());
 }
