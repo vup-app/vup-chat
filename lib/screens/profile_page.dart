@@ -147,7 +147,6 @@ class ProfilePageState extends State<ProfilePage> {
               Shimmer.fromColors(
                 baseColor: Colors.grey[300]!,
                 highlightColor: Colors.grey[100]!,
-                period: const Duration(milliseconds: 500),
                 child: Container(
                   height: 200.h,
                   width: double.infinity,
@@ -158,16 +157,6 @@ class ProfilePageState extends State<ProfilePage> {
                 padding: EdgeInsets.all(16.w),
                 child: Row(
                   children: [
-                    Shimmer.fromColors(
-                      baseColor: Colors.grey[300]!,
-                      highlightColor: Colors.grey[100]!,
-                      period: const Duration(milliseconds: 500),
-                      child: CircleAvatar(
-                        radius: 40.w,
-                        backgroundColor: Colors.grey,
-                      ),
-                    ),
-                    SizedBox(width: 16.w),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,21 +164,21 @@ class ProfilePageState extends State<ProfilePage> {
                           Shimmer.fromColors(
                             baseColor: Colors.grey[300]!,
                             highlightColor: Colors.grey[100]!,
-                            period: const Duration(milliseconds: 500),
                             child: Container(
-                              width: 150.w,
                               height: 24.h,
+                              width: 200.w,
                               color: Colors.grey,
                             ),
                           ),
-                          SizedBox(height: 8.h),
+                          SizedBox(
+                              height: 10
+                                  .h), // Add spacing for potential description
                           Shimmer.fromColors(
                             baseColor: Colors.grey[300]!,
                             highlightColor: Colors.grey[100]!,
-                            period: const Duration(milliseconds: 500),
                             child: Container(
-                              width: 200.w,
                               height: 14.h,
+                              width: double.infinity,
                               color: Colors.grey,
                             ),
                           ),
@@ -200,20 +189,6 @@ class ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ],
-          ),
-        ),
-        Positioned(
-          top: 16.h,
-          right: 16.w,
-          child: Shimmer.fromColors(
-            baseColor: Colors.grey[300]!,
-            highlightColor: Colors.grey[100]!,
-            period: const Duration(milliseconds: 500),
-            child: Container(
-              width: 30.w,
-              height: 30.h,
-              color: Colors.grey,
-            ),
           ),
         ),
       ],

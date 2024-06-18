@@ -33,3 +33,12 @@ Future<String?> getUserFromUID(String uid) async {
   }
   return null;
 }
+
+Future<ConvoView?> getConvoFromUID(String uid) async {
+  if (chatSession != null && uid.isNotEmpty) {
+    GetConvoForMembersOutput resp =
+        (await chatSession!.convo.getConvoForMembers(members: [uid])).data;
+    return (resp.convo);
+  }
+  return null;
+}

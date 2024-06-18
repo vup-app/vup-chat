@@ -1,14 +1,14 @@
 import 'package:bluesky/bluesky.dart';
+import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
-import 'package:vup_chat/bsky/profile_actions.dart';
 import 'package:vup_chat/main.dart';
 import 'package:flutter/src/widgets/scroll_view.dart' as fscroll;
 import 'package:vup_chat/screens/chat_individual_page.dart';
 
 class SearchActorPage extends StatefulWidget {
-  const SearchActorPage({super.key});
+  final void Function(ConvoView convo)? onChatSelected;
+  const SearchActorPage({super.key, this.onChatSelected});
 
   @override
   SearchActorPageState createState() => SearchActorPageState();
@@ -18,6 +18,8 @@ class SearchActorPageState extends State<SearchActorPage> {
   final TextEditingController _controller = TextEditingController();
   List<Actor> _actors = [];
   List<ActorProfile> _profiles = [];
+  Map<String, bool> isPending = {};
+  Map<String, bool> followedProfiles = {};
 
   @override
   void initState() {
@@ -78,9 +80,15 @@ class SearchActorPageState extends State<SearchActorPage> {
     return;
   }
 
+  Future<void> _splitToIndividualChat(Actor actor) async {
+    ConvoView? convo = await getConvoFromUID(actor.did);
+    if (convo != null) {
+      widget.onChatSelected!.call(convo);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // TODO: Add follow request button to those you cannot chat with
     return Scaffold(
       appBar: AppBar(
         title: const Text('Search Users'),
@@ -128,7 +136,7 @@ class SearchActorPageState extends State<SearchActorPage> {
 
     try {
       if (profile.associated != null && profile.associated!.chat != null) {
-        status = profile.associated!.chat!.allowIncoming ?? "none";
+        status = profile.associated!.chat!.allowIncoming;
       }
     } catch (e) {
       print("Error fetching status: $e");
@@ -176,8 +184,47 @@ class SearchActorPageState extends State<SearchActorPage> {
         );
     }
 
-    // TODO, fix align and make this dissapear
-    bool showFollow = true;
+    late Widget followButton;
+
+    if (isPending[profile.did] == true) {
+      followButton = const Row(
+        children: [
+          SizedBox(width: 10),
+          Icon(Icons.hourglass_empty),
+          SizedBox(width: 5),
+        ],
+      );
+    } else if (followedProfiles[profile.did] == true || profile.isFollowing) {
+      followButton = const Row(
+        children: [
+          SizedBox(width: 10),
+          Icon(Icons.check),
+          SizedBox(width: 5),
+        ],
+      );
+    } else if (profile.isNotFollowedBy) {
+      followButton = IconButton(
+        icon: const Icon(Icons.person_add),
+        onPressed: () async {
+          setState(() {
+            isPending[profile.did] = true;
+          });
+
+          // Simulate network call
+          await Future.delayed(const Duration(seconds: 2));
+
+          // Assuming the follow request is successful
+          setState(() {
+            isPending[profile.did] = false;
+            followedProfiles[profile.did] = true;
+          });
+        },
+      );
+    } else {
+      followButton = const SizedBox(
+        width: 40,
+      );
+    }
 
     return ListTile(
       title: Text(title ?? "null"),
@@ -188,17 +235,7 @@ class SearchActorPageState extends State<SearchActorPage> {
           alignment: Alignment.centerRight,
           child: Row(
             children: [
-              if (!showFollow || profile.isNotFollowing)
-                IconButton(
-                  icon: const Icon(Icons.person_add),
-                  onPressed: () {
-                    // Update showFollow state and perform action
-                    setState(() {
-                      showFollow = false;
-                    });
-                    followUser(profile.did);
-                  },
-                ),
+              followButton,
               const SizedBox(width: 5),
               allowIncomingMessages,
             ],
@@ -206,7 +243,11 @@ class SearchActorPageState extends State<SearchActorPage> {
         ),
       ),
       onTap: () {
-        _pushToIndividualChatPage(context, actor, avatar);
+        if (widget.onChatSelected != null) {
+          _splitToIndividualChat(actor);
+        } else {
+          _pushToIndividualChatPage(context, actor, avatar);
+        }
       },
     );
   }

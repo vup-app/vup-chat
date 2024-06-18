@@ -50,7 +50,9 @@ class _HomePageState extends State<HomePage> {
 
   void _onNewChatSelected() {
     setState(() {
-      rightWidget = const SearchActorPage();
+      rightWidget = SearchActorPage(
+        onChatSelected: _onChatSelected,
+      );
     });
   }
 
