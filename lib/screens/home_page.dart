@@ -58,7 +58,6 @@ class _HomePageState extends State<HomePage> {
                 homeRoutingService: homeRoutingService,
               ),
             ),
-            const VerticalDivider(),
             Expanded(
               flex: 2,
               child: rightWidget,

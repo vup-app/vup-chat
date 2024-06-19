@@ -1,4 +1,3 @@
-import 'package:bluesky/bluesky.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -20,7 +19,6 @@ class LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
   final userController = TextEditingController();
   final passwordController = TextEditingController();
-  Bluesky? session;
   bool obscureText = true;
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
@@ -66,7 +64,7 @@ class LoginPageState extends State<LoginPage>
         _isLoginFailed = true;
       });
       _controller.forward().then((_) => _controller.reverse());
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.delayed(const Duration(seconds: 1));
       setState(() {
         _isLoginFailed = false;
       });
@@ -119,6 +117,7 @@ class LoginPageState extends State<LoginPage>
                   ),
                   child: TextField(
                     textAlign: TextAlign.center,
+                    autofillHints: const [AutofillHints.username],
                     decoration: const InputDecoration(
                       labelText: 'Email',
                       hintText: 'foo@bar.com',
@@ -138,6 +137,7 @@ class LoginPageState extends State<LoginPage>
                   ),
                   child: TextField(
                       textAlign: TextAlign.center,
+                      autofillHints: const [AutofillHints.password],
                       decoration: InputDecoration(
                         labelText: 'App Password',
                         hintText: 'ndsl-kdiw-ndba-nadk',

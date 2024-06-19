@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
@@ -51,91 +52,99 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildContent(AsyncSnapshot<PersonalProfileInfo> snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
+    if (!kIsWeb && snapshot.connectionState == ConnectionState.waiting) {
       return _buildShimmerPlaceholder();
+    } else if (kIsWeb && snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
     } else if (snapshot.hasData) {
-      final profileInfo = snapshot.data!;
-      return Stack(
-        children: [
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (profileInfo.banner != null)
-                  Stack(
-                    children: [
-                      img.Image.memory(
-                        profileInfo.banner!,
-                        fit: BoxFit.cover,
-                        height: 200.h,
-                        width: double.infinity,
-                      ),
-                      Positioned(
-                        top: 16.h,
-                        right: 16.w,
-                        child: IconButton(
-                          icon: const Icon(Icons.logout,
-                              color: Colors.white, size: 30),
-                          onPressed: _logOut,
-                          style: ButtonStyle(
-                            shadowColor: WidgetStateProperty.all(
-                                Colors.black.withOpacity(0.5)),
-                            elevation: WidgetStateProperty.all(5),
-                          ),
+      if (snapshot.data != null) {
+        final profileInfo = snapshot.data!;
+        return Stack(
+          children: [
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (profileInfo.banner != null && profileInfo.avatar != null)
+                    Stack(
+                      children: [
+                        img.Image.memory(
+                          profileInfo.banner!,
+                          fit: BoxFit.cover,
+                          height: 200.h,
+                          width: double.infinity,
                         ),
-                      ),
-                      Positioned(
-                        left: 16.w,
-                        top: 20.h,
-                        child: CircleAvatar(
-                          radius: 80.h,
-                          backgroundColor: Colors.blue,
-                          child: CircleAvatar(
-                            radius: 75.h,
-                            backgroundImage: profileInfo.avatar != null
-                                ? MemoryImage(profileInfo.avatar!)
-                                : null,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                Padding(
-                  padding: EdgeInsets.all(16.w),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              profileInfo.displayName ?? '',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
+                        Positioned(
+                          top: 16.h,
+                          right: 16.w,
+                          child: IconButton(
+                            icon: const Icon(Icons.logout,
+                                color: Colors.white, size: 30),
+                            onPressed: _logOut,
+                            style: ButtonStyle(
+                              shadowColor: WidgetStateProperty.all(
+                                  Colors.black.withOpacity(0.5)),
+                              elevation: WidgetStateProperty.all(5),
                             ),
-                            if (profileInfo.description != null)
+                          ),
+                        ),
+                        Positioned(
+                          left: 16.w,
+                          top: 20.h,
+                          child: CircleAvatar(
+                            radius: 80.h,
+                            backgroundColor: Colors.blue,
+                            child: CircleAvatar(
+                              radius: 75.h,
+                              backgroundImage: profileInfo.avatar != null
+                                  ? MemoryImage(profileInfo.avatar!)
+                                  : null,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  Padding(
+                    padding: EdgeInsets.all(16.w),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                               Text(
-                                profileInfo.description!,
+                                profileInfo.displayName ?? '',
                                 style: const TextStyle(
-                                  fontSize: 14, // Smaller text size
-                                  color: Colors.grey,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                          ],
+                              if (profileInfo.description != null)
+                                Text(
+                                  profileInfo.description!,
+                                  style: const TextStyle(
+                                    fontSize: 14, // Smaller text size
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      );
+          ],
+        );
+      } else {
+        return const Center(child: CircularProgressIndicator());
+      }
     } else if (snapshot.hasError) {
-      return Center(child: Text('Error: ${snapshot.error}'));
+      return const Center(child: CircularProgressIndicator());
     }
     // Show a loading indicator while waiting
     return const Center(child: CircularProgressIndicator());

@@ -37,10 +37,11 @@ Future<PersonalProfileInfo> fetchProfile(bool update) async {
   final prefs = await SharedPreferences.getInstance();
   final cachedProfile = prefs.getString('cached_profile');
 
-  if (cachedProfile != null && !update) {
+  if (cachedProfile != null && cachedProfile.isNotEmpty && !update) {
     return PersonalProfileInfo.fromJson(jsonDecode(cachedProfile));
   } else {
-    final response = await session!.actor.getProfileRecord();
+    final XRPCResponse<ProfileRecord> response =
+        await session!.actor.getProfileRecord();
 
     String? displayName = response.data.displayName;
     String? description = response.data.description;
