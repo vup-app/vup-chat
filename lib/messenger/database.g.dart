@@ -769,9 +769,15 @@ class $MessageListTable extends MessageList
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _lastUpdatedMeta =
+      const VerificationMeta('lastUpdated');
+  @override
+  late final GeneratedColumn<DateTime> lastUpdated = GeneratedColumn<DateTime>(
+      'last_updated', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, rev, members, lastMessage, muted, hidden, unreadCount];
+      [id, rev, members, lastMessage, muted, hidden, unreadCount, lastUpdated];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -821,6 +827,14 @@ class $MessageListTable extends MessageList
           unreadCount.isAcceptableOrUnknown(
               data['unread_count']!, _unreadCountMeta));
     }
+    if (data.containsKey('last_updated')) {
+      context.handle(
+          _lastUpdatedMeta,
+          lastUpdated.isAcceptableOrUnknown(
+              data['last_updated']!, _lastUpdatedMeta));
+    } else if (isInserting) {
+      context.missing(_lastUpdatedMeta);
+    }
     return context;
   }
 
@@ -844,6 +858,8 @@ class $MessageListTable extends MessageList
           .read(DriftSqlType.bool, data['${effectivePrefix}hidden'])!,
       unreadCount: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}unread_count'])!,
+      lastUpdated: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_updated'])!,
     );
   }
 
@@ -861,6 +877,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
   final bool muted;
   final bool hidden;
   final int unreadCount;
+  final DateTime lastUpdated;
   const MessageListData(
       {required this.id,
       required this.rev,
@@ -868,7 +885,8 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
       required this.lastMessage,
       required this.muted,
       required this.hidden,
-      required this.unreadCount});
+      required this.unreadCount,
+      required this.lastUpdated});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -879,6 +897,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
     map['muted'] = Variable<bool>(muted);
     map['hidden'] = Variable<bool>(hidden);
     map['unread_count'] = Variable<int>(unreadCount);
+    map['last_updated'] = Variable<DateTime>(lastUpdated);
     return map;
   }
 
@@ -891,6 +910,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
       muted: Value(muted),
       hidden: Value(hidden),
       unreadCount: Value(unreadCount),
+      lastUpdated: Value(lastUpdated),
     );
   }
 
@@ -905,6 +925,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
       muted: serializer.fromJson<bool>(json['muted']),
       hidden: serializer.fromJson<bool>(json['hidden']),
       unreadCount: serializer.fromJson<int>(json['unreadCount']),
+      lastUpdated: serializer.fromJson<DateTime>(json['lastUpdated']),
     );
   }
   @override
@@ -918,6 +939,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
       'muted': serializer.toJson<bool>(muted),
       'hidden': serializer.toJson<bool>(hidden),
       'unreadCount': serializer.toJson<int>(unreadCount),
+      'lastUpdated': serializer.toJson<DateTime>(lastUpdated),
     };
   }
 
@@ -928,7 +950,8 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
           String? lastMessage,
           bool? muted,
           bool? hidden,
-          int? unreadCount}) =>
+          int? unreadCount,
+          DateTime? lastUpdated}) =>
       MessageListData(
         id: id ?? this.id,
         rev: rev ?? this.rev,
@@ -937,6 +960,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
         muted: muted ?? this.muted,
         hidden: hidden ?? this.hidden,
         unreadCount: unreadCount ?? this.unreadCount,
+        lastUpdated: lastUpdated ?? this.lastUpdated,
       );
   @override
   String toString() {
@@ -947,14 +971,15 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
           ..write('lastMessage: $lastMessage, ')
           ..write('muted: $muted, ')
           ..write('hidden: $hidden, ')
-          ..write('unreadCount: $unreadCount')
+          ..write('unreadCount: $unreadCount, ')
+          ..write('lastUpdated: $lastUpdated')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, rev, members, lastMessage, muted, hidden, unreadCount);
+  int get hashCode => Object.hash(
+      id, rev, members, lastMessage, muted, hidden, unreadCount, lastUpdated);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -965,7 +990,8 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
           other.lastMessage == this.lastMessage &&
           other.muted == this.muted &&
           other.hidden == this.hidden &&
-          other.unreadCount == this.unreadCount);
+          other.unreadCount == this.unreadCount &&
+          other.lastUpdated == this.lastUpdated);
 }
 
 class MessageListCompanion extends UpdateCompanion<MessageListData> {
@@ -976,6 +1002,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
   final Value<bool> muted;
   final Value<bool> hidden;
   final Value<int> unreadCount;
+  final Value<DateTime> lastUpdated;
   final Value<int> rowid;
   const MessageListCompanion({
     this.id = const Value.absent(),
@@ -985,6 +1012,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
     this.muted = const Value.absent(),
     this.hidden = const Value.absent(),
     this.unreadCount = const Value.absent(),
+    this.lastUpdated = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MessageListCompanion.insert({
@@ -995,11 +1023,13 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
     this.muted = const Value.absent(),
     this.hidden = const Value.absent(),
     this.unreadCount = const Value.absent(),
+    required DateTime lastUpdated,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         rev = Value(rev),
         members = Value(members),
-        lastMessage = Value(lastMessage);
+        lastMessage = Value(lastMessage),
+        lastUpdated = Value(lastUpdated);
   static Insertable<MessageListData> custom({
     Expression<String>? id,
     Expression<String>? rev,
@@ -1008,6 +1038,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
     Expression<bool>? muted,
     Expression<bool>? hidden,
     Expression<int>? unreadCount,
+    Expression<DateTime>? lastUpdated,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1018,6 +1049,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
       if (muted != null) 'muted': muted,
       if (hidden != null) 'hidden': hidden,
       if (unreadCount != null) 'unread_count': unreadCount,
+      if (lastUpdated != null) 'last_updated': lastUpdated,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1030,6 +1062,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
       Value<bool>? muted,
       Value<bool>? hidden,
       Value<int>? unreadCount,
+      Value<DateTime>? lastUpdated,
       Value<int>? rowid}) {
     return MessageListCompanion(
       id: id ?? this.id,
@@ -1039,6 +1072,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
       muted: muted ?? this.muted,
       hidden: hidden ?? this.hidden,
       unreadCount: unreadCount ?? this.unreadCount,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1067,6 +1101,9 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
     if (unreadCount.present) {
       map['unread_count'] = Variable<int>(unreadCount.value);
     }
+    if (lastUpdated.present) {
+      map['last_updated'] = Variable<DateTime>(lastUpdated.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1083,6 +1120,203 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
           ..write('muted: $muted, ')
           ..write('hidden: $hidden, ')
           ..write('unreadCount: $unreadCount, ')
+          ..write('lastUpdated: $lastUpdated, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MessageListMessagesTable extends MessageListMessages
+    with TableInfo<$MessageListMessagesTable, MessageListMessage> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MessageListMessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _messageIdMeta =
+      const VerificationMeta('messageId');
+  @override
+  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
+      'message_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'REFERENCES messages(id) NOT NULL');
+  static const VerificationMeta _messageListIdMeta =
+      const VerificationMeta('messageListId');
+  @override
+  late final GeneratedColumn<String> messageListId = GeneratedColumn<String>(
+      'message_list_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'REFERENCES message_list(id) NOT NULL');
+  @override
+  List<GeneratedColumn> get $columns => [messageId, messageListId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'message_list_messages';
+  @override
+  VerificationContext validateIntegrity(Insertable<MessageListMessage> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('message_id')) {
+      context.handle(_messageIdMeta,
+          messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta));
+    } else if (isInserting) {
+      context.missing(_messageIdMeta);
+    }
+    if (data.containsKey('message_list_id')) {
+      context.handle(
+          _messageListIdMeta,
+          messageListId.isAcceptableOrUnknown(
+              data['message_list_id']!, _messageListIdMeta));
+    } else if (isInserting) {
+      context.missing(_messageListIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {messageId, messageListId};
+  @override
+  MessageListMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MessageListMessage(
+      messageId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}message_id'])!,
+      messageListId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}message_list_id'])!,
+    );
+  }
+
+  @override
+  $MessageListMessagesTable createAlias(String alias) {
+    return $MessageListMessagesTable(attachedDatabase, alias);
+  }
+}
+
+class MessageListMessage extends DataClass
+    implements Insertable<MessageListMessage> {
+  final String messageId;
+  final String messageListId;
+  const MessageListMessage(
+      {required this.messageId, required this.messageListId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['message_id'] = Variable<String>(messageId);
+    map['message_list_id'] = Variable<String>(messageListId);
+    return map;
+  }
+
+  MessageListMessagesCompanion toCompanion(bool nullToAbsent) {
+    return MessageListMessagesCompanion(
+      messageId: Value(messageId),
+      messageListId: Value(messageListId),
+    );
+  }
+
+  factory MessageListMessage.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MessageListMessage(
+      messageId: serializer.fromJson<String>(json['messageId']),
+      messageListId: serializer.fromJson<String>(json['messageListId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'messageId': serializer.toJson<String>(messageId),
+      'messageListId': serializer.toJson<String>(messageListId),
+    };
+  }
+
+  MessageListMessage copyWith({String? messageId, String? messageListId}) =>
+      MessageListMessage(
+        messageId: messageId ?? this.messageId,
+        messageListId: messageListId ?? this.messageListId,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('MessageListMessage(')
+          ..write('messageId: $messageId, ')
+          ..write('messageListId: $messageListId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(messageId, messageListId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MessageListMessage &&
+          other.messageId == this.messageId &&
+          other.messageListId == this.messageListId);
+}
+
+class MessageListMessagesCompanion extends UpdateCompanion<MessageListMessage> {
+  final Value<String> messageId;
+  final Value<String> messageListId;
+  final Value<int> rowid;
+  const MessageListMessagesCompanion({
+    this.messageId = const Value.absent(),
+    this.messageListId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MessageListMessagesCompanion.insert({
+    required String messageId,
+    required String messageListId,
+    this.rowid = const Value.absent(),
+  })  : messageId = Value(messageId),
+        messageListId = Value(messageListId);
+  static Insertable<MessageListMessage> custom({
+    Expression<String>? messageId,
+    Expression<String>? messageListId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (messageId != null) 'message_id': messageId,
+      if (messageListId != null) 'message_list_id': messageListId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MessageListMessagesCompanion copyWith(
+      {Value<String>? messageId,
+      Value<String>? messageListId,
+      Value<int>? rowid}) {
+    return MessageListMessagesCompanion(
+      messageId: messageId ?? this.messageId,
+      messageListId: messageListId ?? this.messageListId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (messageId.present) {
+      map['message_id'] = Variable<String>(messageId.value);
+    }
+    if (messageListId.present) {
+      map['message_list_id'] = Variable<String>(messageListId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MessageListMessagesCompanion(')
+          ..write('messageId: $messageId, ')
+          ..write('messageListId: $messageListId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1096,12 +1330,14 @@ abstract class _$MessageDatabase extends GeneratedDatabase {
   late final $ContentTable content = $ContentTable(this);
   late final $MessagesTable messages = $MessagesTable(this);
   late final $MessageListTable messageList = $MessageListTable(this);
+  late final $MessageListMessagesTable messageListMessages =
+      $MessageListMessagesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [senders, content, messages, messageList];
+      [senders, content, messages, messageList, messageListMessages];
 }
 
 typedef $$SendersTableInsertCompanionBuilder = SendersCompanion Function({
@@ -1429,6 +1665,23 @@ class $$MessagesTableFilterComposer
                 $state.db, $state.db.senders, joinBuilder, parentComposers)));
     return composer;
   }
+
+  ComposableFilter messageListMessagesRefs(
+      ComposableFilter Function($$MessageListMessagesTableFilterComposer f) f) {
+    final $$MessageListMessagesTableFilterComposer composer =
+        $state.composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $state.db.messageListMessages,
+            getReferencedColumn: (t) => t.messageId,
+            builder: (joinBuilder, parentComposers) =>
+                $$MessageListMessagesTableFilterComposer(ComposerState(
+                    $state.db,
+                    $state.db.messageListMessages,
+                    joinBuilder,
+                    parentComposers)));
+    return f(composer);
+  }
 }
 
 class $$MessagesTableOrderingComposer
@@ -1481,6 +1734,7 @@ typedef $$MessageListTableInsertCompanionBuilder = MessageListCompanion
   Value<bool> muted,
   Value<bool> hidden,
   Value<int> unreadCount,
+  required DateTime lastUpdated,
   Value<int> rowid,
 });
 typedef $$MessageListTableUpdateCompanionBuilder = MessageListCompanion
@@ -1492,6 +1746,7 @@ typedef $$MessageListTableUpdateCompanionBuilder = MessageListCompanion
   Value<bool> muted,
   Value<bool> hidden,
   Value<int> unreadCount,
+  Value<DateTime> lastUpdated,
   Value<int> rowid,
 });
 
@@ -1522,6 +1777,7 @@ class $$MessageListTableTableManager extends RootTableManager<
             Value<bool> muted = const Value.absent(),
             Value<bool> hidden = const Value.absent(),
             Value<int> unreadCount = const Value.absent(),
+            Value<DateTime> lastUpdated = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MessageListCompanion(
@@ -1532,6 +1788,7 @@ class $$MessageListTableTableManager extends RootTableManager<
             muted: muted,
             hidden: hidden,
             unreadCount: unreadCount,
+            lastUpdated: lastUpdated,
             rowid: rowid,
           ),
           getInsertCompanionBuilder: ({
@@ -1542,6 +1799,7 @@ class $$MessageListTableTableManager extends RootTableManager<
             Value<bool> muted = const Value.absent(),
             Value<bool> hidden = const Value.absent(),
             Value<int> unreadCount = const Value.absent(),
+            required DateTime lastUpdated,
             Value<int> rowid = const Value.absent(),
           }) =>
               MessageListCompanion.insert(
@@ -1552,6 +1810,7 @@ class $$MessageListTableTableManager extends RootTableManager<
             muted: muted,
             hidden: hidden,
             unreadCount: unreadCount,
+            lastUpdated: lastUpdated,
             rowid: rowid,
           ),
         ));
@@ -1606,6 +1865,28 @@ class $$MessageListTableFilterComposer
       column: $state.table.unreadCount,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<DateTime> get lastUpdated => $state.composableBuilder(
+      column: $state.table.lastUpdated,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ComposableFilter messageListMessagesRefs(
+      ComposableFilter Function($$MessageListMessagesTableFilterComposer f) f) {
+    final $$MessageListMessagesTableFilterComposer composer =
+        $state.composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $state.db.messageListMessages,
+            getReferencedColumn: (t) => t.messageListId,
+            builder: (joinBuilder, parentComposers) =>
+                $$MessageListMessagesTableFilterComposer(ComposerState(
+                    $state.db,
+                    $state.db.messageListMessages,
+                    joinBuilder,
+                    parentComposers)));
+    return f(composer);
+  }
 }
 
 class $$MessageListTableOrderingComposer
@@ -1645,6 +1926,136 @@ class $$MessageListTableOrderingComposer
       column: $state.table.unreadCount,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<DateTime> get lastUpdated => $state.composableBuilder(
+      column: $state.table.lastUpdated,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $$MessageListMessagesTableInsertCompanionBuilder
+    = MessageListMessagesCompanion Function({
+  required String messageId,
+  required String messageListId,
+  Value<int> rowid,
+});
+typedef $$MessageListMessagesTableUpdateCompanionBuilder
+    = MessageListMessagesCompanion Function({
+  Value<String> messageId,
+  Value<String> messageListId,
+  Value<int> rowid,
+});
+
+class $$MessageListMessagesTableTableManager extends RootTableManager<
+    _$MessageDatabase,
+    $MessageListMessagesTable,
+    MessageListMessage,
+    $$MessageListMessagesTableFilterComposer,
+    $$MessageListMessagesTableOrderingComposer,
+    $$MessageListMessagesTableProcessedTableManager,
+    $$MessageListMessagesTableInsertCompanionBuilder,
+    $$MessageListMessagesTableUpdateCompanionBuilder> {
+  $$MessageListMessagesTableTableManager(
+      _$MessageDatabase db, $MessageListMessagesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer: $$MessageListMessagesTableFilterComposer(
+              ComposerState(db, table)),
+          orderingComposer: $$MessageListMessagesTableOrderingComposer(
+              ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $$MessageListMessagesTableProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<String> messageId = const Value.absent(),
+            Value<String> messageListId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MessageListMessagesCompanion(
+            messageId: messageId,
+            messageListId: messageListId,
+            rowid: rowid,
+          ),
+          getInsertCompanionBuilder: ({
+            required String messageId,
+            required String messageListId,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              MessageListMessagesCompanion.insert(
+            messageId: messageId,
+            messageListId: messageListId,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $$MessageListMessagesTableProcessedTableManager
+    extends ProcessedTableManager<
+        _$MessageDatabase,
+        $MessageListMessagesTable,
+        MessageListMessage,
+        $$MessageListMessagesTableFilterComposer,
+        $$MessageListMessagesTableOrderingComposer,
+        $$MessageListMessagesTableProcessedTableManager,
+        $$MessageListMessagesTableInsertCompanionBuilder,
+        $$MessageListMessagesTableUpdateCompanionBuilder> {
+  $$MessageListMessagesTableProcessedTableManager(super.$state);
+}
+
+class $$MessageListMessagesTableFilterComposer
+    extends FilterComposer<_$MessageDatabase, $MessageListMessagesTable> {
+  $$MessageListMessagesTableFilterComposer(super.$state);
+  $$MessagesTableFilterComposer get messageId {
+    final $$MessagesTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.messageId,
+        referencedTable: $state.db.messages,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$MessagesTableFilterComposer(ComposerState(
+                $state.db, $state.db.messages, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $$MessageListTableFilterComposer get messageListId {
+    final $$MessageListTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.messageListId,
+        referencedTable: $state.db.messageList,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$MessageListTableFilterComposer(ComposerState($state.db,
+                $state.db.messageList, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
+class $$MessageListMessagesTableOrderingComposer
+    extends OrderingComposer<_$MessageDatabase, $MessageListMessagesTable> {
+  $$MessageListMessagesTableOrderingComposer(super.$state);
+  $$MessagesTableOrderingComposer get messageId {
+    final $$MessagesTableOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.messageId,
+        referencedTable: $state.db.messages,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$MessagesTableOrderingComposer(ComposerState(
+                $state.db, $state.db.messages, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $$MessageListTableOrderingComposer get messageListId {
+    final $$MessageListTableOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.messageListId,
+        referencedTable: $state.db.messageList,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$MessageListTableOrderingComposer(ComposerState($state.db,
+                $state.db.messageList, joinBuilder, parentComposers)));
+    return composer;
+  }
 }
 
 class _$MessageDatabaseManager {
@@ -1658,4 +2069,6 @@ class _$MessageDatabaseManager {
       $$MessagesTableTableManager(_db, _db.messages);
   $$MessageListTableTableManager get messageList =>
       $$MessageListTableTableManager(_db, _db.messageList);
+  $$MessageListMessagesTableTableManager get messageListMessages =>
+      $$MessageListMessagesTableTableManager(_db, _db.messageListMessages);
 }

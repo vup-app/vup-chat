@@ -1,7 +1,9 @@
+import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vup_chat/constants.dart';
+import 'package:vup_chat/main.dart';
 import 'package:vup_chat/widgets/app_bar_back.dart';
 import 'package:vup_chat/widgets/desktop_mode_switch.dart';
 
@@ -35,6 +37,12 @@ class SettingsPageState extends State<SettingsPage> {
               DesktopModeSwitch(),
             ],
           ),
+          ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => DriftDbViewer(db)));
+              },
+              child: const Text("View DB")),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(

@@ -7,15 +7,21 @@ import 'package:s5/s5.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
 import 'package:vup_chat/functions/s5.dart';
+import 'package:vup_chat/messenger/core.dart';
+import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/theme.dart';
 import 'package:vup_chat/widgets/init_router.dart';
 
+// TODO: Move these to providers and stop mucking about with
+// global state
 const FlutterSecureStorage storage = FlutterSecureStorage();
 late SharedPreferences preferences;
+late S5 s5;
+late MsgCore msg;
+late MessageDatabase db;
 Bluesky? session;
 BlueskyChat? chatSession;
 String? did;
-S5? s5;
 
 void main() async {
   // grab login credentials and try to log in
@@ -23,6 +29,12 @@ void main() async {
   session = await tryLogIn(null, null);
   preferences = await SharedPreferences.getInstance();
   await initS5();
+  db = MessageDatabase();
+  msg = MsgCore(
+      s5: s5, db: db, bskySession: session, bskyChatSession: chatSession);
+
+  // test playground
+  msg.populateListViewDB();
 
   // Go go program!
   runApp(const VupChat());
