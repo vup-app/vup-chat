@@ -715,12 +715,12 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   }
 }
 
-class $MessageListTable extends MessageList
-    with TableInfo<$MessageListTable, MessageListData> {
+class $ChatListTable extends ChatList
+    with TableInfo<$ChatListTable, ChatListData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $MessageListTable(this.attachedDatabase, [this._alias]);
+  $ChatListTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -782,9 +782,9 @@ class $MessageListTable extends MessageList
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'message_list';
+  static const String $name = 'chat_list';
   @override
-  VerificationContext validateIntegrity(Insertable<MessageListData> instance,
+  VerificationContext validateIntegrity(Insertable<ChatListData> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -841,9 +841,9 @@ class $MessageListTable extends MessageList
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  MessageListData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  ChatListData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MessageListData(
+    return ChatListData(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       rev: attachedDatabase.typeMapping
@@ -864,12 +864,12 @@ class $MessageListTable extends MessageList
   }
 
   @override
-  $MessageListTable createAlias(String alias) {
-    return $MessageListTable(attachedDatabase, alias);
+  $ChatListTable createAlias(String alias) {
+    return $ChatListTable(attachedDatabase, alias);
   }
 }
 
-class MessageListData extends DataClass implements Insertable<MessageListData> {
+class ChatListData extends DataClass implements Insertable<ChatListData> {
   final String id;
   final String rev;
   final String members;
@@ -878,7 +878,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
   final bool hidden;
   final int unreadCount;
   final DateTime lastUpdated;
-  const MessageListData(
+  const ChatListData(
       {required this.id,
       required this.rev,
       required this.members,
@@ -901,8 +901,8 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
     return map;
   }
 
-  MessageListCompanion toCompanion(bool nullToAbsent) {
-    return MessageListCompanion(
+  ChatListCompanion toCompanion(bool nullToAbsent) {
+    return ChatListCompanion(
       id: Value(id),
       rev: Value(rev),
       members: Value(members),
@@ -914,10 +914,10 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
     );
   }
 
-  factory MessageListData.fromJson(Map<String, dynamic> json,
+  factory ChatListData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return MessageListData(
+    return ChatListData(
       id: serializer.fromJson<String>(json['id']),
       rev: serializer.fromJson<String>(json['rev']),
       members: serializer.fromJson<String>(json['members']),
@@ -943,7 +943,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
     };
   }
 
-  MessageListData copyWith(
+  ChatListData copyWith(
           {String? id,
           String? rev,
           String? members,
@@ -952,7 +952,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
           bool? hidden,
           int? unreadCount,
           DateTime? lastUpdated}) =>
-      MessageListData(
+      ChatListData(
         id: id ?? this.id,
         rev: rev ?? this.rev,
         members: members ?? this.members,
@@ -964,7 +964,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
       );
   @override
   String toString() {
-    return (StringBuffer('MessageListData(')
+    return (StringBuffer('ChatListData(')
           ..write('id: $id, ')
           ..write('rev: $rev, ')
           ..write('members: $members, ')
@@ -983,7 +983,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is MessageListData &&
+      (other is ChatListData &&
           other.id == this.id &&
           other.rev == this.rev &&
           other.members == this.members &&
@@ -994,7 +994,7 @@ class MessageListData extends DataClass implements Insertable<MessageListData> {
           other.lastUpdated == this.lastUpdated);
 }
 
-class MessageListCompanion extends UpdateCompanion<MessageListData> {
+class ChatListCompanion extends UpdateCompanion<ChatListData> {
   final Value<String> id;
   final Value<String> rev;
   final Value<String> members;
@@ -1004,7 +1004,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
   final Value<int> unreadCount;
   final Value<DateTime> lastUpdated;
   final Value<int> rowid;
-  const MessageListCompanion({
+  const ChatListCompanion({
     this.id = const Value.absent(),
     this.rev = const Value.absent(),
     this.members = const Value.absent(),
@@ -1015,7 +1015,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
     this.lastUpdated = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  MessageListCompanion.insert({
+  ChatListCompanion.insert({
     required String id,
     required String rev,
     required String members,
@@ -1030,7 +1030,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
         members = Value(members),
         lastMessage = Value(lastMessage),
         lastUpdated = Value(lastUpdated);
-  static Insertable<MessageListData> custom({
+  static Insertable<ChatListData> custom({
     Expression<String>? id,
     Expression<String>? rev,
     Expression<String>? members,
@@ -1054,7 +1054,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
     });
   }
 
-  MessageListCompanion copyWith(
+  ChatListCompanion copyWith(
       {Value<String>? id,
       Value<String>? rev,
       Value<String>? members,
@@ -1064,7 +1064,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
       Value<int>? unreadCount,
       Value<DateTime>? lastUpdated,
       Value<int>? rowid}) {
-    return MessageListCompanion(
+    return ChatListCompanion(
       id: id ?? this.id,
       rev: rev ?? this.rev,
       members: members ?? this.members,
@@ -1112,7 +1112,7 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
 
   @override
   String toString() {
-    return (StringBuffer('MessageListCompanion(')
+    return (StringBuffer('ChatListCompanion(')
           ..write('id: $id, ')
           ..write('rev: $rev, ')
           ..write('members: $members, ')
@@ -1127,172 +1127,167 @@ class MessageListCompanion extends UpdateCompanion<MessageListData> {
   }
 }
 
-class $MessageListMessagesTable extends MessageListMessages
-    with TableInfo<$MessageListMessagesTable, MessageListMessage> {
+class $ChatListMessagesTable extends ChatListMessages
+    with TableInfo<$ChatListMessagesTable, ChatListMessage> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $MessageListMessagesTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _messageIdMeta =
-      const VerificationMeta('messageId');
+  $ChatListMessagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _chatIdMeta = const VerificationMeta('chatId');
   @override
-  late final GeneratedColumn<String> messageId = GeneratedColumn<String>(
-      'message_id', aliasedName, false,
+  late final GeneratedColumn<String> chatId = GeneratedColumn<String>(
+      'chat_id', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
       $customConstraints: 'REFERENCES messages(id) NOT NULL');
-  static const VerificationMeta _messageListIdMeta =
-      const VerificationMeta('messageListId');
+  static const VerificationMeta _chatListIdMeta =
+      const VerificationMeta('chatListId');
   @override
-  late final GeneratedColumn<String> messageListId = GeneratedColumn<String>(
-      'message_list_id', aliasedName, false,
+  late final GeneratedColumn<String> chatListId = GeneratedColumn<String>(
+      'chat_list_id', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: true,
-      $customConstraints: 'REFERENCES message_list(id) NOT NULL');
+      $customConstraints: 'REFERENCES chat_list(id) NOT NULL');
   @override
-  List<GeneratedColumn> get $columns => [messageId, messageListId];
+  List<GeneratedColumn> get $columns => [chatId, chatListId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'message_list_messages';
+  static const String $name = 'chat_list_messages';
   @override
-  VerificationContext validateIntegrity(Insertable<MessageListMessage> instance,
+  VerificationContext validateIntegrity(Insertable<ChatListMessage> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('message_id')) {
-      context.handle(_messageIdMeta,
-          messageId.isAcceptableOrUnknown(data['message_id']!, _messageIdMeta));
+    if (data.containsKey('chat_id')) {
+      context.handle(_chatIdMeta,
+          chatId.isAcceptableOrUnknown(data['chat_id']!, _chatIdMeta));
     } else if (isInserting) {
-      context.missing(_messageIdMeta);
+      context.missing(_chatIdMeta);
     }
-    if (data.containsKey('message_list_id')) {
+    if (data.containsKey('chat_list_id')) {
       context.handle(
-          _messageListIdMeta,
-          messageListId.isAcceptableOrUnknown(
-              data['message_list_id']!, _messageListIdMeta));
+          _chatListIdMeta,
+          chatListId.isAcceptableOrUnknown(
+              data['chat_list_id']!, _chatListIdMeta));
     } else if (isInserting) {
-      context.missing(_messageListIdMeta);
+      context.missing(_chatListIdMeta);
     }
     return context;
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {messageId, messageListId};
+  Set<GeneratedColumn> get $primaryKey => {chatId, chatListId};
   @override
-  MessageListMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
+  ChatListMessage map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MessageListMessage(
-      messageId: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}message_id'])!,
-      messageListId: attachedDatabase.typeMapping.read(
-          DriftSqlType.string, data['${effectivePrefix}message_list_id'])!,
+    return ChatListMessage(
+      chatId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}chat_id'])!,
+      chatListId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}chat_list_id'])!,
     );
   }
 
   @override
-  $MessageListMessagesTable createAlias(String alias) {
-    return $MessageListMessagesTable(attachedDatabase, alias);
+  $ChatListMessagesTable createAlias(String alias) {
+    return $ChatListMessagesTable(attachedDatabase, alias);
   }
 }
 
-class MessageListMessage extends DataClass
-    implements Insertable<MessageListMessage> {
-  final String messageId;
-  final String messageListId;
-  const MessageListMessage(
-      {required this.messageId, required this.messageListId});
+class ChatListMessage extends DataClass implements Insertable<ChatListMessage> {
+  final String chatId;
+  final String chatListId;
+  const ChatListMessage({required this.chatId, required this.chatListId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['message_id'] = Variable<String>(messageId);
-    map['message_list_id'] = Variable<String>(messageListId);
+    map['chat_id'] = Variable<String>(chatId);
+    map['chat_list_id'] = Variable<String>(chatListId);
     return map;
   }
 
-  MessageListMessagesCompanion toCompanion(bool nullToAbsent) {
-    return MessageListMessagesCompanion(
-      messageId: Value(messageId),
-      messageListId: Value(messageListId),
+  ChatListMessagesCompanion toCompanion(bool nullToAbsent) {
+    return ChatListMessagesCompanion(
+      chatId: Value(chatId),
+      chatListId: Value(chatListId),
     );
   }
 
-  factory MessageListMessage.fromJson(Map<String, dynamic> json,
+  factory ChatListMessage.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return MessageListMessage(
-      messageId: serializer.fromJson<String>(json['messageId']),
-      messageListId: serializer.fromJson<String>(json['messageListId']),
+    return ChatListMessage(
+      chatId: serializer.fromJson<String>(json['chatId']),
+      chatListId: serializer.fromJson<String>(json['chatListId']),
     );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'messageId': serializer.toJson<String>(messageId),
-      'messageListId': serializer.toJson<String>(messageListId),
+      'chatId': serializer.toJson<String>(chatId),
+      'chatListId': serializer.toJson<String>(chatListId),
     };
   }
 
-  MessageListMessage copyWith({String? messageId, String? messageListId}) =>
-      MessageListMessage(
-        messageId: messageId ?? this.messageId,
-        messageListId: messageListId ?? this.messageListId,
+  ChatListMessage copyWith({String? chatId, String? chatListId}) =>
+      ChatListMessage(
+        chatId: chatId ?? this.chatId,
+        chatListId: chatListId ?? this.chatListId,
       );
   @override
   String toString() {
-    return (StringBuffer('MessageListMessage(')
-          ..write('messageId: $messageId, ')
-          ..write('messageListId: $messageListId')
+    return (StringBuffer('ChatListMessage(')
+          ..write('chatId: $chatId, ')
+          ..write('chatListId: $chatListId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(messageId, messageListId);
+  int get hashCode => Object.hash(chatId, chatListId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is MessageListMessage &&
-          other.messageId == this.messageId &&
-          other.messageListId == this.messageListId);
+      (other is ChatListMessage &&
+          other.chatId == this.chatId &&
+          other.chatListId == this.chatListId);
 }
 
-class MessageListMessagesCompanion extends UpdateCompanion<MessageListMessage> {
-  final Value<String> messageId;
-  final Value<String> messageListId;
+class ChatListMessagesCompanion extends UpdateCompanion<ChatListMessage> {
+  final Value<String> chatId;
+  final Value<String> chatListId;
   final Value<int> rowid;
-  const MessageListMessagesCompanion({
-    this.messageId = const Value.absent(),
-    this.messageListId = const Value.absent(),
+  const ChatListMessagesCompanion({
+    this.chatId = const Value.absent(),
+    this.chatListId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  MessageListMessagesCompanion.insert({
-    required String messageId,
-    required String messageListId,
+  ChatListMessagesCompanion.insert({
+    required String chatId,
+    required String chatListId,
     this.rowid = const Value.absent(),
-  })  : messageId = Value(messageId),
-        messageListId = Value(messageListId);
-  static Insertable<MessageListMessage> custom({
-    Expression<String>? messageId,
-    Expression<String>? messageListId,
+  })  : chatId = Value(chatId),
+        chatListId = Value(chatListId);
+  static Insertable<ChatListMessage> custom({
+    Expression<String>? chatId,
+    Expression<String>? chatListId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (messageId != null) 'message_id': messageId,
-      if (messageListId != null) 'message_list_id': messageListId,
+      if (chatId != null) 'chat_id': chatId,
+      if (chatListId != null) 'chat_list_id': chatListId,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  MessageListMessagesCompanion copyWith(
-      {Value<String>? messageId,
-      Value<String>? messageListId,
-      Value<int>? rowid}) {
-    return MessageListMessagesCompanion(
-      messageId: messageId ?? this.messageId,
-      messageListId: messageListId ?? this.messageListId,
+  ChatListMessagesCompanion copyWith(
+      {Value<String>? chatId, Value<String>? chatListId, Value<int>? rowid}) {
+    return ChatListMessagesCompanion(
+      chatId: chatId ?? this.chatId,
+      chatListId: chatListId ?? this.chatListId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1300,11 +1295,11 @@ class MessageListMessagesCompanion extends UpdateCompanion<MessageListMessage> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (messageId.present) {
-      map['message_id'] = Variable<String>(messageId.value);
+    if (chatId.present) {
+      map['chat_id'] = Variable<String>(chatId.value);
     }
-    if (messageListId.present) {
-      map['message_list_id'] = Variable<String>(messageListId.value);
+    if (chatListId.present) {
+      map['chat_list_id'] = Variable<String>(chatListId.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1314,9 +1309,9 @@ class MessageListMessagesCompanion extends UpdateCompanion<MessageListMessage> {
 
   @override
   String toString() {
-    return (StringBuffer('MessageListMessagesCompanion(')
-          ..write('messageId: $messageId, ')
-          ..write('messageListId: $messageListId, ')
+    return (StringBuffer('ChatListMessagesCompanion(')
+          ..write('chatId: $chatId, ')
+          ..write('chatListId: $chatListId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1329,15 +1324,15 @@ abstract class _$MessageDatabase extends GeneratedDatabase {
   late final $SendersTable senders = $SendersTable(this);
   late final $ContentTable content = $ContentTable(this);
   late final $MessagesTable messages = $MessagesTable(this);
-  late final $MessageListTable messageList = $MessageListTable(this);
-  late final $MessageListMessagesTable messageListMessages =
-      $MessageListMessagesTable(this);
+  late final $ChatListTable chatList = $ChatListTable(this);
+  late final $ChatListMessagesTable chatListMessages =
+      $ChatListMessagesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [senders, content, messages, messageList, messageListMessages];
+      [senders, content, messages, chatList, chatListMessages];
 }
 
 typedef $$SendersTableInsertCompanionBuilder = SendersCompanion Function({
@@ -1666,20 +1661,17 @@ class $$MessagesTableFilterComposer
     return composer;
   }
 
-  ComposableFilter messageListMessagesRefs(
-      ComposableFilter Function($$MessageListMessagesTableFilterComposer f) f) {
-    final $$MessageListMessagesTableFilterComposer composer =
+  ComposableFilter chatListMessagesRefs(
+      ComposableFilter Function($$ChatListMessagesTableFilterComposer f) f) {
+    final $$ChatListMessagesTableFilterComposer composer =
         $state.composerBuilder(
             composer: this,
             getCurrentColumn: (t) => t.id,
-            referencedTable: $state.db.messageListMessages,
-            getReferencedColumn: (t) => t.messageId,
+            referencedTable: $state.db.chatListMessages,
+            getReferencedColumn: (t) => t.chatId,
             builder: (joinBuilder, parentComposers) =>
-                $$MessageListMessagesTableFilterComposer(ComposerState(
-                    $state.db,
-                    $state.db.messageListMessages,
-                    joinBuilder,
-                    parentComposers)));
+                $$ChatListMessagesTableFilterComposer(ComposerState($state.db,
+                    $state.db.chatListMessages, joinBuilder, parentComposers)));
     return f(composer);
   }
 }
@@ -1725,8 +1717,7 @@ class $$MessagesTableOrderingComposer
   }
 }
 
-typedef $$MessageListTableInsertCompanionBuilder = MessageListCompanion
-    Function({
+typedef $$ChatListTableInsertCompanionBuilder = ChatListCompanion Function({
   required String id,
   required String rev,
   required String members,
@@ -1737,8 +1728,7 @@ typedef $$MessageListTableInsertCompanionBuilder = MessageListCompanion
   required DateTime lastUpdated,
   Value<int> rowid,
 });
-typedef $$MessageListTableUpdateCompanionBuilder = MessageListCompanion
-    Function({
+typedef $$ChatListTableUpdateCompanionBuilder = ChatListCompanion Function({
   Value<String> id,
   Value<String> rev,
   Value<String> members,
@@ -1750,25 +1740,25 @@ typedef $$MessageListTableUpdateCompanionBuilder = MessageListCompanion
   Value<int> rowid,
 });
 
-class $$MessageListTableTableManager extends RootTableManager<
+class $$ChatListTableTableManager extends RootTableManager<
     _$MessageDatabase,
-    $MessageListTable,
-    MessageListData,
-    $$MessageListTableFilterComposer,
-    $$MessageListTableOrderingComposer,
-    $$MessageListTableProcessedTableManager,
-    $$MessageListTableInsertCompanionBuilder,
-    $$MessageListTableUpdateCompanionBuilder> {
-  $$MessageListTableTableManager(_$MessageDatabase db, $MessageListTable table)
+    $ChatListTable,
+    ChatListData,
+    $$ChatListTableFilterComposer,
+    $$ChatListTableOrderingComposer,
+    $$ChatListTableProcessedTableManager,
+    $$ChatListTableInsertCompanionBuilder,
+    $$ChatListTableUpdateCompanionBuilder> {
+  $$ChatListTableTableManager(_$MessageDatabase db, $ChatListTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           filteringComposer:
-              $$MessageListTableFilterComposer(ComposerState(db, table)),
+              $$ChatListTableFilterComposer(ComposerState(db, table)),
           orderingComposer:
-              $$MessageListTableOrderingComposer(ComposerState(db, table)),
+              $$ChatListTableOrderingComposer(ComposerState(db, table)),
           getChildManagerBuilder: (p) =>
-              $$MessageListTableProcessedTableManager(p),
+              $$ChatListTableProcessedTableManager(p),
           getUpdateCompanionBuilder: ({
             Value<String> id = const Value.absent(),
             Value<String> rev = const Value.absent(),
@@ -1780,7 +1770,7 @@ class $$MessageListTableTableManager extends RootTableManager<
             Value<DateTime> lastUpdated = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              MessageListCompanion(
+              ChatListCompanion(
             id: id,
             rev: rev,
             members: members,
@@ -1802,7 +1792,7 @@ class $$MessageListTableTableManager extends RootTableManager<
             required DateTime lastUpdated,
             Value<int> rowid = const Value.absent(),
           }) =>
-              MessageListCompanion.insert(
+              ChatListCompanion.insert(
             id: id,
             rev: rev,
             members: members,
@@ -1816,21 +1806,21 @@ class $$MessageListTableTableManager extends RootTableManager<
         ));
 }
 
-class $$MessageListTableProcessedTableManager extends ProcessedTableManager<
+class $$ChatListTableProcessedTableManager extends ProcessedTableManager<
     _$MessageDatabase,
-    $MessageListTable,
-    MessageListData,
-    $$MessageListTableFilterComposer,
-    $$MessageListTableOrderingComposer,
-    $$MessageListTableProcessedTableManager,
-    $$MessageListTableInsertCompanionBuilder,
-    $$MessageListTableUpdateCompanionBuilder> {
-  $$MessageListTableProcessedTableManager(super.$state);
+    $ChatListTable,
+    ChatListData,
+    $$ChatListTableFilterComposer,
+    $$ChatListTableOrderingComposer,
+    $$ChatListTableProcessedTableManager,
+    $$ChatListTableInsertCompanionBuilder,
+    $$ChatListTableUpdateCompanionBuilder> {
+  $$ChatListTableProcessedTableManager(super.$state);
 }
 
-class $$MessageListTableFilterComposer
-    extends FilterComposer<_$MessageDatabase, $MessageListTable> {
-  $$MessageListTableFilterComposer(super.$state);
+class $$ChatListTableFilterComposer
+    extends FilterComposer<_$MessageDatabase, $ChatListTable> {
+  $$ChatListTableFilterComposer(super.$state);
   ColumnFilters<String> get id => $state.composableBuilder(
       column: $state.table.id,
       builder: (column, joinBuilders) =>
@@ -1871,27 +1861,24 @@ class $$MessageListTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
-  ComposableFilter messageListMessagesRefs(
-      ComposableFilter Function($$MessageListMessagesTableFilterComposer f) f) {
-    final $$MessageListMessagesTableFilterComposer composer =
+  ComposableFilter chatListMessagesRefs(
+      ComposableFilter Function($$ChatListMessagesTableFilterComposer f) f) {
+    final $$ChatListMessagesTableFilterComposer composer =
         $state.composerBuilder(
             composer: this,
             getCurrentColumn: (t) => t.id,
-            referencedTable: $state.db.messageListMessages,
-            getReferencedColumn: (t) => t.messageListId,
+            referencedTable: $state.db.chatListMessages,
+            getReferencedColumn: (t) => t.chatListId,
             builder: (joinBuilder, parentComposers) =>
-                $$MessageListMessagesTableFilterComposer(ComposerState(
-                    $state.db,
-                    $state.db.messageListMessages,
-                    joinBuilder,
-                    parentComposers)));
+                $$ChatListMessagesTableFilterComposer(ComposerState($state.db,
+                    $state.db.chatListMessages, joinBuilder, parentComposers)));
     return f(composer);
   }
 }
 
-class $$MessageListTableOrderingComposer
-    extends OrderingComposer<_$MessageDatabase, $MessageListTable> {
-  $$MessageListTableOrderingComposer(super.$state);
+class $$ChatListTableOrderingComposer
+    extends OrderingComposer<_$MessageDatabase, $ChatListTable> {
+  $$ChatListTableOrderingComposer(super.$state);
   ColumnOrderings<String> get id => $state.composableBuilder(
       column: $state.table.id,
       builder: (column, joinBuilders) =>
@@ -1933,82 +1920,82 @@ class $$MessageListTableOrderingComposer
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
-typedef $$MessageListMessagesTableInsertCompanionBuilder
-    = MessageListMessagesCompanion Function({
-  required String messageId,
-  required String messageListId,
+typedef $$ChatListMessagesTableInsertCompanionBuilder
+    = ChatListMessagesCompanion Function({
+  required String chatId,
+  required String chatListId,
   Value<int> rowid,
 });
-typedef $$MessageListMessagesTableUpdateCompanionBuilder
-    = MessageListMessagesCompanion Function({
-  Value<String> messageId,
-  Value<String> messageListId,
+typedef $$ChatListMessagesTableUpdateCompanionBuilder
+    = ChatListMessagesCompanion Function({
+  Value<String> chatId,
+  Value<String> chatListId,
   Value<int> rowid,
 });
 
-class $$MessageListMessagesTableTableManager extends RootTableManager<
+class $$ChatListMessagesTableTableManager extends RootTableManager<
     _$MessageDatabase,
-    $MessageListMessagesTable,
-    MessageListMessage,
-    $$MessageListMessagesTableFilterComposer,
-    $$MessageListMessagesTableOrderingComposer,
-    $$MessageListMessagesTableProcessedTableManager,
-    $$MessageListMessagesTableInsertCompanionBuilder,
-    $$MessageListMessagesTableUpdateCompanionBuilder> {
-  $$MessageListMessagesTableTableManager(
-      _$MessageDatabase db, $MessageListMessagesTable table)
+    $ChatListMessagesTable,
+    ChatListMessage,
+    $$ChatListMessagesTableFilterComposer,
+    $$ChatListMessagesTableOrderingComposer,
+    $$ChatListMessagesTableProcessedTableManager,
+    $$ChatListMessagesTableInsertCompanionBuilder,
+    $$ChatListMessagesTableUpdateCompanionBuilder> {
+  $$ChatListMessagesTableTableManager(
+      _$MessageDatabase db, $ChatListMessagesTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          filteringComposer: $$MessageListMessagesTableFilterComposer(
-              ComposerState(db, table)),
-          orderingComposer: $$MessageListMessagesTableOrderingComposer(
-              ComposerState(db, table)),
+          filteringComposer:
+              $$ChatListMessagesTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$ChatListMessagesTableOrderingComposer(ComposerState(db, table)),
           getChildManagerBuilder: (p) =>
-              $$MessageListMessagesTableProcessedTableManager(p),
+              $$ChatListMessagesTableProcessedTableManager(p),
           getUpdateCompanionBuilder: ({
-            Value<String> messageId = const Value.absent(),
-            Value<String> messageListId = const Value.absent(),
+            Value<String> chatId = const Value.absent(),
+            Value<String> chatListId = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              MessageListMessagesCompanion(
-            messageId: messageId,
-            messageListId: messageListId,
+              ChatListMessagesCompanion(
+            chatId: chatId,
+            chatListId: chatListId,
             rowid: rowid,
           ),
           getInsertCompanionBuilder: ({
-            required String messageId,
-            required String messageListId,
+            required String chatId,
+            required String chatListId,
             Value<int> rowid = const Value.absent(),
           }) =>
-              MessageListMessagesCompanion.insert(
-            messageId: messageId,
-            messageListId: messageListId,
+              ChatListMessagesCompanion.insert(
+            chatId: chatId,
+            chatListId: chatListId,
             rowid: rowid,
           ),
         ));
 }
 
-class $$MessageListMessagesTableProcessedTableManager
+class $$ChatListMessagesTableProcessedTableManager
     extends ProcessedTableManager<
         _$MessageDatabase,
-        $MessageListMessagesTable,
-        MessageListMessage,
-        $$MessageListMessagesTableFilterComposer,
-        $$MessageListMessagesTableOrderingComposer,
-        $$MessageListMessagesTableProcessedTableManager,
-        $$MessageListMessagesTableInsertCompanionBuilder,
-        $$MessageListMessagesTableUpdateCompanionBuilder> {
-  $$MessageListMessagesTableProcessedTableManager(super.$state);
+        $ChatListMessagesTable,
+        ChatListMessage,
+        $$ChatListMessagesTableFilterComposer,
+        $$ChatListMessagesTableOrderingComposer,
+        $$ChatListMessagesTableProcessedTableManager,
+        $$ChatListMessagesTableInsertCompanionBuilder,
+        $$ChatListMessagesTableUpdateCompanionBuilder> {
+  $$ChatListMessagesTableProcessedTableManager(super.$state);
 }
 
-class $$MessageListMessagesTableFilterComposer
-    extends FilterComposer<_$MessageDatabase, $MessageListMessagesTable> {
-  $$MessageListMessagesTableFilterComposer(super.$state);
-  $$MessagesTableFilterComposer get messageId {
+class $$ChatListMessagesTableFilterComposer
+    extends FilterComposer<_$MessageDatabase, $ChatListMessagesTable> {
+  $$ChatListMessagesTableFilterComposer(super.$state);
+  $$MessagesTableFilterComposer get chatId {
     final $$MessagesTableFilterComposer composer = $state.composerBuilder(
         composer: this,
-        getCurrentColumn: (t) => t.messageId,
+        getCurrentColumn: (t) => t.chatId,
         referencedTable: $state.db.messages,
         getReferencedColumn: (t) => t.id,
         builder: (joinBuilder, parentComposers) =>
@@ -2017,26 +2004,26 @@ class $$MessageListMessagesTableFilterComposer
     return composer;
   }
 
-  $$MessageListTableFilterComposer get messageListId {
-    final $$MessageListTableFilterComposer composer = $state.composerBuilder(
+  $$ChatListTableFilterComposer get chatListId {
+    final $$ChatListTableFilterComposer composer = $state.composerBuilder(
         composer: this,
-        getCurrentColumn: (t) => t.messageListId,
-        referencedTable: $state.db.messageList,
+        getCurrentColumn: (t) => t.chatListId,
+        referencedTable: $state.db.chatList,
         getReferencedColumn: (t) => t.id,
         builder: (joinBuilder, parentComposers) =>
-            $$MessageListTableFilterComposer(ComposerState($state.db,
-                $state.db.messageList, joinBuilder, parentComposers)));
+            $$ChatListTableFilterComposer(ComposerState(
+                $state.db, $state.db.chatList, joinBuilder, parentComposers)));
     return composer;
   }
 }
 
-class $$MessageListMessagesTableOrderingComposer
-    extends OrderingComposer<_$MessageDatabase, $MessageListMessagesTable> {
-  $$MessageListMessagesTableOrderingComposer(super.$state);
-  $$MessagesTableOrderingComposer get messageId {
+class $$ChatListMessagesTableOrderingComposer
+    extends OrderingComposer<_$MessageDatabase, $ChatListMessagesTable> {
+  $$ChatListMessagesTableOrderingComposer(super.$state);
+  $$MessagesTableOrderingComposer get chatId {
     final $$MessagesTableOrderingComposer composer = $state.composerBuilder(
         composer: this,
-        getCurrentColumn: (t) => t.messageId,
+        getCurrentColumn: (t) => t.chatId,
         referencedTable: $state.db.messages,
         getReferencedColumn: (t) => t.id,
         builder: (joinBuilder, parentComposers) =>
@@ -2045,15 +2032,15 @@ class $$MessageListMessagesTableOrderingComposer
     return composer;
   }
 
-  $$MessageListTableOrderingComposer get messageListId {
-    final $$MessageListTableOrderingComposer composer = $state.composerBuilder(
+  $$ChatListTableOrderingComposer get chatListId {
+    final $$ChatListTableOrderingComposer composer = $state.composerBuilder(
         composer: this,
-        getCurrentColumn: (t) => t.messageListId,
-        referencedTable: $state.db.messageList,
+        getCurrentColumn: (t) => t.chatListId,
+        referencedTable: $state.db.chatList,
         getReferencedColumn: (t) => t.id,
         builder: (joinBuilder, parentComposers) =>
-            $$MessageListTableOrderingComposer(ComposerState($state.db,
-                $state.db.messageList, joinBuilder, parentComposers)));
+            $$ChatListTableOrderingComposer(ComposerState(
+                $state.db, $state.db.chatList, joinBuilder, parentComposers)));
     return composer;
   }
 }
@@ -2067,8 +2054,8 @@ class _$MessageDatabaseManager {
       $$ContentTableTableManager(_db, _db.content);
   $$MessagesTableTableManager get messages =>
       $$MessagesTableTableManager(_db, _db.messages);
-  $$MessageListTableTableManager get messageList =>
-      $$MessageListTableTableManager(_db, _db.messageList);
-  $$MessageListMessagesTableTableManager get messageListMessages =>
-      $$MessageListMessagesTableTableManager(_db, _db.messageListMessages);
+  $$ChatListTableTableManager get chatList =>
+      $$ChatListTableTableManager(_db, _db.chatList);
+  $$ChatListMessagesTableTableManager get chatListMessages =>
+      $$ChatListMessagesTableTableManager(_db, _db.chatListMessages);
 }

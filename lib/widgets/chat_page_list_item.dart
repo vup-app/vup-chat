@@ -1,29 +1,39 @@
-import 'package:bluesky_chat/bluesky_chat.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/functions/home_routing_service.dart';
+import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
 
-Widget buildChatListPageListItem(ConvoView convo, Animation<double> animation,
+Widget buildChatListPageListItem(ChatListData chat, Animation<double> animation,
     BuildContext context, HomeRoutingService? homeRoutingService) {
-  final String title = convo.members.map((m) => m.displayName).last ?? "null";
-  final CircleAvatar avatar = convo.members.last.avatar != null
-      ? CircleAvatar(backgroundImage: NetworkImage(convo.members.last.avatar!))
+  // Parse members and last message
+  final List<dynamic> membersJson = jsonDecode(chat.members);
+  final Map<String, dynamic> lastMessageJson = json.decode(chat.lastMessage);
+
+  final String title =
+      chat.members.isNotEmpty ? membersJson.last["displayName"] : "null";
+  final CircleAvatar avatar = membersJson.isNotEmpty &&
+          membersJson.last['avatar'] != null
+      ? CircleAvatar(backgroundImage: NetworkImage(membersJson.last['avatar']))
       : const CircleAvatar(child: Icon(Icons.person));
+  final String lastMessageText = lastMessageJson['text'] ?? "";
+
   return SizeTransition(
     sizeFactor: animation,
     child: ListTile(
       title: Text(title),
-      subtitle: Text(convo.lastMessage!.toJson()['text']),
+      subtitle: Text(lastMessageText),
       leading: avatar,
       onTap: () {
         if (homeRoutingService != null) {
-          homeRoutingService.onChatSelected(convo);
+          homeRoutingService.onChatSelected(chat.id, title, avatar);
         } else {
+          print("Pushing $title");
           Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => ChatIndividualPage(
-                        id: convo.id,
+                        id: chat.id,
                         otherName: title,
                         avatar: avatar,
                       )));

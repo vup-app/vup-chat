@@ -1,4 +1,3 @@
-import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/screens/profile_page.dart';
@@ -16,16 +15,9 @@ class HomeRoutingService {
     onRightPanelChanged(SearchActorPage(onChatSelected: onChatSelected));
   }
 
-  void onChatSelected(ConvoView convo) {
-    onRightPanelChanged(ChatIndividualPage(
-      id: convo.id,
-      otherName: convo.members.map((m) => m.displayName).last ?? "null",
-      avatar: convo.members.last.avatar != null
-          ? CircleAvatar(
-              backgroundImage: NetworkImage(convo.members.last.avatar!),
-            )
-          : const CircleAvatar(child: Icon(Icons.person)),
-    ));
+  void onChatSelected(String id, String title, CircleAvatar avatar) {
+    onRightPanelChanged(
+        ChatIndividualPage(id: id, otherName: title, avatar: avatar));
   }
 
   void navigateToSettings() {

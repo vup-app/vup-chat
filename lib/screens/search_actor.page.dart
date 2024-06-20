@@ -8,7 +8,8 @@ import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/widgets/app_bar_back.dart';
 
 class SearchActorPage extends StatefulWidget {
-  final void Function(ConvoView convo)? onChatSelected;
+  final void Function(String id, String title, CircleAvatar avatar)?
+      onChatSelected;
   const SearchActorPage({super.key, this.onChatSelected});
 
   @override
@@ -84,7 +85,7 @@ class SearchActorPageState extends State<SearchActorPage> {
   Future<void> _splitToIndividualChat(Actor actor) async {
     ConvoView? convo = await getConvoFromUID(actor.did);
     if (convo != null) {
-      widget.onChatSelected!.call(convo);
+      // widget.onChatSelected!.call(convo);
     }
   }
 

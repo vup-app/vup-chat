@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vup_chat/constants.dart';
-import 'package:vup_chat/main.dart';
+import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/widgets/app_bar_back.dart';
 import 'package:vup_chat/widgets/desktop_mode_switch.dart';
 
@@ -39,8 +39,9 @@ class SettingsPageState extends State<SettingsPage> {
           ),
           ElevatedButton(
               onPressed: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => DriftDbViewer(db)));
+                Navigator.of(context).push(MaterialPageRoute(
+                    // I know multiple DB opens is bad, but it's read only so it's fine
+                    builder: (context) => DriftDbViewer(MessageDatabase())));
               },
               child: const Text("View DB")),
           Padding(

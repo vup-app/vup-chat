@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:s5/s5.dart';
@@ -9,6 +11,7 @@ class MsgCore {
   final MessageDatabase db;
   final Bluesky? bskySession;
   final BlueskyChat? bskyChatSession;
+  Timer? _timer; // To manage the periodic task
 
   // Named constructor
   MsgCore.custom({
@@ -21,22 +24,40 @@ class MsgCore {
   // Unnamed constructor that initializes the database internally
   MsgCore({
     required S5 s5,
-    required MessageDatabase db,
     Bluesky? bskySession,
     BlueskyChat? bskyChatSession,
   }) : this.custom(
           s5: s5,
-          db: db, // Initialize the database internally
+          db: MessageDatabase(), // Initialize the database internally
           bskySession: bskySession,
           bskyChatSession: bskyChatSession,
         );
 
-  void populateListViewDB() async {
+  Stream<List<ChatListData>> subscribeChatList() {
+    return db.watchChatLists();
+  }
+
+  void init() async {
+    startBackgroundTask();
+  }
+
+  void startBackgroundTask() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      _populateListViewDBATProto();
+    });
+  }
+
+  void stopBackgroundTask() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  void _populateListViewDBATProto() async {
     final ListConvosOutput? ref = await getChatTimeline();
 
     if (ref != null) {
       for (var convo in ref.convos) {
-        await db.checkAndInsertMessageList(convo);
+        await db.checkAndInsertChatList(convo);
       }
     }
   }

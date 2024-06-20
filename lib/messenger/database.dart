@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:drift/drift.dart';
 import 'dart:io' as io;
@@ -39,7 +41,7 @@ class Messages extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-class MessageList extends Table {
+class ChatList extends Table {
   TextColumn get id => text()();
   TextColumn get rev => text()();
   TextColumn get members => text()(); // Serialized JSON
@@ -53,19 +55,18 @@ class MessageList extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-class MessageListMessages extends Table {
-  TextColumn get messageId =>
+class ChatListMessages extends Table {
+  TextColumn get chatId =>
       text().customConstraint('REFERENCES messages(id) NOT NULL')();
-  TextColumn get messageListId =>
-      text().customConstraint('REFERENCES message_list(id) NOT NULL')();
+  TextColumn get chatListId =>
+      text().customConstraint('REFERENCES chat_list(id) NOT NULL')();
 
   @override
-  Set<Column> get primaryKey => {messageId, messageListId};
+  Set<Column> get primaryKey => {chatId, chatListId};
 }
 
 // And here are all the function defintions
-@DriftDatabase(
-    tables: [Senders, Content, Messages, MessageList, MessageListMessages])
+@DriftDatabase(tables: [Senders, Content, Messages, ChatList, ChatListMessages])
 class MessageDatabase extends _$MessageDatabase {
   MessageDatabase() : super(_openConnection());
 
@@ -73,12 +74,12 @@ class MessageDatabase extends _$MessageDatabase {
   int get schemaVersion => 1;
 
   // Stream to watch messages for a list
-  Stream<List<Message>> watchMessagesForList(String listId) {
+  Stream<List<Message>> watchChatForMessage(String chatID) {
     final query = select(messages).join([
-      innerJoin(messageListMessages,
-          messageListMessages.messageId.equalsExp(messages.id)),
+      innerJoin(
+          chatListMessages, chatListMessages.chatId.equalsExp(messages.id)),
     ])
-      ..where(messageListMessages.messageListId.equals(listId))
+      ..where(chatListMessages.chatListId.equals(chatID))
       ..orderBy([
         OrderingTerm(expression: messages.sentAt, mode: OrderingMode.asc),
       ]);
@@ -89,14 +90,14 @@ class MessageDatabase extends _$MessageDatabase {
   }
 
   // Stream to watch message lists
-  Stream<List<MessageListData>> watchMessageLists() {
-    return (select(messageList).join([
-      innerJoin(messageListMessages,
-          messageListMessages.messageListId.equalsExp(messageList.id)),
+  Stream<List<ChatListData>> watchChatLists() {
+    return (select(chatList).join([
+      innerJoin(
+          chatListMessages, chatListMessages.chatListId.equalsExp(chatList.id)),
     ])
-          ..orderBy([OrderingTerm.desc(messageList.lastUpdated)]))
+          ..orderBy([OrderingTerm.desc(chatList.lastUpdated)]))
         .watch()
-        .map((rows) => rows.map((row) => row.readTable(messageList)).toList());
+        .map((rows) => rows.map((row) => row.readTable(chatList)).toList());
   }
 
   // Check if a sender exists and insert if not
@@ -159,41 +160,63 @@ class MessageDatabase extends _$MessageDatabase {
   }
 
   // Check if a message list exists and insert if not
-  Future<void> checkAndInsertMessageList(ConvoView convo) async {
-    final messageListExists = await (select(messageList)
+  Future<void> checkAndInsertChatList(ConvoView convo) async {
+    final chatListExists = await (select(chatList)
           ..where((tbl) => tbl.id.equals(convo.id)))
         .getSingleOrNull();
-    if (messageListExists == null) {
-      // Check and insert the last message
+
+    if (chatListExists == null) {
+      // Serialize members to JSON
+      final List<Map<String, dynamic>> membersJson = convo.members
+          .map((member) => {
+                'did': member.did,
+                'handle': member.handle,
+                'displayName': member.displayName,
+                'avatar': member.avatar,
+                // Add other fields as needed
+              })
+          .toList();
+
+      // Serialize lastMessage to JSON
+      Map<String, dynamic>? lastMessageJson;
       if (convo.lastMessage is UConvoMessageViewMessageView) {
         final lastMessage =
             (convo.lastMessage as UConvoMessageViewMessageView).data;
+        lastMessageJson = {
+          'id': lastMessage.id,
+          'rev': lastMessage.rev,
+          'text': lastMessage.text,
+          'sender': {
+            'did': lastMessage.sender.did,
+          },
+          'sentAt': lastMessage.sentAt.toIso8601String(),
+          // Add other fields as needed
+        };
+
+        // Check and insert the last message
         await checkAndInsertMessageATProto(lastMessage);
       }
 
-      // Check and insert all members
-      for (var member in convo.members) {
-        await checkAndInsertSenderATProto(member);
-      }
-
-      // Insert the message list
-      into(messageList).insert(MessageListCompanion.insert(
-        id: convo.id,
-        rev: convo.rev,
-        members: '', // Serialized JSON of members
-        lastMessage: '', // Serialized JSON of last message
-        muted: Value(convo.muted),
-        unreadCount: Value(convo.unreadCount),
-        lastUpdated: DateTime.now(), // Update to appropriate time if needed
-      ));
+      // Insert or update the chat list entry
+      await into(chatList).insert(
+        ChatListCompanion.insert(
+          id: convo.id,
+          rev: convo.rev,
+          members: json.encode(membersJson),
+          lastMessage: json.encode(lastMessageJson ?? {}),
+          muted: Value(convo.muted),
+          hidden: const Value(false),
+          unreadCount: Value(convo.unreadCount),
+          lastUpdated: DateTime.now(),
+        ),
+        mode: InsertMode.insertOrReplace,
+      );
 
       // Insert message list messages
-      if (convo.lastMessage is UConvoMessageViewMessageView) {
-        final lastMessage =
-            (convo.lastMessage as UConvoMessageViewMessageView).data;
-        into(messageListMessages).insert(MessageListMessagesCompanion.insert(
-          messageId: lastMessage.id,
-          messageListId: convo.id,
+      if (lastMessageJson != null) {
+        into(chatListMessages).insert(ChatListMessagesCompanion.insert(
+          chatId: lastMessageJson['id'],
+          chatListId: convo.id,
         ));
       }
     }
@@ -202,7 +225,7 @@ class MessageDatabase extends _$MessageDatabase {
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dbFolder = await getApplicationDocumentsDirectory();
+    final dbFolder = await getApplicationSupportDirectory();
     final file = io.File(p.join(dbFolder.path, 'db.sqlite'));
 
     if (io.Platform.isAndroid) {
