@@ -4,7 +4,7 @@ import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
 
-Widget buildChatListPageListItem(ChatListData chat, Animation<double> animation,
+Widget buildChatListPageListItem(ChatRoomData chat, Animation<double> animation,
     BuildContext context, HomeRoutingService? homeRoutingService) {
   // Parse members and last message
   final List<dynamic> membersJson = jsonDecode(chat.members);
@@ -28,7 +28,6 @@ Widget buildChatListPageListItem(ChatListData chat, Animation<double> animation,
         if (homeRoutingService != null) {
           homeRoutingService.onChatSelected(chat.id, title, avatar);
         } else {
-          print("Pushing $title");
           Navigator.push(
               context,
               MaterialPageRoute(

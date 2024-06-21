@@ -24,14 +24,18 @@ class ChatIndividualPage extends StatefulWidget {
 
 class _ChatIndividualPageState extends State<ChatIndividualPage> {
   final TextEditingController _messageController = TextEditingController();
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   late ScrollController _scrollController;
   Timer? _timer;
+  List<Message> _messages = [];
+  StreamSubscription<List<Message>>? _subscription;
 
   @override
   void initState() {
     super.initState();
     _schedulePeriodicUpdate();
     _scrollController = ScrollController();
+    _subscribeToChat();
   }
 
   @override
@@ -39,6 +43,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     _timer?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
+    _subscription?.cancel();
     super.dispose();
   }
 
@@ -46,6 +51,67 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
       msg.checkForMessageUpdatesATProto(widget.id);
     });
+  }
+
+  void _subscribeToChat() {
+    _subscription = msg.subscribeChat(widget.id).listen((newMessages) {
+      _updateAnimatedList(_messages, newMessages);
+      setState(() {
+        _messages = newMessages;
+      });
+    });
+  }
+
+  void _updateAnimatedList(
+      List<Message> oldMessages, List<Message> newMessages) {
+    final oldCount = oldMessages.length;
+    final newCount = newMessages.length;
+
+    if (newCount > oldCount) {
+      for (var i = oldCount; i < newCount; i++) {
+        _listKey.currentState?.insertItem(i);
+      }
+    } else if (newCount < oldCount) {
+      for (var i = oldCount - 1; i >= newCount; i--) {
+        _listKey.currentState?.removeItem(
+          i,
+          (context, animation) => _buildMessageItem(oldMessages[i], animation),
+        );
+      }
+    }
+  }
+
+  Widget _buildMessageItem(Message message, Animation<double> animation) {
+    final isMe = message.senderDid == did;
+    return SizeTransition(
+      sizeFactor: animation,
+      child: Align(
+        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: GestureDetector(
+          onLongPress: () {
+            Clipboard.setData(ClipboardData(text: message.message));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Text copied to clipboard')),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+            decoration: BoxDecoration(
+              color:
+                  isMe ? Theme.of(context).primaryColor : Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: SelectableText(
+              message.message,
+              style: TextStyle(
+                color: isMe ? Theme.of(context).cardColor : Colors.black,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void _scrollToBottom() {
@@ -61,7 +127,17 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   }
 
   @override
+  void didUpdateWidget(covariant ChatIndividualPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.id != oldWidget.id) {
+      _subscribeToChat(); // Re-subscribe to chat messages with new ID
+      _schedulePeriodicUpdate(); // Ensure periodic updates for the new chat
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    logger.d("user ${widget.otherName}");
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -79,67 +155,16 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
           child: Column(
             children: [
               Expanded(
-                child: StreamBuilder<List<Message>>(
-                  stream: msg.subscribeChat(widget.id),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return const Center(
-                          child: Text('Error loading messages'));
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Center(child: Text('No messages yet'));
-                    }
-
-                    final messages = snapshot.data!;
-
-                    return ListView.builder(
-                      itemCount: messages.length,
-                      physics: const BouncingScrollPhysics(
-                          decelerationRate: ScrollDecelerationRate.fast),
-                      controller: _scrollController,
-                      reverse: true,
-                      itemBuilder: (context, index) {
-                        final message = messages[index];
-                        final isMe = message.senderDid == did;
-
-                        return Align(
-                          alignment: isMe
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: GestureDetector(
-                            onLongPress: () {
-                              Clipboard.setData(
-                                  ClipboardData(text: message.message));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Text copied to clipboard')),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: 5, horizontal: 10),
-                              decoration: BoxDecoration(
-                                color: isMe
-                                    ? Theme.of(context).primaryColor
-                                    : Colors.grey.shade300,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: SelectableText(
-                                message.message,
-                                style: TextStyle(
-                                    color: isMe
-                                        ? Theme.of(context).cardColor
-                                        : Colors.black),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
+                child: AnimatedList(
+                  key: _listKey,
+                  initialItemCount: _messages.length,
+                  physics: const BouncingScrollPhysics(
+                    decelerationRate: ScrollDecelerationRate.fast,
+                  ),
+                  controller: _scrollController,
+                  reverse: true,
+                  itemBuilder: (context, index, animation) {
+                    return _buildMessageItem(_messages[index], animation);
                   },
                 ),
               ),

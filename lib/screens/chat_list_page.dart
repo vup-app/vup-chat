@@ -19,8 +19,8 @@ class ChatListPage extends StatefulWidget {
 
 class ChatListPageState extends State<ChatListPage> {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
-  List<ChatListData> _chats = [];
-  StreamSubscription<List<ChatListData>>? _subscription;
+  List<ChatRoomData> _chats = [];
+  StreamSubscription<List<ChatRoomData>>? _subscription;
 
   @override
   void initState() {
@@ -35,7 +35,7 @@ class ChatListPageState extends State<ChatListPage> {
   }
 
   void _subscribeToChatList() {
-    _subscription = msg.subscribeChatList().listen((newChats) {
+    _subscription = msg.subscribeChatRoom().listen((newChats) {
       _updateAnimatedList(_chats, newChats);
       setState(() {
         _chats = newChats;
@@ -44,7 +44,7 @@ class ChatListPageState extends State<ChatListPage> {
   }
 
   void _updateAnimatedList(
-      List<ChatListData> oldChats, List<ChatListData> newChats) {
+      List<ChatRoomData> oldChats, List<ChatRoomData> newChats) {
     final oldCount = oldChats.length;
     final newCount = newChats.length;
 
@@ -130,8 +130,8 @@ class ChatListPageState extends State<ChatListPage> {
         backgroundColor: Theme.of(context).cardColor,
       ),
       drawer: _buildDrawer(),
-      body: StreamBuilder<List<ChatListData>>(
-        stream: msg.subscribeChatList(),
+      body: StreamBuilder<List<ChatRoomData>>(
+        stream: msg.subscribeChatRoom(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

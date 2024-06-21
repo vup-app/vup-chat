@@ -34,8 +34,8 @@ class MsgCore {
           bskyChatSession: bskyChatSession,
         );
 
-  Stream<List<ChatListData>> subscribeChatList() {
-    return db.watchChatLists();
+  Stream<List<ChatRoomData>> subscribeChatRoom() {
+    return db.watchChatRooms();
   }
 
   Stream<List<Message>> subscribeChat(String chatID) {
@@ -62,7 +62,7 @@ class MsgCore {
 
     if (ref != null) {
       for (var convo in ref.convos) {
-        await db.checkAndInsertChatList(convo);
+        await db.checkAndInsertChatRoom(convo);
       }
     }
   }
@@ -73,7 +73,7 @@ class MsgCore {
           (await chatSession!.convo.getMessages(convoId: chatID)).data;
       final List<MessageView> messages = convertToMessageViews(ref.messages);
       for (var message in messages) {
-        await db.checkAndInsertMessageATProto(message);
+        await db.checkAndInsertMessageATProto(message, chatID);
       }
     }
   }
@@ -86,5 +86,9 @@ class MsgCore {
         .map((uConvoMessageView) =>
             uConvoMessageView.data) // Extract the MessageView data
         .toList();
+  }
+
+  MessageDatabase getDB() {
+    return db;
   }
 }
