@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/main.dart';
@@ -18,15 +19,52 @@ class ChatListPage extends StatefulWidget {
 
 class ChatListPageState extends State<ChatListPage> {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  List<ChatListData> _chats = [];
+  StreamSubscription<List<ChatListData>>? _subscription;
 
   @override
   void initState() {
     super.initState();
+    _subscribeToChatList();
   }
 
   @override
   void dispose() {
+    _subscription?.cancel();
     super.dispose();
+  }
+
+  void _subscribeToChatList() {
+    _subscription = msg.subscribeChatList().listen((newChats) {
+      _updateAnimatedList(_chats, newChats);
+      setState(() {
+        _chats = newChats;
+      });
+    });
+  }
+
+  void _updateAnimatedList(
+      List<ChatListData> oldChats, List<ChatListData> newChats) {
+    final oldCount = oldChats.length;
+    final newCount = newChats.length;
+
+    if (newCount > oldCount) {
+      for (var i = oldCount; i < newCount; i++) {
+        _listKey.currentState?.insertItem(i);
+      }
+    } else if (newCount < oldCount) {
+      for (var i = oldCount - 1; i >= newCount; i--) {
+        _listKey.currentState?.removeItem(
+          i,
+          (context, animation) => buildChatListPageListItem(
+            oldChats[i],
+            animation,
+            context,
+            widget.homeRoutingService,
+          ),
+        );
+      }
+    }
   }
 
   void _navToSettings() async {
@@ -103,12 +141,11 @@ class ChatListPageState extends State<ChatListPage> {
             return const Center(child: Text('An error occurred'));
           }
 
-          final chats = snapshot.data ?? [];
           return AnimatedList(
             key: _listKey,
-            initialItemCount: chats.length,
+            initialItemCount: _chats.length,
             itemBuilder: (context, index, animation) {
-              final chat = chats[index];
+              final chat = _chats[index];
               return buildChatListPageListItem(
                   chat, animation, context, widget.homeRoutingService);
             },

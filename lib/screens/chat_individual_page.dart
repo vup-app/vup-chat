@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/main.dart';
-import 'package:bluesky_chat/bluesky_chat.dart';
+import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/widgets/app_bar_back.dart';
 
 class ChatIndividualPage extends StatefulWidget {
@@ -25,7 +23,6 @@ class ChatIndividualPage extends StatefulWidget {
 }
 
 class _ChatIndividualPageState extends State<ChatIndividualPage> {
-  List<MessageView> _messages = [];
   final TextEditingController _messageController = TextEditingController();
   late ScrollController _scrollController;
   Timer? _timer;
@@ -33,8 +30,6 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   @override
   void initState() {
     super.initState();
-    _loadCachedMessages();
-    _loadMessages();
     _schedulePeriodicUpdate();
     _scrollController = ScrollController();
   }
@@ -47,45 +42,10 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     super.dispose();
   }
 
-  Future<void> _loadMessages() async {
-    if (chatSession != null) {
-      GetMessagesOutput? result =
-          (await chatSession!.convo.getMessages(convoId: widget.id)).data;
-      List<MessageView> newMessages = result.messages
-          .map((messageView) => MessageView.fromJson(messageView.toJson()))
-          .toList();
-      if (!listEquals(_messages, newMessages)) {
-        setState(() {
-          _messages = newMessages;
-          _cacheMessages();
-        });
-        _scrollToBottom();
-      }
-    }
-  }
-
   void _schedulePeriodicUpdate() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _loadMessages();
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      msg.checkForMessageUpdatesATProto(widget.id);
     });
-  }
-
-  Future<void> _cacheMessages() async {
-    await storage.write(
-        key: 'messages_${widget.id}',
-        value: jsonEncode(_messages.map((m) => m.toJson()).toList()));
-  }
-
-  Future<void> _loadCachedMessages() async {
-    String? cachedData = await storage.read(key: 'messages_${widget.id}');
-    if (cachedData != null) {
-      List<dynamic> cachedJson = jsonDecode(cachedData);
-      List<MessageView> cachedMessages =
-          cachedJson.map((json) => MessageView.fromJson(json)).toList();
-      setState(() {
-        _messages = cachedMessages;
-      });
-    }
   }
 
   void _scrollToBottom() {
@@ -119,46 +79,66 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
           child: Column(
             children: [
               Expanded(
-                child: ListView.builder(
-                  itemCount: _messages.length,
-                  physics: const BouncingScrollPhysics(
-                      decelerationRate: ScrollDecelerationRate.fast),
-                  controller: _scrollController,
-                  reverse: true,
-                  itemBuilder: (context, index) {
-                    final message = _messages[index];
-                    final isMe = message.sender.did == did;
+                child: StreamBuilder<List<Message>>(
+                  stream: msg.subscribeChat(widget.id),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return const Center(
+                          child: Text('Error loading messages'));
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No messages yet'));
+                    }
 
-                    return Align(
-                      alignment:
-                          isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: GestureDetector(
-                        onLongPress: () {
-                          Clipboard.setData(ClipboardData(text: message.text));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Text copied to clipboard')),
-                          );
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(10),
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 5, horizontal: 10),
-                          decoration: BoxDecoration(
-                            color: isMe
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: SelectableText(
-                            message.text,
-                            style: TextStyle(
+                    final messages = snapshot.data!;
+
+                    return ListView.builder(
+                      itemCount: messages.length,
+                      physics: const BouncingScrollPhysics(
+                          decelerationRate: ScrollDecelerationRate.fast),
+                      controller: _scrollController,
+                      reverse: true,
+                      itemBuilder: (context, index) {
+                        final message = messages[index];
+                        final isMe = message.senderDid == did;
+
+                        return Align(
+                          alignment: isMe
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          child: GestureDetector(
+                            onLongPress: () {
+                              Clipboard.setData(
+                                  ClipboardData(text: message.message));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Text copied to clipboard')),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: 5, horizontal: 10),
+                              decoration: BoxDecoration(
                                 color: isMe
-                                    ? Theme.of(context).cardColor
-                                    : Colors.black),
+                                    ? Theme.of(context).primaryColor
+                                    : Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: SelectableText(
+                                message.message,
+                                style: TextStyle(
+                                    color: isMe
+                                        ? Theme.of(context).cardColor
+                                        : Colors.black),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     );
                   },
                 ),

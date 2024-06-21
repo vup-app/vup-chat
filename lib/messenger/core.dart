@@ -4,6 +4,7 @@ import 'package:bluesky/bluesky.dart';
 import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:s5/s5.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
+import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 
 class MsgCore {
@@ -37,12 +38,16 @@ class MsgCore {
     return db.watchChatLists();
   }
 
+  Stream<List<Message>> subscribeChat(String chatID) {
+    return db.watchChatForMessage(chatID);
+  }
+
   void init() async {
     startBackgroundTask();
   }
 
   void startBackgroundTask() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) async {
       _populateListViewDBATProto();
     });
   }
@@ -60,5 +65,26 @@ class MsgCore {
         await db.checkAndInsertChatList(convo);
       }
     }
+  }
+
+  void checkForMessageUpdatesATProto(String chatID) async {
+    if (chatSession != null) {
+      final GetMessagesOutput ref =
+          (await chatSession!.convo.getMessages(convoId: chatID)).data;
+      final List<MessageView> messages = convertToMessageViews(ref.messages);
+      for (var message in messages) {
+        await db.checkAndInsertMessageATProto(message);
+      }
+    }
+  }
+
+  List<MessageView> convertToMessageViews(
+      List<UConvoMessageView> uConvoMessages) {
+    return uConvoMessages
+        .whereType<
+            UConvoMessageViewMessageView>() // Filter only the messageView type
+        .map((uConvoMessageView) =>
+            uConvoMessageView.data) // Extract the MessageView data
+        .toList();
   }
 }

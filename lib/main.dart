@@ -3,6 +3,7 @@ import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:logger/logger.dart';
 import 'package:s5/s5.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
@@ -14,6 +15,7 @@ import 'package:vup_chat/widgets/init_router.dart';
 // TODO: Move these to providers and stop mucking about with
 // global state
 const FlutterSecureStorage storage = FlutterSecureStorage();
+final Logger logger = Logger();
 late SharedPreferences preferences;
 late S5 s5;
 late MsgCore msg;
