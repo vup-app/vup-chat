@@ -190,18 +190,6 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                     );
                   },
                 ),
-                // AnimatedList(
-                //   key: _listKey,
-                //   initialItemCount: _messages.length,
-                //   physics: const BouncingScrollPhysics(
-                //     decelerationRate: ScrollDecelerationRate.fast,
-                //   ),
-                //   controller: _scrollController,
-                //   reverse: true,
-                //   itemBuilder: (context, index, animation) {
-                //     return _buildMessageItem(_messages[index], animation);
-                //   },
-                // ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),

@@ -12,7 +12,8 @@ class MsgCore {
   final MessageDatabase db;
   final Bluesky? bskySession;
   final BlueskyChat? bskyChatSession;
-  Timer? _timer; // To manage the periodic task
+  Timer? _timerShort; // To manage the periodic task
+  Timer? _timerLong;
 
   // Named constructor
   MsgCore.custom({
@@ -39,14 +40,19 @@ class MsgCore {
   }
 
   void startBackgroundTask() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+    _timerShort = Timer.periodic(const Duration(seconds: 3), (timer) async {
       _populateListViewDBATProto();
+    });
+    _timerLong = Timer.periodic(const Duration(seconds: 10), (timer) async {
+      _fetchAllChats();
     });
   }
 
   void stopBackgroundTask() {
-    _timer?.cancel();
-    _timer = null;
+    _timerShort?.cancel();
+    _timerLong?.cancel();
+    _timerShort = null;
+    _timerLong = null;
   }
 
   Stream<List<ChatRoomData>> subscribeChatRoom() {
@@ -76,7 +82,17 @@ class MsgCore {
     }
   }
 
-  void checkForMessageUpdatesATProto(String chatID) async {
+  void _fetchAllChats() async {
+    final ListConvosOutput? ref = await getChatTimeline();
+
+    if (ref != null) {
+      for (var convo in ref.convos) {
+        await checkForMessageUpdatesATProto(convo.id);
+      }
+    }
+  }
+
+  Future<void> checkForMessageUpdatesATProto(String chatID) async {
     if (chatSession != null) {
       final GetMessagesOutput ref =
           (await chatSession!.convo.getMessages(convoId: chatID)).data;
