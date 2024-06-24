@@ -36,11 +36,21 @@ class ChatListPageState extends State<ChatListPage> {
 
   void _subscribeToChatList() {
     _subscription = msg.subscribeChatRoom().listen((newChats) {
-      _updateAnimatedList(_chats, newChats);
-      setState(() {
-        _chats = newChats;
-      });
+      if (!_listsAreEqual(_chats, newChats)) {
+        _updateAnimatedList(_chats, newChats);
+        setState(() {
+          _chats = newChats;
+        });
+      }
     });
+  }
+
+  bool _listsAreEqual(List<ChatRoomData> oldList, List<ChatRoomData> newList) {
+    if (oldList.length != newList.length) return false;
+    for (int i = 0; i < oldList.length; i++) {
+      if (oldList[i] != newList[i]) return false;
+    }
+    return true;
   }
 
   void _updateAnimatedList(

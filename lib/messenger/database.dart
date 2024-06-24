@@ -2,73 +2,18 @@ import 'dart:convert';
 
 import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:drift/drift.dart';
-import 'dart:io' as io;
-import 'package:drift/native.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
-import 'package:sqlite3/sqlite3.dart';
-import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
+
+import 'connections/connection.dart' as impl;
+import 'tables.dart';
 
 part 'database.g.dart';
-
-class Senders extends Table {
-  TextColumn get did => text()();
-  TextColumn get displayName => text()();
-  TextColumn get avatarUrl => text().nullable()();
-
-  @override
-  Set<Column> get primaryKey => {did};
-}
-
-class Content extends Table {
-  TextColumn get cid => text()();
-
-  @override
-  Set<Column> get primaryKey => {cid};
-}
-
-class Messages extends Table {
-  TextColumn get id => text()();
-  TextColumn get revision => text()();
-  TextColumn get message => text()();
-  TextColumn get senderDid =>
-      text().customConstraint('REFERENCES senders(did) NOT NULL')();
-  TextColumn get replyTo =>
-      text().nullable().customConstraint('REFERENCES messages(id)')();
-  DateTimeColumn get sentAt => dateTime()();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class ChatRoom extends Table {
-  TextColumn get id => text()();
-  TextColumn get rev => text()();
-  TextColumn get members => text()(); // Serialized JSON
-  TextColumn get lastMessage => text()(); // Serialized JSON
-  BoolColumn get muted => boolean().withDefault(const Constant(false))();
-  BoolColumn get hidden => boolean().withDefault(const Constant(false))();
-  IntColumn get unreadCount => integer().withDefault(const Constant(0))();
-  DateTimeColumn get lastUpdated => dateTime()();
-
-  @override
-  Set<Column> get primaryKey => {id};
-}
-
-class ChatRoomMessages extends Table {
-  TextColumn get chatId =>
-      text().customConstraint('REFERENCES messages(id) NOT NULL')();
-  TextColumn get chatRoomId =>
-      text().customConstraint('REFERENCES chat_room(id) NOT NULL')();
-
-  @override
-  Set<Column> get primaryKey => {chatId, chatRoomId};
-}
 
 // And here are all the function defintions
 @DriftDatabase(tables: [Senders, Content, Messages, ChatRoom, ChatRoomMessages])
 class MessageDatabase extends _$MessageDatabase {
-  MessageDatabase() : super(_openConnection());
+  MessageDatabase() : super(impl.connect());
+
+  MessageDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
   int get schemaVersion => 1;
@@ -124,9 +69,15 @@ class MessageDatabase extends _$MessageDatabase {
   // Check if a message exists and insert if not
   Future<void> checkAndInsertMessageATProto(
       MessageView message, String roomID) async {
-    final messageExists = await (select(messages)
+    final Message? messageExists = await (select(messages)
           ..where((tbl) => tbl.id.equals(message.id)))
         .getSingleOrNull();
+
+    // TODO: Add "sending" notification
+    final _ = select(messages)
+      ..where((tbl) => tbl.id.equals(message.id))
+      ..where((tbl) => tbl.persisted.equals(false));
+
     if (messageExists == null) {
       // Check and insert the sender of the message
       final sender = message.sender;
@@ -250,20 +201,4 @@ class MessageDatabase extends _$MessageDatabase {
       }
     }
   }
-}
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final dbFolder = await getApplicationSupportDirectory();
-    final file = io.File(p.join(dbFolder.path, 'db.sqlite'));
-
-    if (io.Platform.isAndroid) {
-      await applyWorkaroundToOpenSqlite3OnOldAndroidVersions();
-    }
-
-    final cachebase = (await getTemporaryDirectory()).path;
-    sqlite3.tempDirectory = cachebase;
-
-    return NativeDatabase.createInBackground(file);
-  });
 }

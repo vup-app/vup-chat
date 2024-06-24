@@ -9,13 +9,6 @@ Future<ListConvosOutput?> getChatTimeline() async {
   return null;
 }
 
-Future<void> sendMessage(String text, String uid) async {
-  if (chatSession != null && text.isNotEmpty) {
-    await chatSession!.convo
-        .sendMessage(convoId: uid, message: MessageInput(text: text));
-  }
-}
-
 Future<String?> getChatIDFromUID(String uid) async {
   if (chatSession != null && uid.isNotEmpty) {
     GetConvoForMembersOutput resp =

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/widgets/app_bar_back.dart';
@@ -181,7 +180,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                         ),
                         textInputAction: TextInputAction.go,
                         onSubmitted: (_) {
-                          sendMessage(_messageController.text, widget.id);
+                          msg.sendMessage(_messageController.text, widget.id);
                           _messageController.clear();
                         },
                       ),
@@ -189,7 +188,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                     IconButton(
                       icon: const Icon(Icons.send),
                       onPressed: () {
-                        sendMessage(_messageController.text, widget.id);
+                        msg.sendMessage(_messageController.text, widget.id);
                         _messageController.clear();
                       },
                     ),

@@ -34,14 +34,6 @@ class MsgCore {
           bskyChatSession: bskyChatSession,
         );
 
-  Stream<List<ChatRoomData>> subscribeChatRoom() {
-    return db.watchChatRooms();
-  }
-
-  Stream<List<Message>> subscribeChat(String chatID) {
-    return db.watchChatForMessage(chatID);
-  }
-
   void init() async {
     startBackgroundTask();
   }
@@ -55,6 +47,21 @@ class MsgCore {
   void stopBackgroundTask() {
     _timer?.cancel();
     _timer = null;
+  }
+
+  Stream<List<ChatRoomData>> subscribeChatRoom() {
+    return db.watchChatRooms();
+  }
+
+  Stream<List<Message>> subscribeChat(String chatID) {
+    return db.watchChatForMessage(chatID);
+  }
+
+  Future<void> sendMessage(String text, String uid) async {
+    if (chatSession != null && text.isNotEmpty) {
+      await chatSession!.convo
+          .sendMessage(convoId: uid, message: MessageInput(text: text));
+    }
   }
 
   void _populateListViewDBATProto() async {
