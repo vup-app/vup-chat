@@ -33,6 +33,7 @@ dependencies:
   lib5: ^0.2.0
   drift_db_viewer: ^2.1.0
   logger: ^2.3.0
+  animated_list_plus: ^0.5.2
 
 dev_dependencies:
   flutter_test:

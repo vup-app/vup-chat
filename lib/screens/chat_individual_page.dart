@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:animated_list_plus/animated_list_plus.dart';
+import 'package:animated_list_plus/transitions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vup_chat/main.dart';
@@ -53,11 +55,13 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   }
 
   void _subscribeToChat() {
+    _subscription?.cancel(); // Cancel any existing subscription
     _subscription = msg.subscribeChat(widget.id).listen((newMessages) {
       _updateAnimatedList(_messages, newMessages);
       setState(() {
         _messages = newMessages;
       });
+      _scrollToBottom();
     });
   }
 
@@ -93,20 +97,34 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
               const SnackBar(content: Text('Text copied to clipboard')),
             );
           },
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-            decoration: BoxDecoration(
-              color:
-                  isMe ? Theme.of(context).primaryColor : Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: SelectableText(
-              message.message,
-              style: TextStyle(
-                color: isMe ? Theme.of(context).cardColor : Colors.black,
+          child: Stack(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                decoration: BoxDecoration(
+                  color: isMe
+                      ? Theme.of(context).primaryColor
+                      : Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: SelectableText(
+                  message.message,
+                  style: TextStyle(
+                    color: isMe ? Theme.of(context).cardColor : Colors.black,
+                  ),
+                ),
               ),
-            ),
+              Positioned(
+                bottom: 8,
+                right: 10,
+                child: Icon(
+                  message.persisted ? Icons.check : Icons.hourglass_bottom,
+                  color: Colors.grey,
+                  size: 16,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -154,18 +172,36 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
           child: Column(
             children: [
               Expanded(
-                child: AnimatedList(
-                  key: _listKey,
-                  initialItemCount: _messages.length,
-                  physics: const BouncingScrollPhysics(
-                    decelerationRate: ScrollDecelerationRate.fast,
-                  ),
-                  controller: _scrollController,
+                child: ImplicitlyAnimatedList<Message>(
+                  items: _messages,
+                  areItemsTheSame: (a, b) => (a.id == b.id),
                   reverse: true,
-                  itemBuilder: (context, index, animation) {
-                    return _buildMessageItem(_messages[index], animation);
+                  itemBuilder: (context, animation, item, index) {
+                    return SizeFadeTransition(
+                        sizeFraction: 0.7,
+                        curve: Curves.easeInOut,
+                        animation: animation,
+                        child: _buildMessageItem(item, animation));
+                  },
+                  removeItemBuilder: (context, animation, oldItem) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: _buildMessageItem(oldItem, animation),
+                    );
                   },
                 ),
+                // AnimatedList(
+                //   key: _listKey,
+                //   initialItemCount: _messages.length,
+                //   physics: const BouncingScrollPhysics(
+                //     decelerationRate: ScrollDecelerationRate.fast,
+                //   ),
+                //   controller: _scrollController,
+                //   reverse: true,
+                //   itemBuilder: (context, index, animation) {
+                //     return _buildMessageItem(_messages[index], animation);
+                //   },
+                // ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),

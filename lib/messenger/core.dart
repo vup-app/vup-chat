@@ -57,10 +57,12 @@ class MsgCore {
     return db.watchChatForMessage(chatID);
   }
 
-  Future<void> sendMessage(String text, String uid) async {
+  Future<void> sendMessage(String text, String chatID) async {
     if (chatSession != null && text.isNotEmpty) {
-      await chatSession!.convo
-          .sendMessage(convoId: uid, message: MessageInput(text: text));
+      final MessageView message = (await chatSession!.convo
+              .sendMessage(convoId: chatID, message: MessageInput(text: text)))
+          .data;
+      db.checkAndInsertMessageATProto(message, chatID, false);
     }
   }
 
@@ -80,7 +82,7 @@ class MsgCore {
           (await chatSession!.convo.getMessages(convoId: chatID)).data;
       final List<MessageView> messages = convertToMessageViews(ref.messages);
       for (var message in messages) {
-        await db.checkAndInsertMessageATProto(message, chatID);
+        await db.checkAndInsertMessageATProto(message, chatID, true);
       }
     }
   }

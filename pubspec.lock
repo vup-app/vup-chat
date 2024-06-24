@@ -25,6 +25,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.3"
+  animated_list_plus:
+    dependency: "direct main"
+    description:
+      name: animated_list_plus
+      sha256: fb3d7f1fbaf5af84907f3c739236bacda8bf32cbe1f118dd51510752883ff50c
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.2"
   archive:
     dependency: transitive
     description:
@@ -189,10 +197,10 @@ packages:
     dependency: transitive
     description:
       name: cbor
-      sha256: "360c7cbb1b334454e334d395df63913e498f51b82b35888fb9774e5e960a71f2"
+      sha256: "1fa146951b36462887aaca20abece4c1c49f56f3ba5a40f7e7bf4bbfb0a945a0"
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.0"
+    version: "6.3.0"
   characters:
     dependency: transitive
     description:
@@ -969,10 +977,10 @@ packages:
     dependency: transitive
     description:
       name: sqlite3
-      sha256: b384f598b813b347c5a7e5ffad82cbaff1bec3d1561af267041e66f6f0899295
+      sha256: "6d17989c0b06a5870b2190d391925186f944cb943e5262d0d3f778fcfca3bc6e"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.3"
+    version: "2.4.4"
   sqlite3_flutter_libs:
     dependency: "direct main"
     description:

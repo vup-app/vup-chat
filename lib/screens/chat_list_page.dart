@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:animated_list_plus/animated_list_plus.dart';
+import 'package:animated_list_plus/transitions.dart';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/main.dart';
@@ -48,22 +50,18 @@ class ChatListPageState extends State<ChatListPage> {
   bool _listsAreEqual(List<ChatRoomData> oldList, List<ChatRoomData> newList) {
     if (oldList.length != newList.length) return false;
     for (int i = 0; i < oldList.length; i++) {
-      if (oldList[i] != newList[i]) return false;
+      if (oldList[i].id != newList[i].id) return false;
     }
     return true;
   }
 
   void _updateAnimatedList(
       List<ChatRoomData> oldChats, List<ChatRoomData> newChats) {
-    final oldCount = oldChats.length;
-    final newCount = newChats.length;
+    final oldKeys = oldChats.map((chat) => chat.id).toList();
+    final newKeys = newChats.map((chat) => chat.id).toList();
 
-    if (newCount > oldCount) {
-      for (var i = oldCount; i < newCount; i++) {
-        _listKey.currentState?.insertItem(i);
-      }
-    } else if (newCount < oldCount) {
-      for (var i = oldCount - 1; i >= newCount; i--) {
+    for (var i = 0; i < oldChats.length; i++) {
+      if (!newKeys.contains(oldChats[i].id)) {
         _listKey.currentState?.removeItem(
           i,
           (context, animation) => buildChatListPageListItem(
@@ -73,6 +71,23 @@ class ChatListPageState extends State<ChatListPage> {
             widget.homeRoutingService,
           ),
         );
+      }
+    }
+
+    for (var i = 0; i < newChats.length; i++) {
+      if (!oldKeys.contains(newChats[i].id)) {
+        _listKey.currentState?.insertItem(i);
+      } else if (oldKeys.indexOf(newChats[i].id) != i) {
+        _listKey.currentState?.removeItem(
+          oldKeys.indexOf(newChats[i].id),
+          (context, animation) => buildChatListPageListItem(
+            oldChats[oldKeys.indexOf(newChats[i].id)],
+            animation,
+            context,
+            widget.homeRoutingService,
+          ),
+        );
+        _listKey.currentState?.insertItem(i);
       }
     }
   }
@@ -140,25 +155,24 @@ class ChatListPageState extends State<ChatListPage> {
         backgroundColor: Theme.of(context).cardColor,
       ),
       drawer: _buildDrawer(),
-      body: StreamBuilder<List<ChatRoomData>>(
-        stream: msg.subscribeChatRoom(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return const Center(child: Text('An error occurred'));
-          }
-
-          return AnimatedList(
-            key: _listKey,
-            initialItemCount: _chats.length,
-            itemBuilder: (context, index, animation) {
-              final chat = _chats[index];
-              return buildChatListPageListItem(
-                  chat, animation, context, widget.homeRoutingService);
-            },
+      body: ImplicitlyAnimatedList<ChatRoomData>(
+        items: _chats,
+        areItemsTheSame: (a, b) =>
+            (a.lastMessage == b.lastMessage && a.id == b.id),
+        itemBuilder: (context, animation, item, index) {
+          return SizeFadeTransition(
+            sizeFraction: 0.7,
+            curve: Curves.easeInOut,
+            animation: animation,
+            child: buildChatListPageListItem(
+                item, animation, context, widget.homeRoutingService),
+          );
+        },
+        removeItemBuilder: (context, animation, oldItem) {
+          return FadeTransition(
+            opacity: animation,
+            child: buildChatListPageListItem(
+                oldItem, animation, context, widget.homeRoutingService),
           );
         },
       ),
