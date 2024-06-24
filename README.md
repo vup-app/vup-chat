@@ -1,25 +1,28 @@
-# vup_chat
+# Vup Chat
 
 A cross-platform, ATProto & S5 powered chat client.
 
-### Goal:
+![](static/UI.png)
 
-Create a chat platform that is fully compatible with Bluesky, but when both users are using vup chat, the connection
-upgrades to a E2EE S5 streams based implementation.
+### Usage
 
-### Roadmap:
+Currently not published in app stores. The dev site is available [here](https://vup-chat.jptr.tech). Alternatively you can build the app yourself for any supported platform.
 
-- [x] Basic text chatting between bsky users
-- [ ] Bsky profile editing
-- [ ] Push notifications ATProto
-- [ ] UI overhaul v1
-- [ ] S5 streams between users
-- [ ] Sending images & videos
-- [ ] Push notifications S5 Streams
-- [ ] Video & Voice call
-- [ ] Group Chats
-- [ ] UI overhaul v2
-- [ ] Larger ATProto chat rooms (discord-ish)
+```bash
+# Prerec, install flutter (https://flutter.dev/)
+git clone https://github.com/vup-app/vup-chat.git
+cd vup-chat
+flutter pub get
+flutter build exe --your-params
+```
+
+### TODO:
+
+- [x] Basic bsky compatibility
+- [x] Move backend to messaging service w/ local sqlite db
+- [ ] E2EE messaging over S5 streams
+- [ ] Other data over S5 network (images, videos, voice memos)
+- [ ] Regular backups of sqlite DB to S5
 
 ### Acknowledgement
 
