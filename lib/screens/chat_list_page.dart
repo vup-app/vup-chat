@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:animated_list_plus/animated_list_plus.dart';
 import 'package:animated_list_plus/transitions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
@@ -20,6 +22,7 @@ class ChatListPage extends StatefulWidget {
 }
 
 class ChatListPageState extends State<ChatListPage> {
+  final TextEditingController _textController = TextEditingController();
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   List<ChatRoomData> _chats = [];
   StreamSubscription<List<ChatRoomData>>? _subscription;
@@ -33,6 +36,7 @@ class ChatListPageState extends State<ChatListPage> {
   @override
   void dispose() {
     _subscription?.cancel();
+    _textController.dispose();
     super.dispose();
   }
 
@@ -135,47 +139,143 @@ class ChatListPageState extends State<ChatListPage> {
     );
   }
 
+  _buildDropDownMenu() {
+    // final RenderBox button = context.findRenderObject() as RenderBox;
+    // final RenderBox overlay =
+    //     Overlay.of(context).context.findRenderObject() as RenderBox;
+    // final RelativeRect position = RelativeRect.fromRect(
+    //   Rect.fromPoints(
+    //     button.localToGlobal(Offset.zero, ancestor: overlay),
+    //     button.localToGlobal(button.size.bottomRight(Offset.zero),
+    //         ancestor: overlay),
+    //   ),
+    //   Offset.zero & overlay.size,
+    // );
+
+    // showMenu(
+    //   context: context,
+    //   position: position,
+    //   items: [
+    //     const PopupMenuItem(
+    //       value: 1,
+    //       child: Text("Option 1"),
+    //     ),
+    //     const PopupMenuItem(
+    //       value: 2,
+    //       child: Text("Option 2"),
+    //     ),
+    //   ],
+    // );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.message_outlined),
-        onPressed: () {
-          if (widget.homeRoutingService != null) {
-            widget.homeRoutingService!.onNewChatSelected();
-          } else {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const SearchActorPage()));
-          }
-        },
-      ),
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).cardColor,
-      ),
-      drawer: _buildDrawer(),
-      body: ImplicitlyAnimatedList<ChatRoomData>(
-        items: _chats,
-        areItemsTheSame: (a, b) =>
-            (a.lastMessage == b.lastMessage && a.id == b.id),
-        itemBuilder: (context, animation, item, index) {
-          return SizeFadeTransition(
-            sizeFraction: 0.7,
-            curve: Curves.easeInOut,
-            animation: animation,
-            child: buildChatListPageListItem(
-                item, animation, context, widget.homeRoutingService),
-          );
-        },
-        removeItemBuilder: (context, animation, oldItem) {
-          return FadeTransition(
-            opacity: animation,
-            child: buildChatListPageListItem(
-                oldItem, animation, context, widget.homeRoutingService),
-          );
-        },
-      ),
-    );
+        floatingActionButton: FloatingActionButton(
+          child: const Icon(Icons.message_outlined),
+          onPressed: () {
+            if (widget.homeRoutingService != null) {
+              widget.homeRoutingService!.onNewChatSelected();
+            } else {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const SearchActorPage()));
+            }
+          },
+        ),
+        body: Column(
+          children: [
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(8.h),
+                child: TextField(
+                  controller: _textController,
+                  decoration: InputDecoration(
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.h),
+                      borderSide: BorderSide(
+                        width: 1.h,
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.h),
+                      borderSide: BorderSide(
+                        width: 1.h,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20.h),
+                      borderSide: BorderSide(
+                        width: 1.h,
+                      ),
+                    ),
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: Padding(
+                      padding: EdgeInsets.only(right: 0.h),
+                      child: PopupMenuButton<String>(
+                        onSelected: (value) {
+                          // Handle menu item selection
+                          if (value == 'Settings') {
+                            _navToSettings();
+                          } else if (value == 'Profile') {
+                            _navToProfile();
+                          }
+                        },
+                        icon: CircleAvatar(
+                          radius: 14.h,
+                          child: const Icon(Icons.person),
+                        ),
+                        itemBuilder: (BuildContext context) {
+                          return <PopupMenuEntry<String>>[
+                            const PopupMenuItem<String>(
+                              value: 'Settings',
+                              child: ListTile(
+                                leading: Icon(Icons.settings),
+                                title: Text('Settings'),
+                              ),
+                            ),
+                            const PopupMenuItem<String>(
+                              value: 'Profile',
+                              child: ListTile(
+                                leading: Icon(Icons.person),
+                                title: Text('Profile'),
+                              ),
+                            ),
+                          ];
+                        },
+                      ),
+                    ),
+                    hintText: 'Search...',
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: ImplicitlyAnimatedList<ChatRoomData>(
+                items: _chats,
+                areItemsTheSame: (a, b) =>
+                    (a.lastMessage == b.lastMessage && a.id == b.id),
+                itemBuilder: (context, animation, item, index) {
+                  return SizeFadeTransition(
+                    sizeFraction: 0.7,
+                    curve: Curves.easeInOut,
+                    animation: animation,
+                    child: buildChatListPageListItem(
+                        item, animation, context, widget.homeRoutingService),
+                  );
+                },
+                removeItemBuilder: (context, animation, oldItem) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: buildChatListPageListItem(
+                        oldItem, animation, context, widget.homeRoutingService),
+                  );
+                },
+              ),
+            )
+          ],
+        ));
   }
 }
