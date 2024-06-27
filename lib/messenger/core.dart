@@ -63,12 +63,36 @@ class MsgCore {
     return db.watchChatForMessage(chatID);
   }
 
-  Future<void> sendMessage(String text, String chatID) async {
+  Future<Sender?> getSenderFromDID(String did) async {
+    final possibleSender = await db.getSenderByDID(did);
+    if (possibleSender == null && session != null) {
+      final ActorProfile profile =
+          (await session!.actor.getProfile(actor: did)).data;
+      final Sender snd = Sender(
+          did: profile.did,
+          displayName: profile.displayName ?? "",
+          avatarUrl: profile.avatar);
+      await db.checkAndInsertSenderATProto(snd);
+      return snd;
+    } else {
+      return possibleSender;
+    }
+  }
+
+  Future<String?> getChatIDFromMessageID(String mID) async {
+    return db.getChatRoomIdFromMessageId(mID);
+  }
+
+  Future<List<Message>> searchMessages(String query, String? chatID) async {
+    return await db.searchMessages(query, chatID);
+  }
+
+  Future<void> sendMessage(String text, String chatID, Sender sender) async {
     if (chatSession != null && text.isNotEmpty) {
       final MessageView message = (await chatSession!.convo
               .sendMessage(convoId: chatID, message: MessageInput(text: text)))
           .data;
-      db.checkAndInsertMessageATProto(message, chatID, false);
+      db.checkAndInsertMessageATProto(message, chatID, false, sender);
     }
   }
 
@@ -97,8 +121,10 @@ class MsgCore {
       final GetMessagesOutput ref =
           (await chatSession!.convo.getMessages(convoId: chatID)).data;
       final List<MessageView> messages = convertToMessageViews(ref.messages);
+
       for (var message in messages) {
-        await db.checkAndInsertMessageATProto(message, chatID, true);
+        final Sender? snd = await getSenderFromDID(message.sender.did);
+        await db.checkAndInsertMessageATProto(message, chatID, true, snd!);
       }
     }
   }

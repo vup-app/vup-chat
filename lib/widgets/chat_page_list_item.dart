@@ -1,21 +1,20 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/functions/home_routing_service.dart';
+import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
 
-Widget buildChatListPageListItem(ChatRoomData chat, Animation<double> animation,
+Widget buildChatRoomListItem(ChatRoomData chat, Animation<double> animation,
     BuildContext context, HomeRoutingService? homeRoutingService) {
   // Parse members and last message
   final List<dynamic> membersJson = jsonDecode(chat.members);
   final Map<String, dynamic> lastMessageJson = json.decode(chat.lastMessage);
 
   final String title =
-      chat.members.isNotEmpty ? membersJson.last["displayName"] : "null";
-  final CircleAvatar avatar = membersJson.isNotEmpty &&
-          membersJson.last['avatar'] != null
-      ? CircleAvatar(backgroundImage: NetworkImage(membersJson.last['avatar']))
-      : const CircleAvatar(child: Icon(Icons.person));
+      handleFromMembersJSON(membersJson, chat.members.isNotEmpty);
+  final CircleAvatar avatar = avatarFromMembersJSON(membersJson);
   final String lastMessageText = lastMessageJson['text'] ?? "";
 
   return SizeTransition(
@@ -26,7 +25,7 @@ Widget buildChatListPageListItem(ChatRoomData chat, Animation<double> animation,
       leading: avatar,
       onTap: () {
         if (homeRoutingService != null) {
-          homeRoutingService.onChatSelected(chat.id, title, avatar);
+          homeRoutingService.onChatSelected(chat.id, title, avatar, null);
         } else {
           Navigator.push(
               context,
@@ -40,4 +39,55 @@ Widget buildChatListPageListItem(ChatRoomData chat, Animation<double> animation,
       },
     ),
   );
+}
+
+Widget buildChatRoomSearchItemMessage(
+    Message message, BuildContext ctx, HomeRoutingService? homeRoutingService) {
+  return FutureBuilder<List<dynamic>>(
+    future: Future.wait([
+      msg.getSenderFromDID(message.senderDid),
+      msg.getChatIDFromMessageID(message.id)
+    ]),
+    builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
+      switch (snapshot.connectionState) {
+        case ConnectionState.waiting:
+        // return const Text('Loading....');
+        default:
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            if (snapshot.data != null &&
+                snapshot.data![0] != null &&
+                snapshot.data![1] != null) {
+              Sender? sender = snapshot.data![0] as Sender?;
+              String chatID = snapshot.data![1] as String;
+
+              CircleAvatar cavatar = (sender != null)
+                  ? CircleAvatar(
+                      backgroundImage: NetworkImage(sender.avatarUrl!))
+                  : const CircleAvatar(
+                      child: Icon(Icons.person),
+                    );
+              return (sender != null)
+                  ? ListTile(
+                      title: Text(sender.displayName),
+                      subtitle: Text(message.message),
+                      leading: cavatar,
+                      onTap: () {
+                        homeRoutingService!.onChatSelected(
+                            chatID, sender.displayName, cavatar, message.id);
+                      },
+                    )
+                  : const Text("failed to fetch sender");
+            } else {
+              return const Text("Failed fetching profile or chat data");
+            }
+          }
+      }
+    },
+  );
+}
+
+Widget buildChatRoomSearchItemActor() {
+  return Container();
 }

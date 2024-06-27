@@ -37,6 +37,7 @@ class SettingsPageState extends State<SettingsPage> {
               DesktopModeSwitch(),
             ],
           ),
+          const Spacer(),
           ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(

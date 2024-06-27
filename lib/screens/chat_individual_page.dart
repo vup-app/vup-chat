@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'package:animated_list_plus/animated_list_plus.dart';
-import 'package:animated_list_plus/transitions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/widgets/app_bar_back.dart';
@@ -11,12 +10,14 @@ class ChatIndividualPage extends StatefulWidget {
   final String id;
   final CircleAvatar avatar;
   final String otherName;
+  final String? messageIdToScrollTo; // Optional parameter
 
   const ChatIndividualPage({
     super.key,
     required this.id,
     required this.avatar,
     required this.otherName,
+    this.messageIdToScrollTo,
   });
 
   @override
@@ -25,8 +26,9 @@ class ChatIndividualPage extends StatefulWidget {
 
 class _ChatIndividualPageState extends State<ChatIndividualPage> {
   final TextEditingController _messageController = TextEditingController();
-  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
-  late ScrollController _scrollController;
+  final ItemScrollController _scrollController = ItemScrollController();
+  final ItemPositionsListener _itemPositionsListener =
+      ItemPositionsListener.create();
   Timer? _timer;
   List<Message> _messages = [];
   StreamSubscription<List<Message>>? _subscription;
@@ -35,15 +37,18 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   void initState() {
     super.initState();
     _schedulePeriodicUpdate();
-    _scrollController = ScrollController();
     _subscribeToChat();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.messageIdToScrollTo != null) {
+        _scrollToMessage(widget.messageIdToScrollTo!);
+      }
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _messageController.dispose();
-    _scrollController.dispose();
     _subscription?.cancel();
     super.dispose();
   }
@@ -57,7 +62,6 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   void _subscribeToChat() {
     _subscription?.cancel(); // Cancel any existing subscription
     _subscription = msg.subscribeChat(widget.id).listen((newMessages) {
-      _updateAnimatedList(_messages, newMessages);
       setState(() {
         _messages = newMessages;
       });
@@ -65,22 +69,14 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     });
   }
 
-  void _updateAnimatedList(
-      List<Message> oldMessages, List<Message> newMessages) {
-    final oldCount = oldMessages.length;
-    final newCount = newMessages.length;
-
-    if (newCount > oldCount) {
-      for (var i = oldCount; i < newCount; i++) {
-        _listKey.currentState?.insertItem(i);
-      }
-    } else if (newCount < oldCount) {
-      for (var i = oldCount - 1; i >= newCount; i--) {
-        _listKey.currentState?.removeItem(
-          i,
-          (context, animation) => _buildMessageItem(oldMessages[i], animation),
-        );
-      }
+  void _scrollToMessage(String messageId) {
+    final index = _messages.indexWhere((message) => message.id == messageId);
+    if (index != 0) {
+      _scrollController.scrollTo(
+        index: index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
     }
   }
 
@@ -132,9 +128,9 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0.0,
+    if (_scrollController.isAttached) {
+      _scrollController.scrollTo(
+        index: 0,
         duration: const Duration(milliseconds: 200),
         curve: Curves.elasticOut,
       );
@@ -154,7 +150,6 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
 
   @override
   Widget build(BuildContext context) {
-    logger.d("user ${widget.otherName}");
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -172,22 +167,19 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
           child: Column(
             children: [
               Expanded(
-                child: ImplicitlyAnimatedList<Message>(
-                  items: _messages,
-                  areItemsTheSame: (a, b) => (a.id == b.id),
+                child: ScrollablePositionedList.builder(
+                  itemCount: _messages.length,
+                  itemScrollController: _scrollController,
+                  itemPositionsListener: _itemPositionsListener,
                   reverse: true,
-                  itemBuilder: (context, animation, item, index) {
-                    return SizeFadeTransition(
-                        sizeFraction: 0.7,
-                        curve: Curves.easeInOut,
-                        animation: animation,
-                        child: _buildMessageItem(item, animation));
-                  },
-                  removeItemBuilder: (context, animation, oldItem) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: _buildMessageItem(oldItem, animation),
-                    );
+                  itemBuilder: (context, index) {
+                    if (index > -1) {
+                      final message = _messages[index];
+                      return _buildMessageItem(
+                          message, const AlwaysStoppedAnimation(1.0));
+                    } else {
+                      return Container();
+                    }
                   },
                 ),
               ),
@@ -204,7 +196,8 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                         ),
                         textInputAction: TextInputAction.go,
                         onSubmitted: (_) {
-                          msg.sendMessage(_messageController.text, widget.id);
+                          msg.sendMessage(_messageController.text, widget.id,
+                              Sender(did: did!, displayName: widget.otherName));
                           _messageController.clear();
                         },
                       ),
@@ -212,7 +205,8 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                     IconButton(
                       icon: const Icon(Icons.send),
                       onPressed: () {
-                        msg.sendMessage(_messageController.text, widget.id);
+                        msg.sendMessage(_messageController.text, widget.id,
+                            Sender(did: did!, displayName: widget.otherName));
                         _messageController.clear();
                       },
                     ),

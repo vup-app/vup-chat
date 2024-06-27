@@ -8,7 +8,8 @@ import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/widgets/app_bar_back.dart';
 
 class SearchActorPage extends StatefulWidget {
-  final void Function(String id, String title, CircleAvatar avatar)?
+  final void Function(
+          String id, String title, CircleAvatar avatar, String? mID)?
       onChatSelected;
   const SearchActorPage({super.key, this.onChatSelected});
 

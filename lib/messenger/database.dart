@@ -18,6 +18,50 @@ class MessageDatabase extends _$MessageDatabase {
   @override
   int get schemaVersion => 1;
 
+  // Searches DB for contacts
+
+  // Searches DB for messages
+  Future<List<Message>> searchMessages(String q, String? chatID) async {
+    final query = select(messages).join([
+      innerJoin(
+          chatRoomMessages, chatRoomMessages.chatId.equalsExp(messages.id)),
+    ])
+      ..where(messages.message.like('%$q%'));
+
+    if (chatID != null) {
+      // Case 1: Search for ALL messages undeer specific chat ID
+      query.where(chatRoomMessages.chatRoomId.equals(chatID));
+    } else {
+      // Case 2: Search for ONE message for each chat ID
+      final subQuery = select(chatRoomMessages).join([
+        innerJoin(messages, messages.id.equalsExp(chatRoomMessages.chatId)),
+      ])
+        ..groupBy([chatRoomMessages.chatRoomId])
+        ..where(messages.message.like('%$q%'));
+
+      final distinctChatRoomIds = await subQuery
+          .map((row) => row.readTable(chatRoomMessages).chatRoomId)
+          .get();
+
+      query.where(chatRoomMessages.chatRoomId.isIn(distinctChatRoomIds));
+    }
+    return query.map((row) => row.readTable(messages)).get();
+  }
+
+  // Pull from chatRoomMessages table to find chatRoomID from messageID
+  Future<String?> getChatRoomIdFromMessageId(String messageId) async {
+    final query = select(chatRoomMessages)
+      ..where((tbl) => tbl.chatId.equals(messageId));
+
+    final result = await query.getSingleOrNull();
+    return result?.chatRoomId;
+  }
+
+  // Get Sender object from did
+  Future<Sender?> getSenderByDID(String did) {
+    return (select(senders)..where((t) => t.did.equals(did))).getSingleOrNull();
+  }
+
   // Stream to watch messages for a list
   Stream<List<Message>> watchChatForMessage(String chatID) {
     final query = select(messages).join([
@@ -53,53 +97,46 @@ class MessageDatabase extends _$MessageDatabase {
   }
 
   // Check if a sender exists and insert if not
-  Future<void> checkAndInsertSenderATProto(ProfileViewBasic sender) async {
+  Future<void> checkAndInsertSenderATProto(Sender sender) async {
     final senderExists = await (select(senders)
           ..where((tbl) => tbl.did.equals(sender.did)))
         .getSingleOrNull();
     if (senderExists == null) {
       into(senders).insert(SendersCompanion.insert(
         did: sender.did,
-        displayName: sender.displayName ?? "",
-        avatarUrl: Value(sender.avatar),
+        displayName: sender.displayName,
+        avatarUrl: Value(sender.avatarUrl),
       ));
+    } else {
+      if (senderExists.displayName != sender.displayName) {
+        await (update(senders)..where((tbl) => tbl.did.equals(sender.did)))
+            .write(SendersCompanion(
+          did: Value(senderExists.did),
+          displayName: Value(sender.displayName),
+          avatarUrl: Value(senderExists.avatarUrl),
+        ));
+      }
+      if (senderExists.avatarUrl != sender.avatarUrl) {
+        await (update(senders)..where((tbl) => tbl.did.equals(sender.did)))
+            .write(SendersCompanion(
+          did: Value(senderExists.did),
+          displayName: Value(senderExists.displayName),
+          avatarUrl: Value(sender.avatarUrl),
+        ));
+      }
     }
   }
 
   // Check if a message exists and insert if not
   Future<void> checkAndInsertMessageATProto(
-      MessageView message, String roomID, bool persisted) async {
+      MessageView message, String roomID, bool persisted, Sender sender) async {
     final Message? messageExists = await (select(messages)
           ..where((tbl) => tbl.id.equals(message.id)))
         .getSingleOrNull();
 
     if (messageExists == null) {
-      // Message does not exist, insert it
-      final sender = message.sender;
-      await checkAndInsertSenderATProto(ProfileViewBasic(
-        did: sender.did,
-        handle: '', // Handle not provided here, set it appropriately
-        displayName: '', // Display name not provided here, set it appropriately
-        avatar: '', // Avatar not provided here, set it appropriately
-        associated: const ProfileAssociated(
-          type: '',
-          lists: 0,
-          feedgens: 0,
-          labeler: false,
-          chat: ActorProfileAssociatedChat(type: '', allowIncoming: ''),
-        ),
-        viewer: const ActorViewer(
-          isMuted: false,
-          isBlockedBy: false,
-          mutedByList: null,
-          blockingByList: null,
-          blocking: null,
-          following: null,
-          followedBy: null,
-        ),
-        labels: [],
-        chatDisabled: false,
-      ));
+      // Insert updated sender
+      checkAndInsertSenderATProto(sender);
 
       // Insert the message
       await into(messages).insert(MessagesCompanion.insert(
@@ -190,8 +227,13 @@ class MessageDatabase extends _$MessageDatabase {
           // Add other fields as needed
         };
 
+        final Sender sender = Sender(
+            did: convo.members.last.did,
+            displayName: convo.members.last.handle,
+            avatarUrl: convo.members.last.avatar);
+
         // Check and insert the last message
-        await checkAndInsertMessageATProto(lastMessage, convo.id, true);
+        await checkAndInsertMessageATProto(lastMessage, convo.id, true, sender);
       }
 
       // Insert or update the chat list entry

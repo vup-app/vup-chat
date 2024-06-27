@@ -3,7 +3,6 @@ import 'package:animated_list_plus/animated_list_plus.dart';
 import 'package:animated_list_plus/transitions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
@@ -26,16 +25,19 @@ class ChatListPageState extends State<ChatListPage> {
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   List<ChatRoomData> _chats = [];
   StreamSubscription<List<ChatRoomData>>? _subscription;
+  List<Message>? _searchedMessages;
 
   @override
   void initState() {
     super.initState();
     _subscribeToChatList();
+    _textController.addListener(_onSearchChanged);
   }
 
   @override
   void dispose() {
     _subscription?.cancel();
+    _textController.removeListener(_onSearchChanged);
     _textController.dispose();
     super.dispose();
   }
@@ -49,6 +51,21 @@ class ChatListPageState extends State<ChatListPage> {
         });
       }
     });
+  }
+
+  // Listener to search on search changed
+  void _onSearchChanged() {
+    if (_textController.text.isNotEmpty) {
+      msg.searchMessages(_textController.text, null).then(
+        (msgs) {
+          setState(() {
+            _searchedMessages = msgs;
+          });
+        },
+      ); // not specifying chat room ID
+    } else {
+      setState(() {});
+    }
   }
 
   bool _listsAreEqual(List<ChatRoomData> oldList, List<ChatRoomData> newList) {
@@ -68,7 +85,7 @@ class ChatListPageState extends State<ChatListPage> {
       if (!newKeys.contains(oldChats[i].id)) {
         _listKey.currentState?.removeItem(
           i,
-          (context, animation) => buildChatListPageListItem(
+          (context, animation) => buildChatRoomListItem(
             oldChats[i],
             animation,
             context,
@@ -84,7 +101,7 @@ class ChatListPageState extends State<ChatListPage> {
       } else if (oldKeys.indexOf(newChats[i].id) != i) {
         _listKey.currentState?.removeItem(
           oldKeys.indexOf(newChats[i].id),
-          (context, animation) => buildChatListPageListItem(
+          (context, animation) => buildChatRoomListItem(
             oldChats[oldKeys.indexOf(newChats[i].id)],
             animation,
             context,
@@ -114,60 +131,6 @@ class ChatListPageState extends State<ChatListPage> {
     }
   }
 
-  Drawer _buildDrawer() {
-    return Drawer(
-      child: ListView(
-        reverse: true,
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {
-              _navToSettings();
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text('Profile'),
-            onTap: () {
-              _navToProfile();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  _buildDropDownMenu() {
-    // final RenderBox button = context.findRenderObject() as RenderBox;
-    // final RenderBox overlay =
-    //     Overlay.of(context).context.findRenderObject() as RenderBox;
-    // final RelativeRect position = RelativeRect.fromRect(
-    //   Rect.fromPoints(
-    //     button.localToGlobal(Offset.zero, ancestor: overlay),
-    //     button.localToGlobal(button.size.bottomRight(Offset.zero),
-    //         ancestor: overlay),
-    //   ),
-    //   Offset.zero & overlay.size,
-    // );
-
-    // showMenu(
-    //   context: context,
-    //   position: position,
-    //   items: [
-    //     const PopupMenuItem(
-    //       value: 1,
-    //       child: Text("Option 1"),
-    //     ),
-    //     const PopupMenuItem(
-    //       value: 2,
-    //       child: Text("Option 2"),
-    //     ),
-    //   ],
-    // );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -186,6 +149,7 @@ class ChatListPageState extends State<ChatListPage> {
         ),
         body: Column(
           children: [
+            // This is a complicated search bar
             Center(
               child: Padding(
                 padding: EdgeInsets.all(8.h),
@@ -199,19 +163,20 @@ class ChatListPageState extends State<ChatListPage> {
                         width: 1.h,
                       ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20.h),
-                      borderSide: BorderSide(
-                        width: 1.h,
-                      ),
-                    ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20.h),
                       borderSide: BorderSide(
                         width: 1.h,
                       ),
                     ),
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: (_textController.text.isEmpty)
+                        ? const Icon(Icons.search)
+                        : InkWell(
+                            child: const Icon(Icons.clear),
+                            onTap: () {
+                              _textController.clear();
+                            },
+                          ),
                     suffixIcon: Padding(
                       padding: EdgeInsets.only(right: 0.h),
                       child: PopupMenuButton<String>(
@@ -223,9 +188,8 @@ class ChatListPageState extends State<ChatListPage> {
                             _navToProfile();
                           }
                         },
-                        icon: CircleAvatar(
-                          radius: 14.h,
-                          child: const Icon(Icons.person),
+                        icon: const CircleAvatar(
+                          child: Icon(Icons.person),
                         ),
                         itemBuilder: (BuildContext context) {
                           return <PopupMenuEntry<String>>[
@@ -252,29 +216,45 @@ class ChatListPageState extends State<ChatListPage> {
                 ),
               ),
             ),
-            Expanded(
-              child: ImplicitlyAnimatedList<ChatRoomData>(
-                items: _chats,
-                areItemsTheSame: (a, b) =>
-                    (a.lastMessage == b.lastMessage && a.id == b.id),
-                itemBuilder: (context, animation, item, index) {
-                  return SizeFadeTransition(
-                    sizeFraction: 0.7,
-                    curve: Curves.easeInOut,
-                    animation: animation,
-                    child: buildChatListPageListItem(
-                        item, animation, context, widget.homeRoutingService),
-                  );
-                },
-                removeItemBuilder: (context, animation, oldItem) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: buildChatListPageListItem(
-                        oldItem, animation, context, widget.homeRoutingService),
-                  );
-                },
-              ),
-            )
+            // This section swaps views if search is happening or not
+            (_textController.text.isNotEmpty && _searchedMessages != null)
+                // But if the search does contain something, it shows the search view
+                ? (_searchedMessages!.isEmpty)
+                    ? const Text("Crickets...")
+                    : Expanded(
+                        child: ListView.builder(
+                        itemCount: _searchedMessages!.length,
+                        itemBuilder: (context, index) {
+                          return buildChatRoomSearchItemMessage(
+                              _searchedMessages![index],
+                              context,
+                              widget.homeRoutingService);
+                        },
+                      ))
+                // So if the search doesn't contain text it just shows chats
+                : Expanded(
+                    child: ImplicitlyAnimatedList<ChatRoomData>(
+                      items: _chats,
+                      areItemsTheSame: (a, b) =>
+                          (a.lastMessage == b.lastMessage && a.id == b.id),
+                      itemBuilder: (context, animation, item, index) {
+                        return SizeFadeTransition(
+                          sizeFraction: 0.7,
+                          curve: Curves.easeInOut,
+                          animation: animation,
+                          child: buildChatRoomListItem(item, animation, context,
+                              widget.homeRoutingService),
+                        );
+                      },
+                      removeItemBuilder: (context, animation, oldItem) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: buildChatRoomListItem(oldItem, animation,
+                              context, widget.homeRoutingService),
+                        );
+                      },
+                    ),
+                  )
           ],
         ));
   }
