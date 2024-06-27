@@ -196,7 +196,7 @@ class MessageDatabase extends _$MessageDatabase {
     await (update(chatRoom)..where((tbl) => tbl.id.equals(roomID)))
         .write(ChatRoomCompanion(
       lastMessage: Value(lastMessageJson),
-      lastUpdated: Value(DateTime.now()),
+      lastUpdated: Value(message.sentAt),
     ));
   }
 
@@ -241,22 +241,39 @@ class MessageDatabase extends _$MessageDatabase {
 
         // Check and insert the last message
         await checkAndInsertMessageATProto(lastMessage, convo.id, true, sender);
-      }
 
-      // Insert or update the chat list entry
-      await into(chatRoom).insert(
-        ChatRoomCompanion.insert(
-          id: convo.id,
-          rev: convo.rev,
-          members: json.encode(membersJson),
-          lastMessage: json.encode(lastMessageJson ?? {}),
-          muted: Value(convo.muted),
-          hidden: const Value(false),
-          unreadCount: Value(convo.unreadCount),
-          lastUpdated: DateTime.now(),
-        ),
-        mode: InsertMode.insertOrReplace,
-      );
+        // Insert or update the chat list entry
+        if (chatRoomExists == null ||
+            chatRoomExists.lastUpdated.isBefore(lastMessage.sentAt)) {
+          await into(chatRoom).insert(
+            ChatRoomCompanion.insert(
+              id: convo.id,
+              rev: convo.rev,
+              members: json.encode(membersJson),
+              lastMessage: json.encode(lastMessageJson),
+              muted: Value(convo.muted),
+              hidden: const Value(false),
+              unreadCount: Value(convo.unreadCount),
+              lastUpdated: lastMessage.sentAt,
+            ),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
+      } else {
+        await into(chatRoom).insert(
+          ChatRoomCompanion.insert(
+            id: convo.id,
+            rev: convo.rev,
+            members: json.encode(membersJson),
+            lastMessage: chatRoomExists!.lastMessage,
+            muted: Value(convo.muted),
+            hidden: const Value(false),
+            unreadCount: Value(convo.unreadCount),
+            lastUpdated: chatRoomExists.lastUpdated,
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
 
       // Insert message list messages
       if (lastMessageJson != null) {

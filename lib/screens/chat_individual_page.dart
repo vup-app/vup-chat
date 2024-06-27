@@ -7,6 +7,7 @@ import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/widgets/app_bar_back.dart';
+import 'package:vup_chat/widgets/message_item.dart';
 
 class ChatIndividualPage extends StatefulWidget {
   final String id;
@@ -108,53 +109,6 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     _messageController.clear();
   }
 
-  Widget _buildMessageItem(Message message, Animation<double> animation) {
-    final isMe = message.senderDid == did;
-    return SizeTransition(
-      sizeFactor: animation,
-      child: Align(
-        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-        child: GestureDetector(
-          onLongPress: () {
-            Clipboard.setData(ClipboardData(text: message.message));
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Text copied to clipboard')),
-            );
-          },
-          child: Stack(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                decoration: BoxDecoration(
-                  color: isMe
-                      ? Theme.of(context).primaryColor
-                      : Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: SelectableText(
-                  message.message,
-                  style: TextStyle(
-                    color: isMe ? Theme.of(context).cardColor : Colors.black,
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 8,
-                right: 10,
-                child: Icon(
-                  message.persisted ? Icons.check : Icons.hourglass_bottom,
-                  color: Colors.grey,
-                  size: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -188,11 +142,9 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                           (message) => message.id == widget.messageIdToScrollTo)
                       : 0,
                   itemBuilder: (context, index) {
-                    logger.d(index);
-                    logger.d(_messages);
                     final message = _messages[index];
-                    return _buildMessageItem(
-                        message, const AlwaysStoppedAnimation(1.0));
+                    return buildMessageItem(
+                        message, const AlwaysStoppedAnimation(1.0), context);
                   },
                 ),
               ),
