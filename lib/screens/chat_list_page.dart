@@ -22,7 +22,6 @@ class ChatListPage extends StatefulWidget {
 
 class ChatListPageState extends State<ChatListPage> {
   final TextEditingController _textController = TextEditingController();
-  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   List<ChatRoomData> _chats = [];
   StreamSubscription<List<ChatRoomData>>? _subscription;
   List<Message>? _searchedMessages;
@@ -45,7 +44,6 @@ class ChatListPageState extends State<ChatListPage> {
   void _subscribeToChatList() {
     _subscription = msg.subscribeChatRoom().listen((newChats) {
       if (!_listsAreEqual(_chats, newChats)) {
-        _updateAnimatedList(_chats, newChats);
         setState(() {
           _chats = newChats;
         });
@@ -74,43 +72,6 @@ class ChatListPageState extends State<ChatListPage> {
       if (oldList[i].id != newList[i].id) return false;
     }
     return true;
-  }
-
-  void _updateAnimatedList(
-      List<ChatRoomData> oldChats, List<ChatRoomData> newChats) {
-    final oldKeys = oldChats.map((chat) => chat.id).toList();
-    final newKeys = newChats.map((chat) => chat.id).toList();
-
-    for (var i = 0; i < oldChats.length; i++) {
-      if (!newKeys.contains(oldChats[i].id)) {
-        _listKey.currentState?.removeItem(
-          i,
-          (context, animation) => buildChatRoomListItem(
-            oldChats[i],
-            animation,
-            context,
-            widget.homeRoutingService,
-          ),
-        );
-      }
-    }
-
-    for (var i = 0; i < newChats.length; i++) {
-      if (!oldKeys.contains(newChats[i].id)) {
-        _listKey.currentState?.insertItem(i);
-      } else if (oldKeys.indexOf(newChats[i].id) != i) {
-        _listKey.currentState?.removeItem(
-          oldKeys.indexOf(newChats[i].id),
-          (context, animation) => buildChatRoomListItem(
-            oldChats[oldKeys.indexOf(newChats[i].id)],
-            animation,
-            context,
-            widget.homeRoutingService,
-          ),
-        );
-        _listKey.currentState?.insertItem(i);
-      }
-    }
   }
 
   void _navToSettings() async {

@@ -15,12 +15,9 @@ class HomeRoutingService {
     onRightPanelChanged(SearchActorPage(onChatSelected: onChatSelected));
   }
 
-  void onChatSelected(
-      String id, String title, CircleAvatar avatar, String? mID) {
+  void onChatSelected(String id, String? mID) {
     onRightPanelChanged(ChatIndividualPage(
       id: id,
-      otherName: title,
-      avatar: avatar,
       messageIdToScrollTo: mID,
     ));
   }

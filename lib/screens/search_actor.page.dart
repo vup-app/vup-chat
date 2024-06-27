@@ -8,9 +8,7 @@ import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/widgets/app_bar_back.dart';
 
 class SearchActorPage extends StatefulWidget {
-  final void Function(
-          String id, String title, CircleAvatar avatar, String? mID)?
-      onChatSelected;
+  final void Function(String id, String? mID)? onChatSelected;
   const SearchActorPage({super.key, this.onChatSelected});
 
   @override
@@ -67,15 +65,12 @@ class SearchActorPageState extends State<SearchActorPage> {
   Future<void> _pushToIndividualChatPage(
       BuildContext context, Actor actor, CircleAvatar avatar) async {
     String? chatID = await getChatIDFromUID(actor.did);
-    String? otherDispName = await getUserFromUID(actor.did);
     if (chatID != null && mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => ChatIndividualPage(
             id: chatID,
-            otherName: otherDispName ?? "",
-            avatar: avatar,
           ),
         ),
       );

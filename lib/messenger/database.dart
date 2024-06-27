@@ -49,12 +49,19 @@ class MessageDatabase extends _$MessageDatabase {
   }
 
   // Pull from chatRoomMessages table to find chatRoomID from messageID
-  Future<String?> getChatRoomIdFromMessageId(String messageId) async {
+  Future<String?> getChatRoomIdFromMessageId(String messageID) async {
     final query = select(chatRoomMessages)
-      ..where((tbl) => tbl.chatId.equals(messageId));
+      ..where((tbl) => tbl.chatId.equals(messageID));
 
     final result = await query.getSingleOrNull();
     return result?.chatRoomId;
+  }
+
+  // Grab the chat room associated with chatID
+  Future<ChatRoomData?> getChatRoomFromChatID(String chatID) async {
+    final query = select(chatRoom)..where((t) => t.id.equals(chatID));
+    final ChatRoomData? result = await query.getSingleOrNull();
+    return result;
   }
 
   // Get Sender object from did

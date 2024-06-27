@@ -25,15 +25,13 @@ Widget buildChatRoomListItem(ChatRoomData chat, Animation<double> animation,
       leading: avatar,
       onTap: () {
         if (homeRoutingService != null) {
-          homeRoutingService.onChatSelected(chat.id, title, avatar, null);
+          homeRoutingService.onChatSelected(chat.id, null);
         } else {
           Navigator.push(
               context,
               MaterialPageRoute(
                   builder: (context) => ChatIndividualPage(
                         id: chat.id,
-                        otherName: title,
-                        avatar: avatar,
                       )));
         }
       },
@@ -74,8 +72,17 @@ Widget buildChatRoomSearchItemMessage(
                       subtitle: Text(message.message),
                       leading: cavatar,
                       onTap: () {
-                        homeRoutingService!.onChatSelected(
-                            chatID, sender.displayName, cavatar, message.id);
+                        if (homeRoutingService != null) {
+                          homeRoutingService.onChatSelected(chatID, message.id);
+                        } else {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ChatIndividualPage(
+                                        id: chatID,
+                                        messageIdToScrollTo: message.id,
+                                      )));
+                        }
                       },
                     )
                   : const Text("failed to fetch sender");
