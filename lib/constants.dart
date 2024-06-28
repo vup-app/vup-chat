@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-const String version = "v0.3.0";
+const String version = "v0.3.1";
 
 const defaultAccentColor = Color(0xFF1ED660);
 const lightBackgroundColor = Color(0xfffafafa);

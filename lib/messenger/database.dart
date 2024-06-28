@@ -180,24 +180,31 @@ class MessageDatabase extends _$MessageDatabase {
     }
   }
 
+  // Updates the chatroom last message
   Future<void> _updateChatRoomLastMessage(
       String roomID, MessageView message) async {
-    final lastMessageJson = json.encode({
-      'id': message.id,
-      'rev': message.rev,
-      'text': message.text,
-      'sender': {
-        'did': message.sender.did,
-      },
-      'sentAt': message.sentAt.toIso8601String(),
-      // Add other fields as needed
-    });
+    // first gotta check if there already is a newer message
+    final croom = await (select(chatRoom)..where((t) => t.id.equals(roomID)))
+        .getSingleOrNull();
+    if (croom != null && croom.lastUpdated.isBefore(message.sentAt)) {
+      // Then if it's newer update it
+      final lastMessageJson = json.encode({
+        'id': message.id,
+        'rev': message.rev,
+        'text': message.text,
+        'sender': {
+          'did': message.sender.did,
+        },
+        'sentAt': message.sentAt.toIso8601String(),
+        // Add other fields as needed
+      });
 
-    await (update(chatRoom)..where((tbl) => tbl.id.equals(roomID)))
-        .write(ChatRoomCompanion(
-      lastMessage: Value(lastMessageJson),
-      lastUpdated: Value(message.sentAt),
-    ));
+      await (update(chatRoom)..where((tbl) => tbl.id.equals(roomID)))
+          .write(ChatRoomCompanion(
+        lastMessage: Value(lastMessageJson),
+        lastUpdated: Value(message.sentAt),
+      ));
+    }
   }
 
   // Check if a message list exists and insert if not
