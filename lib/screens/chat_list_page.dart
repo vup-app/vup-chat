@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:animated_list_plus/animated_list_plus.dart';
 import 'package:animated_list_plus/transitions.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
@@ -10,6 +10,7 @@ import 'package:vup_chat/screens/profile_page.dart';
 import 'package:vup_chat/screens/search_actor.page.dart';
 import 'package:vup_chat/screens/settings_page.dart';
 import 'package:vup_chat/widgets/chat_page_list_item.dart';
+import 'package:vup_chat/widgets/search_bar_chats.dart';
 
 class ChatListPage extends StatefulWidget {
   final HomeRoutingService? homeRoutingService;
@@ -23,6 +24,7 @@ class ChatListPage extends StatefulWidget {
 class ChatListPageState extends State<ChatListPage> {
   final TextEditingController _textController = TextEditingController();
   List<ChatRoomData> _chats = [];
+  final Set<String> _selectedChatIds = {};
   StreamSubscription<List<ChatRoomData>>? _subscription;
   List<Message>? _searchedMessages;
 
@@ -43,7 +45,7 @@ class ChatListPageState extends State<ChatListPage> {
 
   void _subscribeToChatList() {
     _subscription = msg.subscribeChatRoom().listen((newChats) {
-      if (!_listsAreEqual(_chats, newChats)) {
+      if (newChats != _chats) {
         setState(() {
           _chats = newChats;
         });
@@ -66,14 +68,6 @@ class ChatListPageState extends State<ChatListPage> {
     }
   }
 
-  bool _listsAreEqual(List<ChatRoomData> oldList, List<ChatRoomData> newList) {
-    if (oldList.length != newList.length) return false;
-    for (int i = 0; i < oldList.length; i++) {
-      if (oldList[i].id != newList[i].id) return false;
-    }
-    return true;
-  }
-
   void _navToSettings() async {
     if (widget.homeRoutingService != null) {
       widget.homeRoutingService!.navigateToSettings();
@@ -92,9 +86,57 @@ class ChatListPageState extends State<ChatListPage> {
     }
   }
 
+  void onChatItemSelection(String chatId) {
+    setState(() {
+      if (_selectedChatIds.contains(chatId)) {
+        _selectedChatIds.remove(chatId);
+      } else {
+        _selectedChatIds.add(chatId);
+      }
+    });
+  }
+
+  void _deleteSelectedChats() {
+    // Implement delete logic here
+    setState(() {
+      _chats.removeWhere((chat) => _selectedChatIds.contains(chat.id));
+      _selectedChatIds.clear();
+    });
+  }
+
+  void _muteSelectedChats() {
+    msg.toggleChatMutes(_selectedChatIds.toList());
+    setState(() {
+      _selectedChatIds.clear();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: _selectedChatIds.isNotEmpty
+            ? AppBar(
+                title: Text('${_selectedChatIds.length} selected'),
+                leading: InkWell(
+                  child: const Icon(Icons.clear),
+                  onTap: () {
+                    setState(() {
+                      _selectedChatIds.clear();
+                    });
+                  },
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: _deleteSelectedChats,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit_notifications_outlined),
+                    onPressed: _muteSelectedChats,
+                  ),
+                ],
+              )
+            : null,
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.message_outlined),
           onPressed: () {
@@ -111,72 +153,7 @@ class ChatListPageState extends State<ChatListPage> {
         body: Column(
           children: [
             // This is a complicated search bar
-            Center(
-              child: Padding(
-                padding: EdgeInsets.all(8.h),
-                child: TextField(
-                  controller: _textController,
-                  decoration: InputDecoration(
-                    filled: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20.h),
-                      borderSide: BorderSide(
-                        width: 1.h,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20.h),
-                      borderSide: BorderSide(
-                        width: 1.h,
-                      ),
-                    ),
-                    prefixIcon: (_textController.text.isEmpty)
-                        ? const Icon(Icons.search)
-                        : InkWell(
-                            child: const Icon(Icons.clear),
-                            onTap: () {
-                              _textController.clear();
-                            },
-                          ),
-                    suffixIcon: Padding(
-                      padding: EdgeInsets.only(right: 0.h),
-                      child: PopupMenuButton<String>(
-                        onSelected: (value) {
-                          // Handle menu item selection
-                          if (value == 'Settings') {
-                            _navToSettings();
-                          } else if (value == 'Profile') {
-                            _navToProfile();
-                          }
-                        },
-                        icon: const CircleAvatar(
-                          child: Icon(Icons.person),
-                        ),
-                        itemBuilder: (BuildContext context) {
-                          return <PopupMenuEntry<String>>[
-                            const PopupMenuItem<String>(
-                              value: 'Settings',
-                              child: ListTile(
-                                leading: Icon(Icons.settings),
-                                title: Text('Settings'),
-                              ),
-                            ),
-                            const PopupMenuItem<String>(
-                              value: 'Profile',
-                              child: ListTile(
-                                leading: Icon(Icons.person),
-                                title: Text('Profile'),
-                              ),
-                            ),
-                          ];
-                        },
-                      ),
-                    ),
-                    hintText: 'Search...',
-                  ),
-                ),
-              ),
-            ),
+            chatsSearchBar(_textController, _navToSettings, _navToProfile),
             // This section swaps views if search is happening or not
             (_textController.text.isNotEmpty && _searchedMessages != null)
                 // But if the search does contain something, it shows the search view
@@ -186,10 +163,13 @@ class ChatListPageState extends State<ChatListPage> {
                         child: ListView.builder(
                         itemCount: _searchedMessages!.length,
                         itemBuilder: (context, index) {
-                          return buildChatRoomSearchItemMessage(
-                              _searchedMessages![index],
-                              context,
-                              widget.homeRoutingService);
+                          return Provider(
+                            create: (context) => _selectedChatIds,
+                            child: buildChatRoomSearchItemMessage(
+                                _searchedMessages![index],
+                                context,
+                                widget.homeRoutingService),
+                          );
                         },
                       ))
                 // So if the search doesn't contain text it just shows chats
@@ -199,19 +179,67 @@ class ChatListPageState extends State<ChatListPage> {
                       areItemsTheSame: (a, b) =>
                           (a.lastMessage == b.lastMessage && a.id == b.id),
                       itemBuilder: (context, animation, item, index) {
-                        return SizeFadeTransition(
-                          sizeFraction: 0.7,
-                          curve: Curves.easeInOut,
-                          animation: animation,
-                          child: buildChatRoomListItem(item, animation, context,
-                              widget.homeRoutingService),
+                        return GestureDetector(
+                          onLongPress: () => onChatItemSelection(item.id),
+                          child: MouseRegion(
+                            onEnter: (_) {
+                              // Show icon on hover (desktop)
+                              // You may need to use a state variable to manage hover state
+                            },
+                            onExit: (_) {
+                              // Hide icon on hover exit (desktop)
+                              // You may need to use a state variable to manage hover state
+                            },
+                            child: Stack(
+                              children: [
+                                SizeFadeTransition(
+                                  sizeFraction: 0.7,
+                                  curve: Curves.easeInOut,
+                                  animation: animation,
+                                  child: buildChatRoomListItem(
+                                    item,
+                                    animation,
+                                    context,
+                                    widget.homeRoutingService,
+                                    _selectedChatIds,
+                                    onChatItemSelection,
+                                  ),
+                                ),
+                                if (_selectedChatIds.contains(item.id))
+                                  Positioned.fill(
+                                    child: Container(
+                                      color: Colors.blue.withOpacity(0.3),
+                                    ),
+                                  ),
+                                // TODO: Add hover
+                                // Add hover icon here
+                                // if (/* hover condition */)
+                                //   Positioned(
+                                //     right: 8,
+                                //     top: 8,
+                                //     child: IconButton(
+                                //       icon: const Icon(Icons.more_vert),
+                                //       onPressed: () {
+                                //         // Show options like delete or mute
+                                //       },
+                                //     ),
+                                //   ),
+                              ],
+                            ),
+                          ),
                         );
                       },
                       removeItemBuilder: (context, animation, oldItem) {
                         return FadeTransition(
                           opacity: animation,
-                          child: buildChatRoomListItem(oldItem, animation,
-                              context, widget.homeRoutingService),
+                          child: buildChatRoomListItem(
+                            oldItem,
+                            animation,
+                            context,
+                            widget.homeRoutingService,
+                            _selectedChatIds,
+                            onChatItemSelection,
+                          ),
                         );
                       },
                     ),

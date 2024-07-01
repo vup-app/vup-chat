@@ -7,8 +7,13 @@ import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/widgets/smart_date_time.dart';
 
-Widget buildChatRoomListItem(ChatRoomData chat, Animation<double> animation,
-    BuildContext context, HomeRoutingService? homeRoutingService) {
+Widget buildChatRoomListItem(
+    ChatRoomData chat,
+    Animation<double> animation,
+    BuildContext context,
+    HomeRoutingService? homeRoutingService,
+    Set<String>? selectedItems,
+    Function(String) onItemPressed) {
   // Parse members and last message
   final List<dynamic> membersJson = jsonDecode(chat.members);
   final Map<String, dynamic> lastMessageJson = json.decode(chat.lastMessage);
@@ -19,32 +24,36 @@ Widget buildChatRoomListItem(ChatRoomData chat, Animation<double> animation,
   final String lastMessageText = lastMessageJson['text'] ?? "";
 
   return SizeTransition(
-      sizeFactor: animation,
-      child: Stack(
+    sizeFactor: animation,
+    child: ListTile(
+      title: Text(title),
+      subtitle: Text(lastMessageText),
+      leading: avatar,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          ListTile(
-            title: Text(title),
-            subtitle: Text(lastMessageText),
-            leading: avatar,
-            onTap: () {
-              if (homeRoutingService != null) {
-                homeRoutingService.onChatSelected(chat.id, null);
-              } else {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => ChatIndividualPage(
-                              id: chat.id,
-                            )));
-              }
-            },
-          ),
-          Align(
-            alignment: Alignment.topRight,
-            child: SmartDateTimeWidget(dateTime: chat.lastUpdated),
-          )
+          (chat.muted)
+              ? const Icon(Icons.notifications_off_outlined)
+              : Container(),
+          SmartDateTimeWidget(dateTime: chat.lastUpdated)
         ],
-      ));
+      ),
+      onTap: () {
+        if (selectedItems != null && selectedItems.isNotEmpty) {
+          onItemPressed(chat.id);
+        } else if (homeRoutingService != null) {
+          homeRoutingService.onChatSelected(chat.id, null);
+        } else {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ChatIndividualPage(
+                        id: chat.id,
+                      )));
+        }
+      },
+    ),
+  );
 }
 
 Widget buildChatRoomSearchItemMessage(

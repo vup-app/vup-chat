@@ -48,6 +48,47 @@ class MessageDatabase extends _$MessageDatabase {
     return query.map((row) => row.readTable(messages)).get();
   }
 
+  // Toggle Mute
+  Future<void> chatMuteHelper(String chatID, int mode) async {
+    // 1: mute
+    // 2: unmute
+    // 3: toggle
+    switch (mode) {
+      case 1:
+        {
+          await (update(chatRoom)..where((t) => t.id.equals(chatID)))
+              .write(const ChatRoomCompanion(muted: Value(true)));
+        }
+      case 2:
+        {
+          await (update(chatRoom)..where((t) => t.id.equals(chatID)))
+              .write(const ChatRoomCompanion(muted: Value(false)));
+        }
+      case 3:
+        {
+          bool? curMuted = await isMuted(chatID);
+          if (curMuted != null) {
+            // Inverter ternary switch (probably works)
+            await (update(chatRoom)..where((t) => t.id.equals(chatID))).write(
+                ChatRoomCompanion(muted: Value(curMuted ? false : true)));
+          }
+        }
+      default:
+        return; // this should never be reached
+    }
+  }
+
+  // Checks if muted currently
+  Future<bool?> isMuted(String chatID) async {
+    final query = select(chatRoom)..where((t) => t.id.equals(chatID));
+    final res = await query.getSingleOrNull();
+    if (res != null) {
+      return res.muted;
+    } else {
+      return null;
+    }
+  }
+
   // Pull from chatRoomMessages table to find chatRoomID from messageID
   Future<String?> getChatRoomIdFromMessageId(String messageID) async {
     final query = select(chatRoomMessages)

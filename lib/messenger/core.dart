@@ -100,6 +100,26 @@ class MsgCore {
     }
   }
 
+  Future<void> toggleChatMutes(List<String> chatIDs) async {
+    for (String chatID in chatIDs) {
+      // modes
+      // 1: Mute
+      // 2: Unmute
+      // 3: Toggle -> default for now
+      await db.chatMuteHelper(chatID, 3);
+
+      // gotta check current state in db and write that to bsky
+      bool? currMuted = await db.isMuted(chatID);
+      if (currMuted == null || currMuted == false) {
+        // if null just assume it's not muted to not mess up remote state
+        await chatSession!.convo.unmuteConvo(convoId: chatID);
+      } else {
+        // should cover all cases
+        await chatSession!.convo.muteConvo(convoId: chatID);
+      }
+    }
+  }
+
   void _populateListViewDBATProto() async {
     final ListConvosOutput? ref = await getChatTimeline();
 
