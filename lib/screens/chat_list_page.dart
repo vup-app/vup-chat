@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'package:animated_list_plus/animated_list_plus.dart';
-import 'package:animated_list_plus/transitions.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
@@ -10,6 +7,7 @@ import 'package:vup_chat/screens/profile_page.dart';
 import 'package:vup_chat/screens/search_actor.page.dart';
 import 'package:vup_chat/screens/settings_page.dart';
 import 'package:vup_chat/widgets/chat_page_list_item.dart';
+import 'package:vup_chat/widgets/chat_room_list.dart';
 import 'package:vup_chat/widgets/search_bar_chats.dart';
 
 class ChatListPage extends StatefulWidget {
@@ -27,6 +25,8 @@ class ChatListPageState extends State<ChatListPage> {
   final Set<String> _selectedChatIds = {};
   StreamSubscription<List<ChatRoomData>>? _subscription;
   List<Message>? _searchedMessages;
+  int? numHiddenChats;
+  bool hiddenChatToggle = false;
 
   @override
   void initState() {
@@ -49,6 +49,7 @@ class ChatListPageState extends State<ChatListPage> {
         setState(() {
           _chats = newChats;
         });
+        _checkForHiddenChats();
       }
     });
   }
@@ -86,7 +87,7 @@ class ChatListPageState extends State<ChatListPage> {
     }
   }
 
-  void onChatItemSelection(String chatId) {
+  void _onChatItemSelection(String chatId) {
     setState(() {
       if (_selectedChatIds.contains(chatId)) {
         _selectedChatIds.remove(chatId);
@@ -96,19 +97,36 @@ class ChatListPageState extends State<ChatListPage> {
     });
   }
 
-  void _deleteSelectedChats() {
-    // Implement delete logic here
+  // Optional ChatID is for when using the 3 button menu
+  void _hideSelectedChats(String? optionalChatID) {
+    if (optionalChatID != null) _selectedChatIds.add(optionalChatID);
+    msg.toggleChatHidden(_selectedChatIds.toList());
     setState(() {
       _chats.removeWhere((chat) => _selectedChatIds.contains(chat.id));
       _selectedChatIds.clear();
     });
   }
 
-  void _muteSelectedChats() {
+  // Optional ChatID is for when using the 3 button menu
+  void _muteSelectedChats(String? optionalChatID) {
+    if (optionalChatID != null) _selectedChatIds.add(optionalChatID);
     msg.toggleChatMutes(_selectedChatIds.toList());
     setState(() {
       _selectedChatIds.clear();
     });
+  }
+
+  void _checkForHiddenChats() {
+    int acc = 0;
+    for (ChatRoomData chat in _chats) {
+      if (chat.hidden) acc++;
+    }
+    numHiddenChats = acc;
+    if (numHiddenChats == 0) {
+      setState(() {
+        hiddenChatToggle = false;
+      });
+    }
   }
 
   @override
@@ -117,23 +135,29 @@ class ChatListPageState extends State<ChatListPage> {
         appBar: _selectedChatIds.isNotEmpty
             ? AppBar(
                 title: Text('${_selectedChatIds.length} selected'),
-                leading: InkWell(
-                  child: const Icon(Icons.clear),
-                  onTap: () {
-                    setState(() {
+                leading: Tooltip(
+                  message: "Clear Selection",
+                  child: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => setState(() {
                       _selectedChatIds.clear();
-                    });
-                  },
+                    }),
+                  ),
                 ),
                 actions: [
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: _deleteSelectedChats,
+                  Tooltip(
+                    message: "Hide Chat",
+                    child: IconButton(
+                      icon: const Icon(Icons.archive_outlined),
+                      onPressed: () => _hideSelectedChats(null),
+                    ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.edit_notifications_outlined),
-                    onPressed: _muteSelectedChats,
-                  ),
+                  Tooltip(
+                      message: "Toggle Chat Mute",
+                      child: IconButton(
+                        icon: const Icon(Icons.edit_notifications_outlined),
+                        onPressed: () => _muteSelectedChats(null),
+                      )),
                 ],
               )
             : null,
@@ -151,9 +175,31 @@ class ChatListPageState extends State<ChatListPage> {
           },
         ),
         body: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // This is a complicated search bar
             chatsSearchBar(_textController, _navToSettings, _navToProfile),
+            // Shows bar to show hidden chats if selected
+            (numHiddenChats != null && numHiddenChats! > 0)
+                ? Container(
+                    color: Theme.of(context).cardColor,
+                    child: ListTile(
+                      titleAlignment: ListTileTitleAlignment.center,
+                      leading: const Icon(Icons.archive),
+                      title: (numHiddenChats == 1)
+                          ? const Text("You have 1 hidden chat.")
+                          : Text("You have $numHiddenChats hidden chats."),
+                      trailing: Switch(
+                        value: hiddenChatToggle,
+                        onChanged: (value) {
+                          setState(() {
+                            hiddenChatToggle = !hiddenChatToggle;
+                          });
+                        },
+                      ),
+                    ),
+                  )
+                : Container(),
             // This section swaps views if search is happening or not
             (_textController.text.isNotEmpty && _searchedMessages != null)
                 // But if the search does contain something, it shows the search view
@@ -163,87 +209,22 @@ class ChatListPageState extends State<ChatListPage> {
                         child: ListView.builder(
                         itemCount: _searchedMessages!.length,
                         itemBuilder: (context, index) {
-                          return Provider(
-                            create: (context) => _selectedChatIds,
-                            child: buildChatRoomSearchItemMessage(
-                                _searchedMessages![index],
-                                context,
-                                widget.homeRoutingService),
-                          );
+                          return buildChatRoomSearchItemMessage(
+                              _searchedMessages![index],
+                              context,
+                              widget.homeRoutingService);
                         },
                       ))
                 // So if the search doesn't contain text it just shows chats
-                : Expanded(
-                    child: ImplicitlyAnimatedList<ChatRoomData>(
-                      items: _chats,
-                      areItemsTheSame: (a, b) =>
-                          (a.lastMessage == b.lastMessage && a.id == b.id),
-                      itemBuilder: (context, animation, item, index) {
-                        return GestureDetector(
-                          onLongPress: () => onChatItemSelection(item.id),
-                          child: MouseRegion(
-                            onEnter: (_) {
-                              // Show icon on hover (desktop)
-                              // You may need to use a state variable to manage hover state
-                            },
-                            onExit: (_) {
-                              // Hide icon on hover exit (desktop)
-                              // You may need to use a state variable to manage hover state
-                            },
-                            child: Stack(
-                              children: [
-                                SizeFadeTransition(
-                                  sizeFraction: 0.7,
-                                  curve: Curves.easeInOut,
-                                  animation: animation,
-                                  child: buildChatRoomListItem(
-                                    item,
-                                    animation,
-                                    context,
-                                    widget.homeRoutingService,
-                                    _selectedChatIds,
-                                    onChatItemSelection,
-                                  ),
-                                ),
-                                if (_selectedChatIds.contains(item.id))
-                                  Positioned.fill(
-                                    child: Container(
-                                      color: Colors.blue.withOpacity(0.3),
-                                    ),
-                                  ),
-                                // TODO: Add hover
-                                // Add hover icon here
-                                // if (/* hover condition */)
-                                //   Positioned(
-                                //     right: 8,
-                                //     top: 8,
-                                //     child: IconButton(
-                                //       icon: const Icon(Icons.more_vert),
-                                //       onPressed: () {
-                                //         // Show options like delete or mute
-                                //       },
-                                //     ),
-                                //   ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                      removeItemBuilder: (context, animation, oldItem) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: buildChatRoomListItem(
-                            oldItem,
-                            animation,
-                            context,
-                            widget.homeRoutingService,
-                            _selectedChatIds,
-                            onChatItemSelection,
-                          ),
-                        );
-                      },
-                    ),
-                  )
+                : ChatRoomList(
+                    chats: _chats,
+                    onChatItemSelection: _onChatItemSelection,
+                    homeRoutingService: widget.homeRoutingService,
+                    selectedChatIds: _selectedChatIds,
+                    hideSelectedChats: _hideSelectedChats,
+                    toggleNotificationsSelectedChats: _muteSelectedChats,
+                    hiddenChatToggle: hiddenChatToggle,
+                  ),
           ],
         ));
   }

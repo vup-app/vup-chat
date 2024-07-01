@@ -89,6 +89,47 @@ class MessageDatabase extends _$MessageDatabase {
     }
   }
 
+  // Toggle Hidden
+  Future<void> chatHiddenHelper(String chatID, int mode) async {
+    // 1: hide
+    // 2: unhide
+    // 3: toggle
+    switch (mode) {
+      case 1:
+        {
+          await (update(chatRoom)..where((t) => t.id.equals(chatID)))
+              .write(const ChatRoomCompanion(hidden: Value(true)));
+        }
+      case 2:
+        {
+          await (update(chatRoom)..where((t) => t.id.equals(chatID)))
+              .write(const ChatRoomCompanion(hidden: Value(false)));
+        }
+      case 3:
+        {
+          bool? curHidden = await isHidden(chatID);
+          if (curHidden != null) {
+            // Inverter ternary switch (probably works)
+            await (update(chatRoom)..where((t) => t.id.equals(chatID))).write(
+                ChatRoomCompanion(hidden: Value(curHidden ? false : true)));
+          }
+        }
+      default:
+        return; // this should never be reached
+    }
+  }
+
+  // Checks if muted currently
+  Future<bool?> isHidden(String chatID) async {
+    final query = select(chatRoom)..where((t) => t.id.equals(chatID));
+    final res = await query.getSingleOrNull();
+    if (res != null) {
+      return res.hidden;
+    } else {
+      return null;
+    }
+  }
+
   // Pull from chatRoomMessages table to find chatRoomID from messageID
   Future<String?> getChatRoomIdFromMessageId(String messageID) async {
     final query = select(chatRoomMessages)

@@ -120,6 +120,23 @@ class MsgCore {
     }
   }
 
+  Future<void> toggleChatHidden(List<String> chatIDs) async {
+    for (String chatID in chatIDs) {
+      // modes
+      // 1: Hide
+      // 2: Unhide
+      // 3: Toggle -> default for now
+      await db.chatHiddenHelper(chatID, 3);
+
+      // bsky doesn't impl hidden chats so this is purely local
+    }
+  }
+
+  // TODO: Impl deleting chats
+  Future<void> deleteChats(List<String> chatIDs) async {
+    for (String _ in chatIDs) {}
+  }
+
   void _populateListViewDBATProto() async {
     final ListConvosOutput? ref = await getChatTimeline();
 
