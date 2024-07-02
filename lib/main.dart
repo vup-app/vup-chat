@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:s5/s5.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
@@ -61,13 +62,15 @@ class VupChatState extends State<VupChat> {
       splitScreenMode: true,
       // Use builder only if you need to use library outside ScreenUtilInit context
       builder: (_, child) {
-        return MaterialApp(
-          title: 'Vup Chat',
-          theme: getLightTheme(),
-          darkTheme: getDarkTheme(),
-          themeMode: _themeMode,
-          debugShowCheckedModeBanner: false,
-          home: const InitRouter(),
+        return OverlaySupport.global(
+          child: MaterialApp(
+            title: 'Vup Chat',
+            theme: getLightTheme(),
+            darkTheme: getDarkTheme(),
+            themeMode: _themeMode,
+            debugShowCheckedModeBanner: false,
+            home: const InitRouter(),
+          ),
         );
       },
     );

@@ -15,9 +15,15 @@ class SettingsPage extends StatefulWidget {
 }
 
 class SettingsPageState extends State<SettingsPage> {
+  bool globalNotifications = false;
+
   @override
   void initState() {
     super.initState();
+    setState(() {
+      globalNotifications =
+          preferences.getBool("notification-permissions") ?? false;
+    });
   }
 
   @override
@@ -33,8 +39,23 @@ class SettingsPageState extends State<SettingsPage> {
           const Row(
             children: [
               SizedBox(height: 20),
-              Text('Desktop Mode:'),
+              Text('Desktop Mode: '),
               DesktopModeSwitch(),
+            ],
+          ),
+          Row(
+            children: [
+              const SizedBox(height: 20),
+              const Text('Notifications: '),
+              Switch(
+                value: globalNotifications,
+                onChanged: (val) {
+                  setState(() {
+                    globalNotifications = val;
+                  });
+                  preferences.setBool("notification-permissions", val);
+                },
+              )
             ],
           ),
           const Spacer(),

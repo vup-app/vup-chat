@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:platform_local_notifications/platform_local_notifications.dart'
+    as notif;
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
@@ -39,11 +41,6 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     _schedulePeriodicUpdate();
     _subscribeToChat();
     _getChatRoomData();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // if (widget.messageIdToScrollTo != null) {
-      //   _scrollToMessage(widget.messageIdToScrollTo!);
-      // }
-    });
   }
 
   @override

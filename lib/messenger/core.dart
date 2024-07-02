@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
+import 'package:platform_local_notifications/platform_local_notifications.dart'
+    as notif;
 import 'package:s5/s5.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
+import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 
@@ -37,10 +40,11 @@ class MsgCore {
         );
 
   void init() async {
-    startBackgroundTask();
+    _startBackgroundTask();
+    _initNotifications();
   }
 
-  void startBackgroundTask() {
+  void _startBackgroundTask() {
     _timerShort = Timer.periodic(const Duration(seconds: 3), (timer) async {
       // grab message lsit
       _populateListViewDBATProto();
@@ -62,6 +66,18 @@ class MsgCore {
     _timerLong?.cancel();
     _timerShort = null;
     _timerLong = null;
+  }
+
+  void _initNotifications() async {
+    await notif.PlatformNotifier.I.init(appName: "Vup Chat");
+    // check if you have already asked
+    final bool? notifAllow = preferences.getBool("notification-permissions");
+    if (notifAllow == null) {
+      bool? isAccepted = isDesktop()
+          ? true
+          : await notif.PlatformNotifier.I.requestPermissions();
+      preferences.setBool("notification-permissions", isAccepted ?? false);
+    }
   }
 
   Stream<List<ChatRoomData>> subscribeChatRoom() {
@@ -105,6 +121,7 @@ class MsgCore {
       final MessageView message = (await chatSession!.convo
               .sendMessage(convoId: chatID, message: MessageInput(text: text)))
           .data;
+      // Ignore this return because shouldn't notify for own message obv
       db.checkAndInsertMessageATProto(message, chatID, false, sender);
     }
   }
@@ -174,7 +191,8 @@ class MsgCore {
 
       for (var message in messages) {
         final Sender snd = await getSenderFromDID(message.sender.did);
-        await db.checkAndInsertMessageATProto(message, chatID, true, snd);
+        final bool toNotify =
+            await db.checkAndInsertMessageATProto(message, chatID, true, snd);
       }
     }
   }
