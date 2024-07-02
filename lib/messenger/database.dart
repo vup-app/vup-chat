@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:bluesky_chat/bluesky_chat.dart';
+import 'package:bluesky/bluesky_chat.dart';
 import 'package:drift/drift.dart';
 
 import 'connections/connection.dart' as impl;
@@ -16,7 +16,23 @@ class MessageDatabase extends _$MessageDatabase {
   MessageDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          // we added the read property to the message table in the change from version 1 to
+          // version 2
+          await m.addColumn(messages, messages.read);
+        }
+      },
+    );
+  }
 
   // Searches DB for contacts
 
@@ -217,7 +233,9 @@ class MessageDatabase extends _$MessageDatabase {
   }
 
   // Check if a message exists and insert if not
-  Future<void> checkAndInsertMessageATProto(
+  // Return: true -> new message, should notify
+  // Return: false -> message already exists, don't notify
+  Future<bool> checkAndInsertMessageATProto(
       MessageView message, String roomID, bool persisted, Sender sender) async {
     final Message? messageExists = await (select(messages)
           ..where((tbl) => tbl.id.equals(message.id)))
@@ -236,6 +254,7 @@ class MessageDatabase extends _$MessageDatabase {
         replyTo: const Value(null), // ATProto doesn't support this
         sentAt: message.sentAt,
         persisted: Value(persisted), // Set the initial persisted state
+        read: const Value(false),
       ));
 
       // Check if the chatRoomMessage already exists
@@ -253,6 +272,7 @@ class MessageDatabase extends _$MessageDatabase {
       }
 
       _updateChatRoomLastMessage(roomID, message);
+      return true;
     } else if (messageExists.persisted == false && persisted) {
       // Message exists but is not persisted, update the persisted field
       await (update(messages)..where((tbl) => tbl.id.equals(message.id)))
@@ -260,6 +280,7 @@ class MessageDatabase extends _$MessageDatabase {
         persisted: Value(persisted),
       ));
     }
+    return false;
   }
 
   // Updates the chatroom last message

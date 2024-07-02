@@ -69,26 +69,26 @@ packages:
     dependency: transitive
     description:
       name: at_uri
-      sha256: "6d851274072f99393395c32ef8eeb6bb4a79b9cb71c32ea356bf851a03b41a21"
+      sha256: "1156d9d70460fcfcb30e744d7f8c7d544eff073b3142b772f0d02aca10dd064f"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.2"
+    version: "0.4.0"
   atproto:
     dependency: transitive
     description:
       name: atproto
-      sha256: c5f2f7b8a8aae5023e552457569fae87871a111fcfe20e4f81960b9c00bb87ff
+      sha256: "09ae4b7853b8607e85afad95a467f9bc14242165bd489f96f1ac1b5ecd4be202"
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.2"
+    version: "0.12.6"
   atproto_core:
     dependency: transitive
     description:
       name: atproto_core
-      sha256: c2770f2fd4db9510a8afe2e4eb0eaff5b849c6f54c1a7398898aec3569c9b509
+      sha256: "61df5ee47da9b848500ff6fd30fa597cc781e755ec39c96f41bc44724672191d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.10.2"
+    version: "0.10.5"
   base_codecs:
     dependency: transitive
     description:
@@ -101,18 +101,10 @@ packages:
     dependency: "direct main"
     description:
       name: bluesky
-      sha256: "4170f82885071018528042737020bebe74589e407e8aa13c32d275a1b7e17716"
+      sha256: d03172ad28b97b8d0854b39f0aa2e74447531b2ff535557b8b9b88ac972c5d4e
       url: "https://pub.dev"
     source: hosted
-    version: "0.16.6"
-  bluesky_chat:
-    dependency: "direct main"
-    description:
-      name: bluesky_chat
-      sha256: e755888bdf36a38443da3bd5fff59f424d6d8c407a434c7ca688d3347488ab52
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.0"
+    version: "0.16.10"
   boolean_selector:
     dependency: transitive
     description:
@@ -197,10 +189,10 @@ packages:
     dependency: transitive
     description:
       name: cbor
-      sha256: "1fa146951b36462887aaca20abece4c1c49f56f3ba5a40f7e7bf4bbfb0a945a0"
+      sha256: d4cc788d82f20d91e7992379957cd564841945141d0bd00cda93b0ff07376987
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.0"
+    version: "6.3.1"
   characters:
     dependency: transitive
     description:
@@ -313,14 +305,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  dbus:
+    dependency: transitive
+    description:
+      name: dbus
+      sha256: "365c771ac3b0e58845f39ec6deebc76e3276aa9922b0cc60840712094d9047ac"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.10"
+  desktop_notifications:
+    dependency: transitive
+    description:
+      name: desktop_notifications
+      sha256: "6d92694ad6e9297a862c5ff7dd6b8ff64c819972557754769f819d2209612927"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.3"
   did_plc:
     dependency: "direct main"
     description:
       name: did_plc
-      sha256: e4b4e39264fd6a24fa12996e7949f4a4fcdf48da691cf0f0c88da194759eca1e
+      sha256: cf00773336869fcf6146fbf9406a32601b803d18b11ed0eafc827ef8508ecac3
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.20"
+    version: "0.0.21"
   drift:
     dependency: "direct main"
     description:
@@ -382,6 +390,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_cache_manager:
+    dependency: transitive
+    description:
+      name: flutter_cache_manager
+      sha256: "395d6b7831f21f3b989ebedbb785545932adb9afe2622c1ffacf7f4b53a7e544"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.3.2"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -406,6 +422,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  flutter_local_notifications:
+    dependency: transitive
+    description:
+      name: flutter_local_notifications
+      sha256: ced76d337f54de33d7d9f06092137b4ac2da5079e00cee8a11a1794ffc7c61c6
+      url: "https://pub.dev"
+    source: hosted
+    version: "17.2.1"
+  flutter_local_notifications_linux:
+    dependency: transitive
+    description:
+      name: flutter_local_notifications_linux
+      sha256: "33f741ef47b5f63cc7f78fe75eeeac7e19f171ff3c3df054d84c1e38bedb6a03"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0+1"
+  flutter_local_notifications_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_local_notifications_platform_interface
+      sha256: "85f8d07fe708c1bdcf45037f2c0109753b26ae077e9d9e899d55971711a4ea66"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.2.0"
   flutter_screenutil:
     dependency: "direct main"
     description:
@@ -476,10 +516,10 @@ packages:
     dependency: transitive
     description:
       name: freezed_annotation
-      sha256: c3fd9336eb55a38cc1bbd79ab17573113a8deccd0ecbbf926cca3c62803b5c2d
+      sha256: f54946fdb1fa7b01f780841937b1a80783a20b393485f3f6cdf336fd6f4705f2
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.1"
+    version: "2.4.2"
   frontend_server_client:
     dependency: transitive
     description:
@@ -648,6 +688,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  local_notifier:
+    dependency: transitive
+    description:
+      name: local_notifier
+      sha256: f6cfc933c6fbc961f4e52b5c880f68e41b2d3cd29aad557cc654fd211093a025
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.6"
   logger:
     dependency: "direct main"
     description:
@@ -816,6 +864,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.5"
+  platform_local_notifications:
+    dependency: "direct main"
+    description:
+      name: platform_local_notifications
+      sha256: b726fa61703beafee964d882f4089bb498b055abc3c0980e27f49d99e16d73e3
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   plugin_platform_interface:
     dependency: transitive
     description:
@@ -856,6 +912,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
+  quick_notify_2:
+    dependency: transitive
+    description:
+      name: quick_notify_2
+      sha256: deeaba9fcfc052e762909340f6c961dcd47bd0f4a389f4e5949a8224e3516dda
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.0-dev.0"
   recase:
     dependency: transitive
     description:
@@ -864,6 +928,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
+  rxdart:
+    dependency: transitive
+    description:
+      name: rxdart
+      sha256: "0c7c0cedd93788d996e33041ffecda924cc54389199cde4e6a34b440f50044cb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.27.7"
   s5:
     dependency: "direct main"
     description:
@@ -989,6 +1061,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.0"
+  sprintf:
+    dependency: transitive
+    description:
+      name: sprintf
+      sha256: "1fc9ffe69d4df602376b52949af107d8f5703b77cda567c4d7d86a0693120f23"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.0"
+  sqflite:
+    dependency: transitive
+    description:
+      name: sqflite
+      sha256: a43e5a27235518c03ca238e7b4732cf35eabe863a369ceba6cbefa537a66f16d
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.3+1"
+  sqflite_common:
+    dependency: transitive
+    description:
+      name: sqflite_common
+      sha256: "3da423ce7baf868be70e2c0976c28a1bb2f73644268b7ffa7d2e08eab71f16a4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.4"
   sqlite3:
     dependency: transitive
     description:
@@ -1045,6 +1141,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  synchronized:
+    dependency: transitive
+    description:
+      name: synchronized
+      sha256: "539ef412b170d65ecdafd780f924e5be3f60032a1128df156adad6c5b373d558"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0+1"
   term_glyph:
     dependency: transitive
     description:
@@ -1061,6 +1165,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.0"
+  timezone:
+    dependency: transitive
+    description:
+      name: timezone
+      sha256: "2236ec079a174ce07434e89fcd3fcda430025eb7692244139a9cf54fdcf1fc7d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.4"
   timing:
     dependency: transitive
     description:
@@ -1157,6 +1269,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.1"
+  uuid:
+    dependency: transitive
+    description:
+      name: uuid
+      sha256: "814e9e88f21a176ae1359149021870e87f7cddaf633ab678a5d2b0bff7fd1ba8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.4.0"
   vector_math:
     dependency: transitive
     description:

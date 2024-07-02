@@ -429,9 +429,18 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("persisted" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _readMeta = const VerificationMeta('read');
+  @override
+  late final GeneratedColumn<bool> read = GeneratedColumn<bool>(
+      'read', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("read" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns =>
-      [id, revision, message, senderDid, replyTo, sentAt, persisted];
+      [id, revision, message, senderDid, replyTo, sentAt, persisted, read];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -479,6 +488,10 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       context.handle(_persistedMeta,
           persisted.isAcceptableOrUnknown(data['persisted']!, _persistedMeta));
     }
+    if (data.containsKey('read')) {
+      context.handle(
+          _readMeta, read.isAcceptableOrUnknown(data['read']!, _readMeta));
+    }
     return context;
   }
 
@@ -502,6 +515,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}sent_at'])!,
       persisted: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}persisted'])!,
+      read: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}read'])!,
     );
   }
 
@@ -519,6 +534,7 @@ class Message extends DataClass implements Insertable<Message> {
   final String? replyTo;
   final DateTime sentAt;
   final bool persisted;
+  final bool read;
   const Message(
       {required this.id,
       required this.revision,
@@ -526,7 +542,8 @@ class Message extends DataClass implements Insertable<Message> {
       required this.senderDid,
       this.replyTo,
       required this.sentAt,
-      required this.persisted});
+      required this.persisted,
+      required this.read});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -539,6 +556,7 @@ class Message extends DataClass implements Insertable<Message> {
     }
     map['sent_at'] = Variable<DateTime>(sentAt);
     map['persisted'] = Variable<bool>(persisted);
+    map['read'] = Variable<bool>(read);
     return map;
   }
 
@@ -553,6 +571,7 @@ class Message extends DataClass implements Insertable<Message> {
           : Value(replyTo),
       sentAt: Value(sentAt),
       persisted: Value(persisted),
+      read: Value(read),
     );
   }
 
@@ -567,6 +586,7 @@ class Message extends DataClass implements Insertable<Message> {
       replyTo: serializer.fromJson<String?>(json['replyTo']),
       sentAt: serializer.fromJson<DateTime>(json['sentAt']),
       persisted: serializer.fromJson<bool>(json['persisted']),
+      read: serializer.fromJson<bool>(json['read']),
     );
   }
   @override
@@ -580,6 +600,7 @@ class Message extends DataClass implements Insertable<Message> {
       'replyTo': serializer.toJson<String?>(replyTo),
       'sentAt': serializer.toJson<DateTime>(sentAt),
       'persisted': serializer.toJson<bool>(persisted),
+      'read': serializer.toJson<bool>(read),
     };
   }
 
@@ -590,7 +611,8 @@ class Message extends DataClass implements Insertable<Message> {
           String? senderDid,
           Value<String?> replyTo = const Value.absent(),
           DateTime? sentAt,
-          bool? persisted}) =>
+          bool? persisted,
+          bool? read}) =>
       Message(
         id: id ?? this.id,
         revision: revision ?? this.revision,
@@ -599,6 +621,7 @@ class Message extends DataClass implements Insertable<Message> {
         replyTo: replyTo.present ? replyTo.value : this.replyTo,
         sentAt: sentAt ?? this.sentAt,
         persisted: persisted ?? this.persisted,
+        read: read ?? this.read,
       );
   @override
   String toString() {
@@ -609,14 +632,15 @@ class Message extends DataClass implements Insertable<Message> {
           ..write('senderDid: $senderDid, ')
           ..write('replyTo: $replyTo, ')
           ..write('sentAt: $sentAt, ')
-          ..write('persisted: $persisted')
+          ..write('persisted: $persisted, ')
+          ..write('read: $read')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, revision, message, senderDid, replyTo, sentAt, persisted);
+  int get hashCode => Object.hash(
+      id, revision, message, senderDid, replyTo, sentAt, persisted, read);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -627,7 +651,8 @@ class Message extends DataClass implements Insertable<Message> {
           other.senderDid == this.senderDid &&
           other.replyTo == this.replyTo &&
           other.sentAt == this.sentAt &&
-          other.persisted == this.persisted);
+          other.persisted == this.persisted &&
+          other.read == this.read);
 }
 
 class MessagesCompanion extends UpdateCompanion<Message> {
@@ -638,6 +663,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<String?> replyTo;
   final Value<DateTime> sentAt;
   final Value<bool> persisted;
+  final Value<bool> read;
   final Value<int> rowid;
   const MessagesCompanion({
     this.id = const Value.absent(),
@@ -647,6 +673,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     this.replyTo = const Value.absent(),
     this.sentAt = const Value.absent(),
     this.persisted = const Value.absent(),
+    this.read = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MessagesCompanion.insert({
@@ -657,6 +684,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     this.replyTo = const Value.absent(),
     required DateTime sentAt,
     this.persisted = const Value.absent(),
+    this.read = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         revision = Value(revision),
@@ -671,6 +699,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     Expression<String>? replyTo,
     Expression<DateTime>? sentAt,
     Expression<bool>? persisted,
+    Expression<bool>? read,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -681,6 +710,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       if (replyTo != null) 'reply_to': replyTo,
       if (sentAt != null) 'sent_at': sentAt,
       if (persisted != null) 'persisted': persisted,
+      if (read != null) 'read': read,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -693,6 +723,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       Value<String?>? replyTo,
       Value<DateTime>? sentAt,
       Value<bool>? persisted,
+      Value<bool>? read,
       Value<int>? rowid}) {
     return MessagesCompanion(
       id: id ?? this.id,
@@ -702,6 +733,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       replyTo: replyTo ?? this.replyTo,
       sentAt: sentAt ?? this.sentAt,
       persisted: persisted ?? this.persisted,
+      read: read ?? this.read,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -730,6 +762,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     if (persisted.present) {
       map['persisted'] = Variable<bool>(persisted.value);
     }
+    if (read.present) {
+      map['read'] = Variable<bool>(read.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -746,6 +781,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
           ..write('replyTo: $replyTo, ')
           ..write('sentAt: $sentAt, ')
           ..write('persisted: $persisted, ')
+          ..write('read: $read, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1577,6 +1613,7 @@ typedef $$MessagesTableInsertCompanionBuilder = MessagesCompanion Function({
   Value<String?> replyTo,
   required DateTime sentAt,
   Value<bool> persisted,
+  Value<bool> read,
   Value<int> rowid,
 });
 typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
@@ -1587,6 +1624,7 @@ typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
   Value<String?> replyTo,
   Value<DateTime> sentAt,
   Value<bool> persisted,
+  Value<bool> read,
   Value<int> rowid,
 });
 
@@ -1617,6 +1655,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             Value<String?> replyTo = const Value.absent(),
             Value<DateTime> sentAt = const Value.absent(),
             Value<bool> persisted = const Value.absent(),
+            Value<bool> read = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MessagesCompanion(
@@ -1627,6 +1666,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             replyTo: replyTo,
             sentAt: sentAt,
             persisted: persisted,
+            read: read,
             rowid: rowid,
           ),
           getInsertCompanionBuilder: ({
@@ -1637,6 +1677,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             Value<String?> replyTo = const Value.absent(),
             required DateTime sentAt,
             Value<bool> persisted = const Value.absent(),
+            Value<bool> read = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MessagesCompanion.insert(
@@ -1647,6 +1688,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             replyTo: replyTo,
             sentAt: sentAt,
             persisted: persisted,
+            read: read,
             rowid: rowid,
           ),
         ));
@@ -1694,6 +1736,11 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<bool> get persisted => $state.composableBuilder(
       column: $state.table.persisted,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get read => $state.composableBuilder(
+      column: $state.table.read,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -1754,6 +1801,11 @@ class $$MessagesTableOrderingComposer
 
   ColumnOrderings<bool> get persisted => $state.composableBuilder(
       column: $state.table.persisted,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get read => $state.composableBuilder(
+      column: $state.table.read,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

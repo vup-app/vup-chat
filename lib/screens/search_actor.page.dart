@@ -1,5 +1,4 @@
 import 'package:bluesky/bluesky.dart';
-import 'package:bluesky_chat/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/main.dart';
@@ -79,10 +78,8 @@ class SearchActorPageState extends State<SearchActorPage> {
   }
 
   Future<void> _splitToIndividualChat(Actor actor) async {
-    ConvoView? convo = await getConvoFromUID(actor.did);
-    if (convo != null) {
-      // widget.onChatSelected!.call(convo);
-    }
+    // ConvoView? convo = await getConvoFromUID(actor.did);
+    // widget.onChatSelected!.call(convo);
   }
 
   @override

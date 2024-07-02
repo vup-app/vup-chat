@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:bluesky/bluesky.dart';
-import 'package:bluesky_chat/bluesky_chat.dart';
+import 'package:bluesky/bluesky_chat.dart';
 import 'package:s5/s5.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
+import 'package:vup_chat/bsky/try_log_in.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 
@@ -11,7 +12,7 @@ class MsgCore {
   final S5 s5;
   final MessageDatabase db;
   final Bluesky? bskySession;
-  final BlueskyChat? bskyChatSession;
+  final BlueskyChat? bskyChatSessoion;
   Timer? _timerShort; // To manage the periodic task
   Timer? _timerLong;
 
@@ -20,7 +21,7 @@ class MsgCore {
     required this.s5,
     required this.db,
     this.bskySession,
-    this.bskyChatSession,
+    this.bskyChatSessoion,
   });
 
   // Unnamed constructor that initializes the database internally
@@ -32,7 +33,7 @@ class MsgCore {
           s5: s5,
           db: MessageDatabase(), // Initialize the database internally
           bskySession: bskySession,
-          bskyChatSession: bskyChatSession,
+          bskyChatSessoion: bskyChatSession,
         );
 
   void init() async {
@@ -41,10 +42,18 @@ class MsgCore {
 
   void startBackgroundTask() {
     _timerShort = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      // grab message lsit
       _populateListViewDBATProto();
     });
     _timerLong = Timer.periodic(const Duration(seconds: 10), (timer) async {
+      // grab all chats
       _fetchAllChats();
+      // also make sure the sessions are logged in
+      if (session == null ||
+          session!.session == null ||
+          session!.session!.active == false) {
+        session = await tryLogIn(null, null);
+      }
     });
   }
 
@@ -110,7 +119,7 @@ class MsgCore {
 
       // gotta check current state in db and write that to bsky
       bool? currMuted = await db.isMuted(chatID);
-      if (currMuted == null || currMuted == false) {
+      if (currMuted == false) {
         // if null just assume it's not muted to not mess up remote state
         await chatSession!.convo.unmuteConvo(convoId: chatID);
       } else {

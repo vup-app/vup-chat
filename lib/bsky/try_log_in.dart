@@ -1,5 +1,7 @@
+import 'package:bluesky/atproto.dart';
 import 'package:bluesky/bluesky.dart';
-import 'package:bluesky_chat/bluesky_chat.dart';
+import 'package:bluesky/bluesky_chat.dart';
+import 'package:bluesky/core.dart';
 import 'package:vup_chat/main.dart';
 
 Future<Bluesky?> tryLogIn(String? user, String? password) async {

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:bluesky/bluesky.dart';
+import 'package:bluesky/core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vup_chat/main.dart';
 

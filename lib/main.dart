@@ -1,5 +1,5 @@
 import 'package:bluesky/bluesky.dart';
-import 'package:bluesky_chat/bluesky_chat.dart';
+import 'package:bluesky/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';

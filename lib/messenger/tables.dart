@@ -26,6 +26,7 @@ class Messages extends Table {
       text().nullable().customConstraint('REFERENCES messages(id)')();
   DateTimeColumn get sentAt => dateTime()();
   BoolColumn get persisted => boolean().withDefault(const Constant(false))();
+  BoolColumn get read => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
