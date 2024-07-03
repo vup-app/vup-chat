@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.2"
+  animated_toggle_switch:
+    dependency: "direct main"
+    description:
+      name: animated_toggle_switch
+      sha256: "35e3d6c74eef79c415ac3986046c35cb1ea42720afce13ec7f1a014f72dfd71c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.8.2"
   archive:
     dependency: transitive
     description:
@@ -321,14 +329,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.3"
-  did_plc:
-    dependency: "direct main"
-    description:
-      name: did_plc
-      sha256: cf00773336869fcf6146fbf9406a32601b803d18b11ed0eafc827ef8508ecac3
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.21"
   drift:
     dependency: "direct main"
     description:

@@ -6,6 +6,7 @@ import 'package:vup_chat/constants.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/widgets/app_bar_back.dart';
 import 'package:vup_chat/widgets/desktop_mode_switch.dart';
+import 'package:vup_chat/widgets/s5_status_widget.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -36,6 +37,7 @@ class SettingsPageState extends State<SettingsPage> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // desktop mode switch
           const Row(
             children: [
               SizedBox(height: 20),
@@ -43,6 +45,7 @@ class SettingsPageState extends State<SettingsPage> {
               DesktopModeSwitch(),
             ],
           ),
+          // enable global notifications switch
           Row(
             children: [
               const SizedBox(height: 20),
@@ -58,6 +61,8 @@ class SettingsPageState extends State<SettingsPage> {
               )
             ],
           ),
+          // S5 Login space
+          const S5StatusWidget(),
           const Spacer(),
           ElevatedButton(
               onPressed: () {

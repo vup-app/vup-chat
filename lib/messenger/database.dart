@@ -9,30 +9,14 @@ import 'tables.dart';
 part 'database.g.dart';
 
 // And here are all the function defintions
-@DriftDatabase(tables: [Senders, Content, Messages, ChatRoom, ChatRoomMessages])
+@DriftDatabase(tables: [Senders, Messages, ChatRoom, ChatRoomMessages])
 class MessageDatabase extends _$MessageDatabase {
   MessageDatabase() : super(impl.connect());
 
   MessageDatabase.forTesting(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 2;
-
-  @override
-  MigrationStrategy get migration {
-    return MigrationStrategy(
-      onCreate: (Migrator m) async {
-        await m.createAll();
-      },
-      onUpgrade: (Migrator m, int from, int to) async {
-        if (from < 2) {
-          // we added the read property to the message table in the change from version 1 to
-          // version 2
-          await m.addColumn(messages, messages.read);
-        }
-      },
-    );
-  }
+  int get schemaVersion => 1;
 
   // Searches DB for contacts
 
@@ -244,7 +228,6 @@ class MessageDatabase extends _$MessageDatabase {
     if (messageExists == null) {
       // Insert updated sender
       checkAndInsertSenderATProto(sender);
-
       // Insert the message
       await into(messages).insert(MessagesCompanion.insert(
         id: message.id,
@@ -255,6 +238,7 @@ class MessageDatabase extends _$MessageDatabase {
         sentAt: message.sentAt,
         persisted: Value(persisted), // Set the initial persisted state
         read: const Value(false),
+        embed: message.embed?.toJson().toString() ?? "",
       ));
 
       // Check if the chatRoomMessage already exists

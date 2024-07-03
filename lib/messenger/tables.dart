@@ -9,13 +9,6 @@ class Senders extends Table {
   Set<Column> get primaryKey => {did};
 }
 
-class Content extends Table {
-  TextColumn get cid => text()();
-
-  @override
-  Set<Column> get primaryKey => {cid};
-}
-
 class Messages extends Table {
   TextColumn get id => text()();
   TextColumn get revision => text()();
@@ -27,6 +20,7 @@ class Messages extends Table {
   DateTimeColumn get sentAt => dateTime()();
   BoolColumn get persisted => boolean().withDefault(const Constant(false))();
   BoolColumn get read => boolean().withDefault(const Constant(false))();
+  TextColumn get embed => text()(); // Serialized JSON
 
   @override
   Set<Column> get primaryKey => {id};

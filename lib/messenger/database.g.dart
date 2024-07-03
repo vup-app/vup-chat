@@ -229,153 +229,6 @@ class SendersCompanion extends UpdateCompanion<Sender> {
   }
 }
 
-class $ContentTable extends Content with TableInfo<$ContentTable, ContentData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $ContentTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _cidMeta = const VerificationMeta('cid');
-  @override
-  late final GeneratedColumn<String> cid = GeneratedColumn<String>(
-      'cid', aliasedName, false,
-      type: DriftSqlType.string, requiredDuringInsert: true);
-  @override
-  List<GeneratedColumn> get $columns => [cid];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'content';
-  @override
-  VerificationContext validateIntegrity(Insertable<ContentData> instance,
-      {bool isInserting = false}) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('cid')) {
-      context.handle(
-          _cidMeta, cid.isAcceptableOrUnknown(data['cid']!, _cidMeta));
-    } else if (isInserting) {
-      context.missing(_cidMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {cid};
-  @override
-  ContentData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ContentData(
-      cid: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}cid'])!,
-    );
-  }
-
-  @override
-  $ContentTable createAlias(String alias) {
-    return $ContentTable(attachedDatabase, alias);
-  }
-}
-
-class ContentData extends DataClass implements Insertable<ContentData> {
-  final String cid;
-  const ContentData({required this.cid});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['cid'] = Variable<String>(cid);
-    return map;
-  }
-
-  ContentCompanion toCompanion(bool nullToAbsent) {
-    return ContentCompanion(
-      cid: Value(cid),
-    );
-  }
-
-  factory ContentData.fromJson(Map<String, dynamic> json,
-      {ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ContentData(
-      cid: serializer.fromJson<String>(json['cid']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'cid': serializer.toJson<String>(cid),
-    };
-  }
-
-  ContentData copyWith({String? cid}) => ContentData(
-        cid: cid ?? this.cid,
-      );
-  @override
-  String toString() {
-    return (StringBuffer('ContentData(')
-          ..write('cid: $cid')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => cid.hashCode;
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) || (other is ContentData && other.cid == this.cid);
-}
-
-class ContentCompanion extends UpdateCompanion<ContentData> {
-  final Value<String> cid;
-  final Value<int> rowid;
-  const ContentCompanion({
-    this.cid = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  ContentCompanion.insert({
-    required String cid,
-    this.rowid = const Value.absent(),
-  }) : cid = Value(cid);
-  static Insertable<ContentData> custom({
-    Expression<String>? cid,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (cid != null) 'cid': cid,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  ContentCompanion copyWith({Value<String>? cid, Value<int>? rowid}) {
-    return ContentCompanion(
-      cid: cid ?? this.cid,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (cid.present) {
-      map['cid'] = Variable<String>(cid.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ContentCompanion(')
-          ..write('cid: $cid, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -438,9 +291,23 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("read" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _embedMeta = const VerificationMeta('embed');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, revision, message, senderDid, replyTo, sentAt, persisted, read];
+  late final GeneratedColumn<String> embed = GeneratedColumn<String>(
+      'embed', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        revision,
+        message,
+        senderDid,
+        replyTo,
+        sentAt,
+        persisted,
+        read,
+        embed
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -492,6 +359,12 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       context.handle(
           _readMeta, read.isAcceptableOrUnknown(data['read']!, _readMeta));
     }
+    if (data.containsKey('embed')) {
+      context.handle(
+          _embedMeta, embed.isAcceptableOrUnknown(data['embed']!, _embedMeta));
+    } else if (isInserting) {
+      context.missing(_embedMeta);
+    }
     return context;
   }
 
@@ -517,6 +390,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
           .read(DriftSqlType.bool, data['${effectivePrefix}persisted'])!,
       read: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}read'])!,
+      embed: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}embed'])!,
     );
   }
 
@@ -535,6 +410,7 @@ class Message extends DataClass implements Insertable<Message> {
   final DateTime sentAt;
   final bool persisted;
   final bool read;
+  final String embed;
   const Message(
       {required this.id,
       required this.revision,
@@ -543,7 +419,8 @@ class Message extends DataClass implements Insertable<Message> {
       this.replyTo,
       required this.sentAt,
       required this.persisted,
-      required this.read});
+      required this.read,
+      required this.embed});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -557,6 +434,7 @@ class Message extends DataClass implements Insertable<Message> {
     map['sent_at'] = Variable<DateTime>(sentAt);
     map['persisted'] = Variable<bool>(persisted);
     map['read'] = Variable<bool>(read);
+    map['embed'] = Variable<String>(embed);
     return map;
   }
 
@@ -572,6 +450,7 @@ class Message extends DataClass implements Insertable<Message> {
       sentAt: Value(sentAt),
       persisted: Value(persisted),
       read: Value(read),
+      embed: Value(embed),
     );
   }
 
@@ -587,6 +466,7 @@ class Message extends DataClass implements Insertable<Message> {
       sentAt: serializer.fromJson<DateTime>(json['sentAt']),
       persisted: serializer.fromJson<bool>(json['persisted']),
       read: serializer.fromJson<bool>(json['read']),
+      embed: serializer.fromJson<String>(json['embed']),
     );
   }
   @override
@@ -601,6 +481,7 @@ class Message extends DataClass implements Insertable<Message> {
       'sentAt': serializer.toJson<DateTime>(sentAt),
       'persisted': serializer.toJson<bool>(persisted),
       'read': serializer.toJson<bool>(read),
+      'embed': serializer.toJson<String>(embed),
     };
   }
 
@@ -612,7 +493,8 @@ class Message extends DataClass implements Insertable<Message> {
           Value<String?> replyTo = const Value.absent(),
           DateTime? sentAt,
           bool? persisted,
-          bool? read}) =>
+          bool? read,
+          String? embed}) =>
       Message(
         id: id ?? this.id,
         revision: revision ?? this.revision,
@@ -622,6 +504,7 @@ class Message extends DataClass implements Insertable<Message> {
         sentAt: sentAt ?? this.sentAt,
         persisted: persisted ?? this.persisted,
         read: read ?? this.read,
+        embed: embed ?? this.embed,
       );
   @override
   String toString() {
@@ -633,14 +516,15 @@ class Message extends DataClass implements Insertable<Message> {
           ..write('replyTo: $replyTo, ')
           ..write('sentAt: $sentAt, ')
           ..write('persisted: $persisted, ')
-          ..write('read: $read')
+          ..write('read: $read, ')
+          ..write('embed: $embed')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, revision, message, senderDid, replyTo, sentAt, persisted, read);
+  int get hashCode => Object.hash(id, revision, message, senderDid, replyTo,
+      sentAt, persisted, read, embed);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -652,7 +536,8 @@ class Message extends DataClass implements Insertable<Message> {
           other.replyTo == this.replyTo &&
           other.sentAt == this.sentAt &&
           other.persisted == this.persisted &&
-          other.read == this.read);
+          other.read == this.read &&
+          other.embed == this.embed);
 }
 
 class MessagesCompanion extends UpdateCompanion<Message> {
@@ -664,6 +549,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<DateTime> sentAt;
   final Value<bool> persisted;
   final Value<bool> read;
+  final Value<String> embed;
   final Value<int> rowid;
   const MessagesCompanion({
     this.id = const Value.absent(),
@@ -674,6 +560,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     this.sentAt = const Value.absent(),
     this.persisted = const Value.absent(),
     this.read = const Value.absent(),
+    this.embed = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MessagesCompanion.insert({
@@ -685,12 +572,14 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     required DateTime sentAt,
     this.persisted = const Value.absent(),
     this.read = const Value.absent(),
+    required String embed,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         revision = Value(revision),
         message = Value(message),
         senderDid = Value(senderDid),
-        sentAt = Value(sentAt);
+        sentAt = Value(sentAt),
+        embed = Value(embed);
   static Insertable<Message> custom({
     Expression<String>? id,
     Expression<String>? revision,
@@ -700,6 +589,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     Expression<DateTime>? sentAt,
     Expression<bool>? persisted,
     Expression<bool>? read,
+    Expression<String>? embed,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -711,6 +601,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       if (sentAt != null) 'sent_at': sentAt,
       if (persisted != null) 'persisted': persisted,
       if (read != null) 'read': read,
+      if (embed != null) 'embed': embed,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -724,6 +615,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       Value<DateTime>? sentAt,
       Value<bool>? persisted,
       Value<bool>? read,
+      Value<String>? embed,
       Value<int>? rowid}) {
     return MessagesCompanion(
       id: id ?? this.id,
@@ -734,6 +626,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       sentAt: sentAt ?? this.sentAt,
       persisted: persisted ?? this.persisted,
       read: read ?? this.read,
+      embed: embed ?? this.embed,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -765,6 +658,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     if (read.present) {
       map['read'] = Variable<bool>(read.value);
     }
+    if (embed.present) {
+      map['embed'] = Variable<String>(embed.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -782,6 +678,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
           ..write('sentAt: $sentAt, ')
           ..write('persisted: $persisted, ')
           ..write('read: $read, ')
+          ..write('embed: $embed, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1395,7 +1292,6 @@ abstract class _$MessageDatabase extends GeneratedDatabase {
   _$MessageDatabase(QueryExecutor e) : super(e);
   _$MessageDatabaseManager get managers => _$MessageDatabaseManager(this);
   late final $SendersTable senders = $SendersTable(this);
-  late final $ContentTable content = $ContentTable(this);
   late final $MessagesTable messages = $MessagesTable(this);
   late final $ChatRoomTable chatRoom = $ChatRoomTable(this);
   late final $ChatRoomMessagesTable chatRoomMessages =
@@ -1405,7 +1301,7 @@ abstract class _$MessageDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [senders, content, messages, chatRoom, chatRoomMessages];
+      [senders, messages, chatRoom, chatRoomMessages];
 }
 
 typedef $$SendersTableInsertCompanionBuilder = SendersCompanion Function({
@@ -1529,82 +1425,6 @@ class $$SendersTableOrderingComposer
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
-typedef $$ContentTableInsertCompanionBuilder = ContentCompanion Function({
-  required String cid,
-  Value<int> rowid,
-});
-typedef $$ContentTableUpdateCompanionBuilder = ContentCompanion Function({
-  Value<String> cid,
-  Value<int> rowid,
-});
-
-class $$ContentTableTableManager extends RootTableManager<
-    _$MessageDatabase,
-    $ContentTable,
-    ContentData,
-    $$ContentTableFilterComposer,
-    $$ContentTableOrderingComposer,
-    $$ContentTableProcessedTableManager,
-    $$ContentTableInsertCompanionBuilder,
-    $$ContentTableUpdateCompanionBuilder> {
-  $$ContentTableTableManager(_$MessageDatabase db, $ContentTable table)
-      : super(TableManagerState(
-          db: db,
-          table: table,
-          filteringComposer:
-              $$ContentTableFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $$ContentTableOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) => $$ContentTableProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
-            Value<String> cid = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ContentCompanion(
-            cid: cid,
-            rowid: rowid,
-          ),
-          getInsertCompanionBuilder: ({
-            required String cid,
-            Value<int> rowid = const Value.absent(),
-          }) =>
-              ContentCompanion.insert(
-            cid: cid,
-            rowid: rowid,
-          ),
-        ));
-}
-
-class $$ContentTableProcessedTableManager extends ProcessedTableManager<
-    _$MessageDatabase,
-    $ContentTable,
-    ContentData,
-    $$ContentTableFilterComposer,
-    $$ContentTableOrderingComposer,
-    $$ContentTableProcessedTableManager,
-    $$ContentTableInsertCompanionBuilder,
-    $$ContentTableUpdateCompanionBuilder> {
-  $$ContentTableProcessedTableManager(super.$state);
-}
-
-class $$ContentTableFilterComposer
-    extends FilterComposer<_$MessageDatabase, $ContentTable> {
-  $$ContentTableFilterComposer(super.$state);
-  ColumnFilters<String> get cid => $state.composableBuilder(
-      column: $state.table.cid,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $$ContentTableOrderingComposer
-    extends OrderingComposer<_$MessageDatabase, $ContentTable> {
-  $$ContentTableOrderingComposer(super.$state);
-  ColumnOrderings<String> get cid => $state.composableBuilder(
-      column: $state.table.cid,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
 typedef $$MessagesTableInsertCompanionBuilder = MessagesCompanion Function({
   required String id,
   required String revision,
@@ -1614,6 +1434,7 @@ typedef $$MessagesTableInsertCompanionBuilder = MessagesCompanion Function({
   required DateTime sentAt,
   Value<bool> persisted,
   Value<bool> read,
+  required String embed,
   Value<int> rowid,
 });
 typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
@@ -1625,6 +1446,7 @@ typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
   Value<DateTime> sentAt,
   Value<bool> persisted,
   Value<bool> read,
+  Value<String> embed,
   Value<int> rowid,
 });
 
@@ -1656,6 +1478,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             Value<DateTime> sentAt = const Value.absent(),
             Value<bool> persisted = const Value.absent(),
             Value<bool> read = const Value.absent(),
+            Value<String> embed = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MessagesCompanion(
@@ -1667,6 +1490,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             sentAt: sentAt,
             persisted: persisted,
             read: read,
+            embed: embed,
             rowid: rowid,
           ),
           getInsertCompanionBuilder: ({
@@ -1678,6 +1502,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             required DateTime sentAt,
             Value<bool> persisted = const Value.absent(),
             Value<bool> read = const Value.absent(),
+            required String embed,
             Value<int> rowid = const Value.absent(),
           }) =>
               MessagesCompanion.insert(
@@ -1689,6 +1514,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             sentAt: sentAt,
             persisted: persisted,
             read: read,
+            embed: embed,
             rowid: rowid,
           ),
         ));
@@ -1741,6 +1567,11 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<bool> get read => $state.composableBuilder(
       column: $state.table.read,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get embed => $state.composableBuilder(
+      column: $state.table.embed,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -1806,6 +1637,11 @@ class $$MessagesTableOrderingComposer
 
   ColumnOrderings<bool> get read => $state.composableBuilder(
       column: $state.table.read,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get embed => $state.composableBuilder(
+      column: $state.table.embed,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
@@ -2155,8 +1991,6 @@ class _$MessageDatabaseManager {
   _$MessageDatabaseManager(this._db);
   $$SendersTableTableManager get senders =>
       $$SendersTableTableManager(_db, _db.senders);
-  $$ContentTableTableManager get content =>
-      $$ContentTableTableManager(_db, _db.content);
   $$MessagesTableTableManager get messages =>
       $$MessagesTableTableManager(_db, _db.messages);
   $$ChatRoomTableTableManager get chatRoom =>
