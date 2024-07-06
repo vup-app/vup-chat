@@ -156,9 +156,10 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
-                    IconButton(
-                        onPressed: _pickAndSendPhoto,
-                        icon: const Icon(Icons.add_photo_alternate_outlined)),
+                    // TODO: add image support once I get streams
+                    // IconButton(
+                    //     onPressed: _pickAndSendPhoto,
+                    //     icon: const Icon(Icons.add_photo_alternate_outlined)),
                     Expanded(
                       child: TextField(
                         controller: _messageController,

@@ -148,20 +148,18 @@ class MsgCore {
           cid: cid.toBase58(),
           caption: caption,
           thumbhash: hash.toString(),
-          $type: "S5-photo");
-      logger.d(imageEmbed.toJson());
+          $type: "app.vup.chat.embed.image");
       final MessageView message = (await chatSession!.convo.sendMessage(
               convoId: chatID,
               message: MessageInput(
-                  embed: UConvoMessageEmbed.unknown(data: imageEmbed.toJson()),
+                  embed: UConvoMessageEmbedUnknown(data: imageEmbed.toJson()),
                   text:
                       "An S5 compatible client like Vup Chat is required to view this media.")))
           .data;
-      logger.d("image sent with caption ${message.text}");
+      logger.d("now the message view: ${message.toJson()}");
       // Ignore this return because shouldn't notify for own message obv
       db.checkAndInsertMessageATProto(
           message, chatID, false, sender, imageEmbed);
-      logger.d("inserted message");
     }
   }
 

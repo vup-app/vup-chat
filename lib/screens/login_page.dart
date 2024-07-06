@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -106,9 +107,46 @@ class LoginPageState extends State<LoginPage>
                   "Vup Chat",
                   style: TextStyle(color: Colors.white, fontSize: 25.h),
                 ),
-                SizedBox(
-                  height: 200.h,
-                ),
+                Container(
+                    height:
+                        200.h, // This should match the height of the SizedBox
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding: const EdgeInsets.all(5),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white, // Change outline color
+                                  width: 2.0, // Change outline thickness
+                                ),
+                              ),
+                              width: 30, // Adjust size
+                              height: 30,
+                              child: Tooltip(
+                                message:
+                                    "What's this? Click question mark to learn about app passwords.",
+                                child: InkWell(
+                                  onTap: () => launchUrl(Uri.parse(
+                                      "https://blueskyfeeds.com/en/faq-app-password")),
+                                  child: const Center(
+                                    child: Icon(Icons.question_mark,
+                                        size: 25), // Adjust icon size if needed
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(

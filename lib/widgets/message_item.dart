@@ -10,7 +10,6 @@ Widget buildMessageItem(
   final isMe = message.senderDid == did;
   // do some logic on the embed to define widget
   late Widget bubbleContents;
-  logger.d(message.embed);
   if (message.embed.isNotEmpty) {
     final Map<String, dynamic> s5EmbedJSON = jsonDecode(message.embed);
     bubbleContents = const Text("erm");
