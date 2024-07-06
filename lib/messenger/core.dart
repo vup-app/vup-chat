@@ -2,17 +2,20 @@ import 'dart:async';
 
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:platform_local_notifications/platform_local_notifications.dart'
     as notif;
 import 'package:s5/s5.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
+import 'package:vup_chat/definitions/s5embed.dart';
 import 'package:vup_chat/functions/general.dart';
+import 'package:vup_chat/functions/thumbhash.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 
 class MsgCore {
-  final S5 s5;
+  final S5? s5;
   final MessageDatabase db;
   final Bluesky? bskySession;
   final BlueskyChat? bskyChatSessoion;
@@ -21,7 +24,7 @@ class MsgCore {
 
   // Named constructor
   MsgCore.custom({
-    required this.s5,
+    this.s5,
     required this.db,
     this.bskySession,
     this.bskyChatSessoion,
@@ -29,7 +32,7 @@ class MsgCore {
 
   // Unnamed constructor that initializes the database internally
   MsgCore({
-    required S5 s5,
+    S5? s5,
     Bluesky? bskySession,
     BlueskyChat? bskyChatSession,
   }) : this.custom(
@@ -116,13 +119,49 @@ class MsgCore {
     return await db.searchMessages(query, chatID);
   }
 
+  // TODO create own local message ID's to associate with BSKY ID to speed up sending
   Future<void> sendMessage(String text, String chatID, Sender sender) async {
+    // TODO: persist to DB BEFORE sneding to atproto to make things snappier
     if (chatSession != null && text.isNotEmpty) {
       final MessageView message = (await chatSession!.convo
               .sendMessage(convoId: chatID, message: MessageInput(text: text)))
           .data;
       // Ignore this return because shouldn't notify for own message obv
-      db.checkAndInsertMessageATProto(message, chatID, false, sender);
+      db.checkAndInsertMessageATProto(message, chatID, false, sender, null);
+    }
+  }
+
+  Future<void> sendImage(
+      String caption, String chatID, Sender sender, XFile file) async {
+    // we want this to be snappy so there are 3 steps
+    // Step 1: Generate thumbhash & persist to DB
+    // Step 2: Generate CID & persist that to DB
+    // Step 3: Send that off to ATProto to be persisted
+
+    // But right now I have to pregenerate everything before sending the
+    // message because ID's are controlled by BSKY, must fix this to snap
+    // everything up
+    if (chatSession != null && s5 != null) {
+      String? hash = await getThumbhashFromXFile(file);
+      final CID cid = await s5!.api.uploadBlob(await file.readAsBytes());
+      final S5Embed imageEmbed = S5Embed(
+          cid: cid.toBase58(),
+          caption: caption,
+          thumbhash: hash.toString(),
+          $type: "S5-photo");
+      logger.d(imageEmbed.toJson());
+      final MessageView message = (await chatSession!.convo.sendMessage(
+              convoId: chatID,
+              message: MessageInput(
+                  embed: UConvoMessageEmbed.unknown(data: imageEmbed.toJson()),
+                  text:
+                      "An S5 compatible client like Vup Chat is required to view this media.")))
+          .data;
+      logger.d("image sent with caption ${message.text}");
+      // Ignore this return because shouldn't notify for own message obv
+      db.checkAndInsertMessageATProto(
+          message, chatID, false, sender, imageEmbed);
+      logger.d("inserted message");
     }
   }
 
@@ -191,8 +230,8 @@ class MsgCore {
 
       for (var message in messages) {
         final Sender snd = await getSenderFromDID(message.sender.did);
-        final bool toNotify =
-            await db.checkAndInsertMessageATProto(message, chatID, true, snd);
+        final bool _ = await db.checkAndInsertMessageATProto(
+            message, chatID, true, snd, null);
       }
     }
   }

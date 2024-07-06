@@ -10,6 +10,7 @@ class Senders extends Table {
 }
 
 class Messages extends Table {
+  // TODO: Move message ID away from ATProto
   TextColumn get id => text()();
   TextColumn get revision => text()();
   TextColumn get message => text()();
@@ -27,6 +28,7 @@ class Messages extends Table {
 }
 
 class ChatRoom extends Table {
+  // TODO: Move chatroom ID away from ATProto
   TextColumn get id => text()();
   TextColumn get rev => text()();
   TextColumn get members => text()(); // Serialized JSON

@@ -60,8 +60,8 @@ Widget buildChatRoomSearchItemMessage(
     Message message, BuildContext ctx, HomeRoutingService? homeRoutingService) {
   return FutureBuilder<List<dynamic>>(
     future: Future.wait([
-      msg.getSenderFromDID(message.senderDid),
-      msg.getChatIDFromMessageID(message.id)
+      msg!.getSenderFromDID(message.senderDid),
+      msg!.getChatIDFromMessageID(message.id)
     ]),
     builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
       switch (snapshot.connectionState) {

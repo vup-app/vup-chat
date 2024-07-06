@@ -18,7 +18,7 @@ class _S5StatusWidgetState extends State<S5StatusWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (s5.hasIdentity) {
+    if (s5!.hasIdentity) {
       return Row(
         children: [
           const Text("S5 Status: "),

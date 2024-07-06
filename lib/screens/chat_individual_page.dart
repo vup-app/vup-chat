@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:platform_local_notifications/platform_local_notifications.dart'
-    as notif;
+import 'package:image_picker/image_picker.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
@@ -53,13 +51,13 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
 
   void _schedulePeriodicUpdate() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      msg.checkForMessageUpdatesATProto(widget.id);
+      msg!.checkForMessageUpdatesATProto(widget.id);
     });
   }
 
   void _subscribeToChat() {
     _subscription?.cancel(); // Cancel any existing subscription
-    _subscription = msg.subscribeChat(widget.id).listen((newMessages) {
+    _subscription = msg!.subscribeChat(widget.id).listen((newMessages) {
       setState(() {
         _messages = newMessages;
       });
@@ -70,7 +68,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   }
 
   void _getChatRoomData() async {
-    await msg.getChatRoomFromChatID(widget.id).then((val) => setState(() {
+    await msg!.getChatRoomFromChatID(widget.id).then((val) => setState(() {
           _chatRoomData = val;
         }));
   }
@@ -88,22 +86,31 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   //   }
   // }
 
-  void _scrollToBottom() {
-    if (_scrollController.isAttached) {
-      _scrollController.scrollTo(
-        index: 0,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.elasticOut,
-      );
-    } else {
-      Timer(const Duration(milliseconds: 200), () => _scrollToBottom());
-    }
+  // void _scrollToBottom() {
+  //   if (_scrollController.isAttached) {
+  //     _scrollController.scrollTo(
+  //       index: 0,
+  //       duration: const Duration(milliseconds: 200),
+  //       curve: Curves.elasticOut,
+  //     );
+  //   } else {
+  //     Timer(const Duration(milliseconds: 200), () => _scrollToBottom());
+  //   }
+  // }
+
+  void _sendmsg() async {
+    await msg!.sendMessage(_messageController.text, widget.id,
+        (await msg!.getSenderFromDID(did!)));
+    _messageController.clear();
   }
 
-  void _sendMsg() async {
-    await msg.sendMessage(
-        _messageController.text, widget.id, (await msg.getSenderFromDID(did!)));
-    _messageController.clear();
+  void _pickAndSendPhoto() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      msg!.sendImage(_messageController.text, widget.id,
+          (await msg!.getSenderFromDID(did!)), image);
+    }
   }
 
   @override
@@ -129,7 +136,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
             children: [
               Expanded(
                 child: ScrollablePositionedList.builder(
-                  itemCount: _messages.length,
+                  itemCount: 1,
                   itemScrollController: _scrollController,
                   itemPositionsListener: _itemPositionsListener,
                   reverse: true,
@@ -149,6 +156,9 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: [
+                    IconButton(
+                        onPressed: _pickAndSendPhoto,
+                        icon: const Icon(Icons.add_photo_alternate_outlined)),
                     Expanded(
                       child: TextField(
                         controller: _messageController,
@@ -157,12 +167,12 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                           border: OutlineInputBorder(),
                         ),
                         textInputAction: TextInputAction.go,
-                        onSubmitted: (_) => _sendMsg(),
+                        onSubmitted: (_) => _sendmsg(),
                       ),
                     ),
                     IconButton(
                         icon: const Icon(Icons.send),
-                        onPressed: () => _sendMsg()),
+                        onPressed: () => _sendmsg()),
                   ],
                 ),
               ),

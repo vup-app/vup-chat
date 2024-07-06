@@ -33,7 +33,7 @@ class S5LoginPageState extends State<S5LoginPage>
     super.initState();
 
     setState(() {
-      _seed = s5.generateSeedPhrase();
+      _seed = s5!.generateSeedPhrase();
     });
 
     _controller = AnimationController(

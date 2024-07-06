@@ -18,20 +18,25 @@ import 'package:vup_chat/widgets/init_router.dart';
 const FlutterSecureStorage storage = FlutterSecureStorage();
 final Logger logger = Logger();
 late SharedPreferences preferences;
-late S5 s5;
-late MsgCore msg;
+MsgCore? msg;
 Bluesky? session;
 BlueskyChat? chatSession;
+S5? s5;
 String? did;
 
 void main() async {
   // grab login credentials and try to log in
   WidgetsFlutterBinding.ensureInitialized();
-  session = await tryLogIn(null, null);
-  preferences = await SharedPreferences.getInstance();
-  await initS5();
+  // TODO: Make app retry if entered on online mode
+  try {
+    session = await tryLogIn(null, null);
+    preferences = await SharedPreferences.getInstance();
+    s5 = await initS5();
+  } catch (e) {
+    logger.d("Failed to connect to an online session: $e");
+  }
   msg = MsgCore(s5: s5, bskySession: session, bskyChatSession: chatSession);
-  msg.init();
+  msg!.init();
 
   // Go go program!
   runApp(const VupChat());

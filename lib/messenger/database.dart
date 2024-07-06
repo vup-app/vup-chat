@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bluesky/bluesky_chat.dart';
 import 'package:drift/drift.dart';
+import 'package:vup_chat/definitions/s5embed.dart';
 
 import 'connections/connection.dart' as impl;
 import 'tables.dart';
@@ -219,8 +220,8 @@ class MessageDatabase extends _$MessageDatabase {
   // Check if a message exists and insert if not
   // Return: true -> new message, should notify
   // Return: false -> message already exists, don't notify
-  Future<bool> checkAndInsertMessageATProto(
-      MessageView message, String roomID, bool persisted, Sender sender) async {
+  Future<bool> checkAndInsertMessageATProto(MessageView message, String roomID,
+      bool persisted, Sender sender, S5Embed? embed) async {
     final Message? messageExists = await (select(messages)
           ..where((tbl) => tbl.id.equals(message.id)))
         .getSingleOrNull();
@@ -334,7 +335,8 @@ class MessageDatabase extends _$MessageDatabase {
             avatarUrl: convo.members.last.avatar);
 
         // Check and insert the last message
-        await checkAndInsertMessageATProto(lastMessage, convo.id, true, sender);
+        await checkAndInsertMessageATProto(
+            lastMessage, convo.id, true, sender, null);
 
         // Insert or update the chat list entry
         if (chatRoomExists == null ||
