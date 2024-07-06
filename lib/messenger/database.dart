@@ -361,11 +361,11 @@ class MessageDatabase extends _$MessageDatabase {
             id: convo.id,
             rev: convo.rev,
             members: json.encode(membersJson),
-            lastMessage: chatRoomExists!.lastMessage,
+            lastMessage: chatRoomExists?.lastMessage ?? "",
             muted: Value(convo.muted),
             hidden: const Value(false),
             unreadCount: Value(convo.unreadCount),
-            lastUpdated: chatRoomExists.lastUpdated,
+            lastUpdated: chatRoomExists?.lastUpdated ?? DateTime(0),
           ),
           mode: InsertMode.insertOrReplace,
         );

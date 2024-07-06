@@ -26,8 +26,18 @@ Widget buildChatRoomListItem(
   return SizeTransition(
     sizeFactor: animation,
     child: ListTile(
-      title: Text(title),
-      subtitle: Text(lastMessageText),
+      title: Text(
+        title,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+        softWrap: true,
+      ),
+      subtitle: Text(
+        lastMessageText,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+        softWrap: true,
+      ),
       leading: avatar,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

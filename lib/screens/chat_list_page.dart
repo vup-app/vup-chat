@@ -132,6 +132,7 @@ class ChatListPageState extends State<ChatListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        // Defines app bar at top
         appBar: _selectedChatIds.isNotEmpty
             ? AppBar(
                 title: Text('${_selectedChatIds.length} selected'),
@@ -161,6 +162,7 @@ class ChatListPageState extends State<ChatListPage> {
                 ],
               )
             : null,
+        // This defines the "new chat" prompt in the bototm right
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.message_outlined),
           onPressed: () {
@@ -174,6 +176,7 @@ class ChatListPageState extends State<ChatListPage> {
             }
           },
         ),
+        // Then we have the body contents
         body: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

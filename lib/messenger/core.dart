@@ -112,7 +112,13 @@ class MsgCore {
   }
 
   Future<ChatRoomData?> getChatRoomFromChatID(String chatID) async {
-    return db.getChatRoomFromChatID(chatID);
+    ChatRoomData? crd = await db.getChatRoomFromChatID(chatID);
+    if (crd == null && bskyChatSessoion != null) {
+      final GetConvoOutput convoInfo =
+          (await bskyChatSessoion!.convo.getConvo(convoId: chatID)).data;
+      await db.checkAndInsertChatRoom(convoInfo.convo);
+    }
+    return await db.getChatRoomFromChatID(chatID);
   }
 
   Future<List<Message>> searchMessages(String query, String? chatID) async {

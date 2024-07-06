@@ -136,7 +136,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
             children: [
               Expanded(
                 child: ScrollablePositionedList.builder(
-                  itemCount: 1,
+                  itemCount: _messages.length,
                   itemScrollController: _scrollController,
                   itemPositionsListener: _itemPositionsListener,
                   reverse: true,

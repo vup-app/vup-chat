@@ -1,5 +1,7 @@
 import 'package:bluesky/bluesky.dart';
+import 'package:bluesky/bluesky_chat.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/main.dart';
 import 'package:flutter/src/widgets/scroll_view.dart' as fscroll;
@@ -78,41 +80,72 @@ class SearchActorPageState extends State<SearchActorPage> {
   }
 
   Future<void> _splitToIndividualChat(Actor actor) async {
-    // ConvoView? convo = await getConvoFromUID(actor.did);
-    // widget.onChatSelected!.call(convo);
+    ConvoView? convo = await getConvoFromUID(actor.did);
+    if (convo != null) {
+      widget.onChatSelected!.call(convo.id, null);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Search Users'),
+        title: const Text('New Chat'),
         leading: backButton(context),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: fscroll.ListView.builder(
-              reverse: true,
-              itemCount: _actors.length,
-              itemBuilder: (context, index) {
-                final actor = _actors[index];
-                final profile = _profiles[index];
-                return _buildActorListItem(actor, context, profile);
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _controller,
-              decoration: const InputDecoration(
-                hintText: 'Search...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ),
-        ],
+      body: Center(
+        child: Container(
+            decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: const BorderRadius.all(Radius.circular(20))),
+            width: 200.w,
+            height: 600.h,
+            child: Column(
+              children: [
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.h),
+                    child: TextField(
+                      controller: _controller,
+                      decoration: InputDecoration(
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20.h),
+                          borderSide: BorderSide(
+                            width: 1.h,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20.h),
+                          borderSide: BorderSide(
+                            width: 1.h,
+                          ),
+                        ),
+                        prefixIcon: (_controller.text.isEmpty)
+                            ? const Icon(Icons.search)
+                            : InkWell(
+                                child: const Icon(Icons.clear),
+                                onTap: () {
+                                  _controller.clear();
+                                },
+                              ),
+                        hintText: 'Search...',
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: fscroll.ListView.builder(
+                    itemCount: _actors.length,
+                    itemBuilder: (context, index) {
+                      final actor = _actors[index];
+                      final profile = _profiles[index];
+                      return _buildActorListItem(actor, context, profile);
+                    },
+                  ),
+                ),
+              ],
+            )),
       ),
     );
   }
@@ -123,7 +156,7 @@ class SearchActorPageState extends State<SearchActorPage> {
     final CircleAvatar avatar = CircleAvatar(
       backgroundImage:
           actor.avatar != null ? NetworkImage(actor.avatar!) : null,
-      child: const Icon(Icons.person),
+      child: actor.avatar != null ? null : const Icon(Icons.person),
     );
 
     late Widget allowIncomingMessages;
@@ -135,7 +168,7 @@ class SearchActorPageState extends State<SearchActorPage> {
         status = profile.associated!.chat!.allowIncoming;
       }
     } catch (e) {
-      print("Error fetching status: $e");
+      logger.e("Error fetching status: $e");
     }
 
     switch (status) {
