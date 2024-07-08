@@ -32,15 +32,17 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   List<Message> _messages = [];
   StreamSubscription<List<Message>>? _subscription;
   ChatRoomData? _chatRoomData;
-  bool _showScrollToBottom = false;
+  late bool _showScrollToBottom;
+  double _scrollOffset = 0;
 
   @override
   void initState() {
-    super.initState();
     _schedulePeriodicUpdate();
     _subscribeToChat();
     _getChatRoomData();
+    _showScrollToBottom = (widget.messageIdToScrollTo == null) ? false : true;
     _scrollOffsetTracker();
+    super.initState();
   }
 
   @override
@@ -74,6 +76,12 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
 
   void _scrollToBottom() {
     if (_scrollController.isAttached) {
+      if (_scrollOffset < 0) {
+        _scrollOffset = 0;
+      }
+      setState(() {
+        _showScrollToBottom = false;
+      });
       _scrollController.scrollTo(
         index: 0,
         duration: const Duration(milliseconds: 200),
@@ -91,18 +99,17 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
 
   // tracks offset and tells widget when to show scrool to bottom button
   void _scrollOffsetTracker() {
-    double offset = 0;
     _scrollOffsetListener.changes.listen(
       (changeInPosition) {
-        final positionPrev = offset;
-        offset += (changeInPosition);
+        final positionPrev = _scrollOffset;
+        _scrollOffset += (changeInPosition);
         // If position is above the cutoff and it previously wasn't, show scroll to bottom
         // and the opposite.
-        if ((positionPrev < 500 && offset > 500)) {
+        if ((positionPrev < 500 && _scrollOffset > 500)) {
           setState(() {
             _showScrollToBottom = true;
           });
-        } else if ((positionPrev > 500 && offset < 500)) {
+        } else if ((positionPrev > 500 && _scrollOffset < 500)) {
           setState(() {
             _showScrollToBottom = false;
           });
