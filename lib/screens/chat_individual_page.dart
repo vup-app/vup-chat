@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:flutter/widgets.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
@@ -26,12 +26,13 @@ class ChatIndividualPage extends StatefulWidget {
 class _ChatIndividualPageState extends State<ChatIndividualPage> {
   final TextEditingController _messageController = TextEditingController();
   final ItemScrollController _scrollController = ItemScrollController();
-  final ItemPositionsListener _itemPositionsListener =
-      ItemPositionsListener.create();
+  final ScrollOffsetListener _scrollOffsetListener =
+      ScrollOffsetListener.create();
   Timer? _timer;
   List<Message> _messages = [];
   StreamSubscription<List<Message>>? _subscription;
   ChatRoomData? _chatRoomData;
+  bool _showScrollToBottom = false;
 
   @override
   void initState() {
@@ -39,6 +40,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     _schedulePeriodicUpdate();
     _subscribeToChat();
     _getChatRoomData();
+    _scrollOffsetTracker();
   }
 
   @override
@@ -61,9 +63,6 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
       setState(() {
         _messages = newMessages;
       });
-      // (widget.messageIdToScrollTo == null)
-      //     ? _scrollToBottom()
-      //     : _scrollToMessage(widget.messageIdToScrollTo);
     });
   }
 
@@ -73,45 +72,53 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
         }));
   }
 
-  // void _scrollToMessage(String? messageId) {
-  //   if (messageId != null) {
-  //     final index = ;
-  //     if (index != 0) {
-  //       _scrollController.scrollTo(
-  //         index: index,
-  //         duration: const Duration(milliseconds: 300),
-  //         curve: Curves.easeInOut,
-  //       );
-  //     }
-  //   }
-  // }
-
-  // void _scrollToBottom() {
-  //   if (_scrollController.isAttached) {
-  //     _scrollController.scrollTo(
-  //       index: 0,
-  //       duration: const Duration(milliseconds: 200),
-  //       curve: Curves.elasticOut,
-  //     );
-  //   } else {
-  //     Timer(const Duration(milliseconds: 200), () => _scrollToBottom());
-  //   }
-  // }
+  void _scrollToBottom() {
+    if (_scrollController.isAttached) {
+      _scrollController.scrollTo(
+        index: 0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.elasticOut,
+      );
+    }
+  }
 
   void _sendmsg() async {
     await msg!.sendMessage(_messageController.text, widget.id,
         (await msg!.getSenderFromDID(did!)));
     _messageController.clear();
+    _scrollToBottom();
   }
 
-  void _pickAndSendPhoto() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      msg!.sendImage(_messageController.text, widget.id,
-          (await msg!.getSenderFromDID(did!)), image);
-    }
+  // tracks offset and tells widget when to show scrool to bottom button
+  void _scrollOffsetTracker() {
+    double offset = 0;
+    _scrollOffsetListener.changes.listen(
+      (changeInPosition) {
+        final positionPrev = offset;
+        offset += (changeInPosition);
+        // If position is above the cutoff and it previously wasn't, show scroll to bottom
+        // and the opposite.
+        if ((positionPrev < 500 && offset > 500)) {
+          setState(() {
+            _showScrollToBottom = true;
+          });
+        } else if ((positionPrev > 500 && offset < 500)) {
+          setState(() {
+            _showScrollToBottom = false;
+          });
+        }
+      },
+    );
   }
+
+  // void _pickAndSendPhoto() async {
+  //   final ImagePicker picker = ImagePicker();
+  //   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+  //   if (image != null) {
+  //     msg!.sendImage(_messageController.text, widget.id,
+  //         (await msg!.getSenderFromDID(did!)), image);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -135,21 +142,51 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
           child: Column(
             children: [
               Expanded(
-                child: ScrollablePositionedList.builder(
-                  itemCount: _messages.length,
-                  itemScrollController: _scrollController,
-                  itemPositionsListener: _itemPositionsListener,
-                  reverse: true,
-                  initialScrollIndex: (widget.messageIdToScrollTo != null &&
-                          _messages.isNotEmpty)
-                      ? _messages.indexWhere(
-                          (message) => message.id == widget.messageIdToScrollTo)
-                      : 0,
-                  itemBuilder: (context, index) {
-                    final message = _messages[index];
-                    return buildMessageItem(
-                        message, const AlwaysStoppedAnimation(1.0), context);
-                  },
+                child: Stack(
+                  children: [
+                    // The message view
+                    _messages.isNotEmpty
+                        ? ScrollablePositionedList.builder(
+                            itemCount: _messages.length,
+                            itemScrollController: _scrollController,
+                            scrollOffsetListener: _scrollOffsetListener,
+                            reverse: true,
+                            initialScrollIndex: (widget.messageIdToScrollTo !=
+                                        null &&
+                                    _messages.isNotEmpty)
+                                ? _messages.indexWhere((message) =>
+                                    message.id == widget.messageIdToScrollTo)
+                                : 0,
+                            itemBuilder: (context, index) {
+                              if (index >= 0) {
+                                final message = _messages[index];
+                                return buildMessageItem(message,
+                                    const AlwaysStoppedAnimation(1.0), context);
+                              } else {
+                                return Container();
+                              }
+                            },
+                          )
+                        : Container(),
+                    // Scroll to bottom icon
+                    _showScrollToBottom
+                        ? Align(
+                            alignment: Alignment.bottomRight,
+                            child: Container(
+                              width: 40,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color:
+                                    Theme.of(context).cardColor.withOpacity(.5),
+                              ),
+                              child: IconButton(
+                                  onPressed: () => _scrollToBottom(),
+                                  icon: const Icon(Icons
+                                      .keyboard_double_arrow_down_outlined)),
+                            ),
+                          )
+                        : Container(),
+                  ],
                 ),
               ),
               Padding(

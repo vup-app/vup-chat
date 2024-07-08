@@ -134,16 +134,97 @@ class SearchActorPageState extends State<SearchActorPage> {
                     ),
                   ),
                 ),
-                Expanded(
-                  child: fscroll.ListView.builder(
-                    itemCount: _actors.length,
-                    itemBuilder: (context, index) {
-                      final actor = _actors[index];
-                      final profile = _profiles[index];
-                      return _buildActorListItem(actor, context, profile);
-                    },
-                  ),
-                ),
+                _actors.isNotEmpty
+                    ? Expanded(
+                        child: fscroll.ListView.builder(
+                          itemCount: _actors.length,
+                          itemBuilder: (context, index) {
+                            final actor = _actors[index];
+                            final profile = _profiles[index];
+                            return _buildActorListItem(actor, context, profile);
+                          },
+                        ),
+                      )
+                    : Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment:
+                                MainAxisAlignment.center, // Center vertically
+                            crossAxisAlignment: CrossAxisAlignment
+                                .center, // Center horizontally
+                            children: [
+                              const Text(
+                                "ATProto allows users to restrict their messaging preferences",
+                                textAlign: TextAlign.center, // Center the text
+                              ),
+                              const SizedBox(
+                                  height:
+                                      10), // Add some spacing between the rows
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .center, // Center the row horizontally
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                      width:
+                                          5), // Add some spacing between the circle and the text
+                                  const Text("All incoming messages blocked"),
+                                ],
+                              ),
+                              const SizedBox(
+                                  height:
+                                      10), // Add some spacing between the rows
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .center, // Center the row horizontally
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.yellow,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                      width:
+                                          5), // Add some spacing between the circle and the text
+                                  const Text(
+                                      "Only people they follow can message them"),
+                                ],
+                              ),
+                              const SizedBox(
+                                  height:
+                                      10), // Add some spacing between the rows
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .center, // Center the row horizontally
+                                children: [
+                                  Container(
+                                    width: 10,
+                                    height: 10,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                      width:
+                                          5), // Add some spacing between the circle and the text
+                                  const Text("All incoming messages accepted"),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                      )
               ],
             )),
       ),
