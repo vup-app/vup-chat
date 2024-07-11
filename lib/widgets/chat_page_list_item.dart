@@ -17,8 +17,6 @@ Widget buildChatRoomListItem(
   final List<dynamic> membersJson = jsonDecode(chat.members);
   final Map<String, dynamic> lastMessageJson = json.decode(chat.lastMessage);
 
-  final String title =
-      handleFromMembersJSON(membersJson, chat.members.isNotEmpty);
   final CircleAvatar avatar = avatarFromMembersJSON(membersJson);
   final String lastMessageText = lastMessageJson['text'] ?? "";
 
@@ -26,9 +24,9 @@ Widget buildChatRoomListItem(
     sizeFactor: animation,
     child: ListTile(
       title: Text(
-        title,
+        chat.roomName,
         overflow: TextOverflow.ellipsis,
-        maxLines: 2,
+        maxLines: 1,
         softWrap: true,
       ),
       subtitle: Text(
@@ -51,7 +49,14 @@ Widget buildChatRoomListItem(
         if (selectedItems != null && selectedItems.isNotEmpty) {
           onItemPressed(chat.id);
         } else {
-          SplitView.of(context).push(ChatIndividualPage(id: chat.id));
+          if (SplitView.of(context).pageCount > 1) {
+            SplitView.of(context).replace(
+              page: ChatIndividualPage(id: chat.id),
+              index: 1,
+            );
+          } else {
+            SplitView.of(context).push(ChatIndividualPage(id: chat.id));
+          }
         }
       },
     ),

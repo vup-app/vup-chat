@@ -5,6 +5,7 @@ import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/widgets/smart_date_time.dart';
 
+// TODO: Change message UI to vengamo https://pub.dev/packages/vengamo_chat_ui
 Widget buildMessageItem(
     Message message, Animation<double> animation, BuildContext context) {
   final isMe = message.senderDid == did;

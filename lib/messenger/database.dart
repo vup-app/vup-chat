@@ -19,7 +19,7 @@ class MessageDatabase extends _$MessageDatabase {
   @override
   int get schemaVersion => 1;
 
-  // Searches DB for contacts
+  // Searches DB for group names
 
   // Searches DB for messages
   Future<List<Message>> searchMessages(String q, String? chatID) async {
@@ -47,6 +47,11 @@ class MessageDatabase extends _$MessageDatabase {
       query.where(chatRoomMessages.chatRoomId.isIn(distinctChatRoomIds));
     }
     return query.map((row) => row.readTable(messages)).get();
+  }
+
+  Future<void> changeRoomName(String chatID, String newRoomName) async {
+    await (update(chatRoom)..where((t) => t.id.equals(chatID)))
+        .write(ChatRoomCompanion(roomName: Value(newRoomName)));
   }
 
   // Toggle Mute

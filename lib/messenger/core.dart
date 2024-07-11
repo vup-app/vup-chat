@@ -253,4 +253,8 @@ class MsgCore {
   MessageDatabase getDB() {
     return db;
   }
+
+  Future<void> setRoomName(String chatID, String newRoomName) async {
+    db.changeRoomName(chatID, newRoomName);
+  }
 }

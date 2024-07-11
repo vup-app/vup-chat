@@ -139,8 +139,11 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                   const SizedBox(width: 8),
                   InkWell(
                     onTap: () {
-                      SplitView.of(context)
-                          .push(ChatInfoPage(chatID: widget.id));
+                      if (_chatRoomData != null) {
+                        SplitView.of(context).push(ChatInfoPage(
+                          chatRoomData: _chatRoomData!,
+                        ));
+                      }
                     },
                     child: Text(_chatRoomData?.roomName ?? "Erm"),
                   ),
