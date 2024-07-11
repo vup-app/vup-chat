@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:vup_chat/functions/home_routing_service.dart';
+import 'package:flutter_split_view/flutter_split_view.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/profile_page.dart';
@@ -11,9 +11,7 @@ import 'package:vup_chat/widgets/chat_room_list.dart';
 import 'package:vup_chat/widgets/search_bar_chats.dart';
 
 class ChatListPage extends StatefulWidget {
-  final HomeRoutingService? homeRoutingService;
-
-  const ChatListPage({super.key, this.homeRoutingService});
+  const ChatListPage({super.key});
 
   @override
   ChatListPageState createState() => ChatListPageState();
@@ -70,23 +68,14 @@ class ChatListPageState extends State<ChatListPage> {
   }
 
   void _navToSettings() async {
-    if (widget.homeRoutingService != null) {
-      widget.homeRoutingService!.navigateToSettings();
-    } else {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const SettingsPage()));
-    }
+    SplitView.of(context).push(const SettingsPage());
   }
 
   void _navToProfile() async {
-    if (widget.homeRoutingService != null) {
-      widget.homeRoutingService!.navigateToProfile();
-    } else {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const ProfilePage()));
-    }
+    SplitView.of(context).push(const ProfilePage());
   }
 
+  // TODO: Make it deselect on another press
   void _onChatItemSelection(String chatId) {
     setState(() {
       if (_selectedChatIds.contains(chatId)) {
@@ -166,14 +155,7 @@ class ChatListPageState extends State<ChatListPage> {
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.message_outlined),
           onPressed: () {
-            if (widget.homeRoutingService != null) {
-              widget.homeRoutingService!.onNewChatSelected();
-            } else {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const SearchActorPage()));
-            }
+            SplitView.of(context).push(const SearchActorPage());
           },
         ),
         // Then we have the body contents
@@ -213,16 +195,13 @@ class ChatListPageState extends State<ChatListPage> {
                         itemCount: _searchedMessages!.length,
                         itemBuilder: (context, index) {
                           return buildChatRoomSearchItemMessage(
-                              _searchedMessages![index],
-                              context,
-                              widget.homeRoutingService);
+                              _searchedMessages![index], context);
                         },
                       ))
                 // So if the search doesn't contain text it just shows chats
                 : ChatRoomList(
                     chats: _chats,
                     onChatItemSelection: _onChatItemSelection,
-                    homeRoutingService: widget.homeRoutingService,
                     selectedChatIds: _selectedChatIds,
                     hideSelectedChats: _hideSelectedChats,
                     toggleNotificationsSelectedChats: _muteSelectedChats,

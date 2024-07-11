@@ -42,6 +42,7 @@ dependencies:
   json_annotation: ^4.9.0
   image: ^4.2.0
   thumbhash: ^0.1.0+1
+  flutter_split_view: ^0.1.2
 
 dev_dependencies:
   flutter_test:

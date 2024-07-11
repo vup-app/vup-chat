@@ -696,6 +696,12 @@ class $ChatRoomTable extends ChatRoom
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _roomNameMeta =
+      const VerificationMeta('roomName');
+  @override
+  late final GeneratedColumn<String> roomName = GeneratedColumn<String>(
+      'room_name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _revMeta = const VerificationMeta('rev');
   @override
   late final GeneratedColumn<String> rev = GeneratedColumn<String>(
@@ -746,8 +752,17 @@ class $ChatRoomTable extends ChatRoom
       'last_updated', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, rev, members, lastMessage, muted, hidden, unreadCount, lastUpdated];
+  List<GeneratedColumn> get $columns => [
+        id,
+        roomName,
+        rev,
+        members,
+        lastMessage,
+        muted,
+        hidden,
+        unreadCount,
+        lastUpdated
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -762,6 +777,12 @@ class $ChatRoomTable extends ChatRoom
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('room_name')) {
+      context.handle(_roomNameMeta,
+          roomName.isAcceptableOrUnknown(data['room_name']!, _roomNameMeta));
+    } else if (isInserting) {
+      context.missing(_roomNameMeta);
     }
     if (data.containsKey('rev')) {
       context.handle(
@@ -816,6 +837,8 @@ class $ChatRoomTable extends ChatRoom
     return ChatRoomData(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      roomName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}room_name'])!,
       rev: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}rev'])!,
       members: attachedDatabase.typeMapping
@@ -841,6 +864,7 @@ class $ChatRoomTable extends ChatRoom
 
 class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
   final String id;
+  final String roomName;
   final String rev;
   final String members;
   final String lastMessage;
@@ -850,6 +874,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
   final DateTime lastUpdated;
   const ChatRoomData(
       {required this.id,
+      required this.roomName,
       required this.rev,
       required this.members,
       required this.lastMessage,
@@ -861,6 +886,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    map['room_name'] = Variable<String>(roomName);
     map['rev'] = Variable<String>(rev);
     map['members'] = Variable<String>(members);
     map['last_message'] = Variable<String>(lastMessage);
@@ -874,6 +900,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
   ChatRoomCompanion toCompanion(bool nullToAbsent) {
     return ChatRoomCompanion(
       id: Value(id),
+      roomName: Value(roomName),
       rev: Value(rev),
       members: Value(members),
       lastMessage: Value(lastMessage),
@@ -889,6 +916,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ChatRoomData(
       id: serializer.fromJson<String>(json['id']),
+      roomName: serializer.fromJson<String>(json['roomName']),
       rev: serializer.fromJson<String>(json['rev']),
       members: serializer.fromJson<String>(json['members']),
       lastMessage: serializer.fromJson<String>(json['lastMessage']),
@@ -903,6 +931,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'roomName': serializer.toJson<String>(roomName),
       'rev': serializer.toJson<String>(rev),
       'members': serializer.toJson<String>(members),
       'lastMessage': serializer.toJson<String>(lastMessage),
@@ -915,6 +944,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
 
   ChatRoomData copyWith(
           {String? id,
+          String? roomName,
           String? rev,
           String? members,
           String? lastMessage,
@@ -924,6 +954,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
           DateTime? lastUpdated}) =>
       ChatRoomData(
         id: id ?? this.id,
+        roomName: roomName ?? this.roomName,
         rev: rev ?? this.rev,
         members: members ?? this.members,
         lastMessage: lastMessage ?? this.lastMessage,
@@ -936,6 +967,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
   String toString() {
     return (StringBuffer('ChatRoomData(')
           ..write('id: $id, ')
+          ..write('roomName: $roomName, ')
           ..write('rev: $rev, ')
           ..write('members: $members, ')
           ..write('lastMessage: $lastMessage, ')
@@ -948,13 +980,14 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, rev, members, lastMessage, muted, hidden, unreadCount, lastUpdated);
+  int get hashCode => Object.hash(id, roomName, rev, members, lastMessage,
+      muted, hidden, unreadCount, lastUpdated);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ChatRoomData &&
           other.id == this.id &&
+          other.roomName == this.roomName &&
           other.rev == this.rev &&
           other.members == this.members &&
           other.lastMessage == this.lastMessage &&
@@ -966,6 +999,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
 
 class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
   final Value<String> id;
+  final Value<String> roomName;
   final Value<String> rev;
   final Value<String> members;
   final Value<String> lastMessage;
@@ -976,6 +1010,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
   final Value<int> rowid;
   const ChatRoomCompanion({
     this.id = const Value.absent(),
+    this.roomName = const Value.absent(),
     this.rev = const Value.absent(),
     this.members = const Value.absent(),
     this.lastMessage = const Value.absent(),
@@ -987,6 +1022,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
   });
   ChatRoomCompanion.insert({
     required String id,
+    required String roomName,
     required String rev,
     required String members,
     required String lastMessage,
@@ -996,12 +1032,14 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
     required DateTime lastUpdated,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
+        roomName = Value(roomName),
         rev = Value(rev),
         members = Value(members),
         lastMessage = Value(lastMessage),
         lastUpdated = Value(lastUpdated);
   static Insertable<ChatRoomData> custom({
     Expression<String>? id,
+    Expression<String>? roomName,
     Expression<String>? rev,
     Expression<String>? members,
     Expression<String>? lastMessage,
@@ -1013,6 +1051,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (roomName != null) 'room_name': roomName,
       if (rev != null) 'rev': rev,
       if (members != null) 'members': members,
       if (lastMessage != null) 'last_message': lastMessage,
@@ -1026,6 +1065,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
 
   ChatRoomCompanion copyWith(
       {Value<String>? id,
+      Value<String>? roomName,
       Value<String>? rev,
       Value<String>? members,
       Value<String>? lastMessage,
@@ -1036,6 +1076,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
       Value<int>? rowid}) {
     return ChatRoomCompanion(
       id: id ?? this.id,
+      roomName: roomName ?? this.roomName,
       rev: rev ?? this.rev,
       members: members ?? this.members,
       lastMessage: lastMessage ?? this.lastMessage,
@@ -1052,6 +1093,9 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (roomName.present) {
+      map['room_name'] = Variable<String>(roomName.value);
     }
     if (rev.present) {
       map['rev'] = Variable<String>(rev.value);
@@ -1084,6 +1128,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
   String toString() {
     return (StringBuffer('ChatRoomCompanion(')
           ..write('id: $id, ')
+          ..write('roomName: $roomName, ')
           ..write('rev: $rev, ')
           ..write('members: $members, ')
           ..write('lastMessage: $lastMessage, ')
@@ -1660,6 +1705,7 @@ class $$MessagesTableOrderingComposer
 
 typedef $$ChatRoomTableInsertCompanionBuilder = ChatRoomCompanion Function({
   required String id,
+  required String roomName,
   required String rev,
   required String members,
   required String lastMessage,
@@ -1671,6 +1717,7 @@ typedef $$ChatRoomTableInsertCompanionBuilder = ChatRoomCompanion Function({
 });
 typedef $$ChatRoomTableUpdateCompanionBuilder = ChatRoomCompanion Function({
   Value<String> id,
+  Value<String> roomName,
   Value<String> rev,
   Value<String> members,
   Value<String> lastMessage,
@@ -1702,6 +1749,7 @@ class $$ChatRoomTableTableManager extends RootTableManager<
               $$ChatRoomTableProcessedTableManager(p),
           getUpdateCompanionBuilder: ({
             Value<String> id = const Value.absent(),
+            Value<String> roomName = const Value.absent(),
             Value<String> rev = const Value.absent(),
             Value<String> members = const Value.absent(),
             Value<String> lastMessage = const Value.absent(),
@@ -1713,6 +1761,7 @@ class $$ChatRoomTableTableManager extends RootTableManager<
           }) =>
               ChatRoomCompanion(
             id: id,
+            roomName: roomName,
             rev: rev,
             members: members,
             lastMessage: lastMessage,
@@ -1724,6 +1773,7 @@ class $$ChatRoomTableTableManager extends RootTableManager<
           ),
           getInsertCompanionBuilder: ({
             required String id,
+            required String roomName,
             required String rev,
             required String members,
             required String lastMessage,
@@ -1735,6 +1785,7 @@ class $$ChatRoomTableTableManager extends RootTableManager<
           }) =>
               ChatRoomCompanion.insert(
             id: id,
+            roomName: roomName,
             rev: rev,
             members: members,
             lastMessage: lastMessage,
@@ -1764,6 +1815,11 @@ class $$ChatRoomTableFilterComposer
   $$ChatRoomTableFilterComposer(super.$state);
   ColumnFilters<String> get id => $state.composableBuilder(
       column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get roomName => $state.composableBuilder(
+      column: $state.table.roomName,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -1822,6 +1878,11 @@ class $$ChatRoomTableOrderingComposer
   $$ChatRoomTableOrderingComposer(super.$state);
   ColumnOrderings<String> get id => $state.composableBuilder(
       column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get roomName => $state.composableBuilder(
+      column: $state.table.roomName,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

@@ -4,11 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:vup_chat/bsky/log_out.dart';
 import 'package:vup_chat/bsky/profile_actions.dart';
-import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/screens/login_page.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
-import 'package:vup_chat/widgets/app_bar_back.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -37,11 +35,6 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: isDesktop()
-          ? null
-          : AppBar(
-              leading: backButton(context),
-            ),
       body: FutureBuilder<PersonalProfileInfo>(
         future: _profileInfoFuture,
         builder: (context, snapshot) {

@@ -1,7 +1,6 @@
 import 'package:animated_list_plus/animated_list_plus.dart';
 import 'package:animated_list_plus/transitions.dart';
 import 'package:flutter/material.dart';
-import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/widgets/chat_page_list_item.dart';
 
@@ -10,7 +9,6 @@ class ChatRoomList extends StatefulWidget {
   final Function(String) onChatItemSelection;
   final Function(String?) hideSelectedChats;
   final Function(String?) toggleNotificationsSelectedChats;
-  final HomeRoutingService? homeRoutingService;
   final Set<String> selectedChatIds;
   final bool hiddenChatToggle;
 
@@ -20,7 +18,6 @@ class ChatRoomList extends StatefulWidget {
     required this.onChatItemSelection,
     required this.hideSelectedChats,
     required this.toggleNotificationsSelectedChats,
-    required this.homeRoutingService,
     required this.selectedChatIds,
     required this.hiddenChatToggle,
   });
@@ -56,7 +53,6 @@ class ChatRoomListState extends State<ChatRoomList> {
                         item,
                         animation,
                         context,
-                        widget.homeRoutingService,
                         widget.selectedChatIds,
                         widget.onChatItemSelection,
                       ),
@@ -119,7 +115,6 @@ class ChatRoomListState extends State<ChatRoomList> {
               oldItem,
               animation,
               context,
-              widget.homeRoutingService,
               widget.selectedChatIds,
               widget.onChatItemSelection,
             ),

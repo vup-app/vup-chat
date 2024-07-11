@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_split_view/flutter_split_view.dart';
 import 'package:vup_chat/functions/general.dart';
-import 'package:vup_chat/functions/home_routing_service.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
@@ -11,7 +11,6 @@ Widget buildChatRoomListItem(
     ChatRoomData chat,
     Animation<double> animation,
     BuildContext context,
-    HomeRoutingService? homeRoutingService,
     Set<String>? selectedItems,
     Function(String) onItemPressed) {
   // Parse members and last message
@@ -51,23 +50,15 @@ Widget buildChatRoomListItem(
       onTap: () {
         if (selectedItems != null && selectedItems.isNotEmpty) {
           onItemPressed(chat.id);
-        } else if (homeRoutingService != null) {
-          homeRoutingService.onChatSelected(chat.id, null);
         } else {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => ChatIndividualPage(
-                        id: chat.id,
-                      )));
+          SplitView.of(context).push(ChatIndividualPage(id: chat.id));
         }
       },
     ),
   );
 }
 
-Widget buildChatRoomSearchItemMessage(
-    Message message, BuildContext ctx, HomeRoutingService? homeRoutingService) {
+Widget buildChatRoomSearchItemMessage(Message message, BuildContext ctx) {
   return FutureBuilder<List<dynamic>>(
     future: Future.wait([
       msg!.getSenderFromDID(message.senderDid),
@@ -99,17 +90,10 @@ Widget buildChatRoomSearchItemMessage(
                       subtitle: Text(message.message),
                       leading: cavatar,
                       onTap: () {
-                        if (homeRoutingService != null) {
-                          homeRoutingService.onChatSelected(chatID, message.id);
-                        } else {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ChatIndividualPage(
-                                        id: chatID,
-                                        messageIdToScrollTo: message.id,
-                                      )));
-                        }
+                        SplitView.of(context).push(ChatIndividualPage(
+                          id: chatID,
+                          messageIdToScrollTo: message.id,
+                        ));
                       },
                     )
                   : const Text("failed to fetch sender");

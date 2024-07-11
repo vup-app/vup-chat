@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_split_view/flutter_split_view.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
-import 'package:vup_chat/widgets/app_bar_back.dart';
+import 'package:vup_chat/screens/chat_info_page.dart';
 import 'package:vup_chat/widgets/message_item.dart';
 
 class ChatIndividualPage extends StatefulWidget {
@@ -137,11 +137,15 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                 children: [
                   avatarFromMembersJSON(jsonDecode(_chatRoomData!.members)),
                   const SizedBox(width: 8),
-                  Text(handleFromMembersJSON(jsonDecode(_chatRoomData!.members),
-                      _chatRoomData!.members.isNotEmpty)),
+                  InkWell(
+                    onTap: () {
+                      SplitView.of(context)
+                          .push(ChatInfoPage(chatID: widget.id));
+                    },
+                    child: Text(_chatRoomData?.roomName ?? "Erm"),
+                  ),
                 ],
               ),
-        leading: backButton(context),
         backgroundColor: Theme.of(context).cardColor,
       ),
       body: Center(

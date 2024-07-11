@@ -4,7 +4,6 @@ import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vup_chat/constants.dart';
 import 'package:vup_chat/main.dart';
-import 'package:vup_chat/widgets/app_bar_back.dart';
 import 'package:vup_chat/widgets/desktop_mode_switch.dart';
 import 'package:vup_chat/widgets/s5_status_widget.dart';
 
@@ -32,7 +31,6 @@ class SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
-        leading: backButton(context),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

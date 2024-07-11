@@ -344,6 +344,9 @@ class MessageDatabase extends _$MessageDatabase {
           await into(chatRoom).insert(
             ChatRoomCompanion.insert(
               id: convo.id,
+              roomName: convo.members.last.displayName ??
+                  convo.members.last
+                      .handle, // TODO: Make this dynamic for group chats
               rev: convo.rev,
               members: json.encode(membersJson),
               lastMessage: json.encode(lastMessageJson),
@@ -359,6 +362,9 @@ class MessageDatabase extends _$MessageDatabase {
         await into(chatRoom).insert(
           ChatRoomCompanion.insert(
             id: convo.id,
+            roomName: convo.members.last.displayName ??
+                convo.members.last
+                    .handle, // TODO: Make this dynamic for group chats
             rev: convo.rev,
             members: json.encode(membersJson),
             lastMessage: chatRoomExists?.lastMessage ?? "",

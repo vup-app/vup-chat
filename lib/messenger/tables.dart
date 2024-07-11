@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+// TODO: Move avatar to embedded photo file to speed up load times
 class Senders extends Table {
   TextColumn get did => text()();
   TextColumn get displayName => text()();
@@ -30,6 +31,7 @@ class Messages extends Table {
 class ChatRoom extends Table {
   // TODO: Move chatroom ID away from ATProto
   TextColumn get id => text()();
+  TextColumn get roomName => text()();
   TextColumn get rev => text()();
   TextColumn get members => text()(); // Serialized JSON
   TextColumn get lastMessage => text()(); // Serialized JSON
