@@ -105,6 +105,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
+  based_splash_page:
+    dependency: "direct main"
+    description:
+      name: based_splash_page
+      sha256: "08639d64f5261235062c4162852f8b954579f6ff47f6a6b0059fa46c64c1e22e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
+  based_split_view:
+    dependency: "direct main"
+    description:
+      name: based_split_view
+      sha256: f675b62bc28a27a9674fa9929b0b538fe62562ce89c8758d317bb4e02454bcc1
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   bluesky:
     dependency: "direct main"
     description:
@@ -550,14 +566,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.2"
-  flutter_split_view:
-    dependency: "direct main"
-    description:
-      name: flutter_split_view
-      sha256: "0fb1f3aa6a6f2031d936ae5596fc5178affacdc7d793b27cdbc191a1ae8e56bf"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.2"
   flutter_test:
     dependency: "direct dev"
     description: flutter

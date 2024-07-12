@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_split_view/flutter_split_view.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/profile_page.dart';
@@ -68,11 +67,15 @@ class ChatListPageState extends State<ChatListPage> {
   }
 
   void _navToSettings() async {
-    SplitView.of(context).push(const SettingsPage());
+    vupSplitViewKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const SettingsPage()),
+        (Route<dynamic> route) => route.isFirst);
   }
 
   void _navToProfile() async {
-    SplitView.of(context).push(const ProfilePage());
+    vupSplitViewKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const ProfilePage()),
+        (Route<dynamic> route) => route.isFirst);
   }
 
   // TODO: Make it deselect on another press
@@ -155,7 +158,10 @@ class ChatListPageState extends State<ChatListPage> {
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.message_outlined),
           onPressed: () {
-            SplitView.of(context).push(const SearchActorPage());
+            vupSplitViewKey.currentState?.pushAndRemoveUntil(
+                MaterialPageRoute(
+                    builder: (context) => const SearchActorPage()),
+                (Route<dynamic> route) => route.isFirst);
           },
         ),
         // Then we have the body contents

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_split_view/flutter_split_view.dart';
 import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
@@ -49,14 +48,10 @@ Widget buildChatRoomListItem(
         if (selectedItems != null && selectedItems.isNotEmpty) {
           onItemPressed(chat.id);
         } else {
-          if (SplitView.of(context).pageCount > 1) {
-            SplitView.of(context).replace(
-              page: ChatIndividualPage(id: chat.id),
-              index: 1,
-            );
-          } else {
-            SplitView.of(context).push(ChatIndividualPage(id: chat.id));
-          }
+          vupSplitViewKey.currentState?.pushAndRemoveUntil(
+              MaterialPageRoute(
+                  builder: (context) => ChatIndividualPage(id: chat.id)),
+              (Route<dynamic> route) => route.isFirst);
         }
       },
     ),
@@ -95,10 +90,13 @@ Widget buildChatRoomSearchItemMessage(Message message, BuildContext ctx) {
                       subtitle: Text(message.message),
                       leading: cavatar,
                       onTap: () {
-                        SplitView.of(context).push(ChatIndividualPage(
-                          id: chatID,
-                          messageIdToScrollTo: message.id,
-                        ));
+                        vupSplitViewKey.currentState?.pushAndRemoveUntil(
+                            MaterialPageRoute(
+                                builder: (context) => ChatIndividualPage(
+                                      id: chatID,
+                                      messageIdToScrollTo: message.id,
+                                    )),
+                            (Route<dynamic> route) => route.isFirst);
                       },
                     )
                   : const Text("failed to fetch sender");

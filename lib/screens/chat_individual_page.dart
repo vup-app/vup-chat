@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_split_view/flutter_split_view.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
@@ -140,9 +139,17 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                   InkWell(
                     onTap: () {
                       if (_chatRoomData != null) {
-                        SplitView.of(context).push(ChatInfoPage(
-                          chatRoomData: _chatRoomData!,
-                        ));
+                        // TODO: make this properly update on pop
+                        vupSplitViewKey.currentState
+                            ?.push(
+                          MaterialPageRoute(
+                              builder: (context) => ChatInfoPage(
+                                    chatRoomData: _chatRoomData!,
+                                  )),
+                        )
+                            .then((_) {
+                          _getChatRoomData();
+                        });
                       }
                     },
                     child: Text(_chatRoomData?.roomName ?? "Erm"),
