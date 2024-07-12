@@ -22,7 +22,10 @@ class PlaceHolderPage extends StatelessWidget {
             ),
             Text(
               "Vup Chat",
-              style: TextStyle(fontSize: 25.h),
+              style: TextStyle(
+                  fontSize: 25.h,
+                  decoration: TextDecoration.none,
+                  color: Theme.of(context).textTheme.bodyLarge?.color),
             ),
           ],
         ),

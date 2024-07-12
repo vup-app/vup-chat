@@ -15,7 +15,7 @@ ThemeData getLightTheme() {
     colorScheme: const ColorScheme.light(
       primary: defaultAccentColor,
       surface: lightCardColor,
-      onSurface: darkBackgroungColor,
+      onSurface: Colors.black,
     ),
   );
 }
