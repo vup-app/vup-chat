@@ -26,6 +26,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
     msg!.getSendersFromDIDList(widget.chatRoomData.members).then((val) {
       setState(() {
         _senders = val;
+        logger.d(_senders);
       });
     });
     super.initState();
@@ -37,6 +38,15 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         appBar: AppBar(),
         body: Column(
           children: [
+            // Displays the circle avatar of room
+            CircleAvatar(
+              radius: 80.h,
+              backgroundImage: (widget.chatRoomData.avatar == null)
+                  ? null
+                  : Image.memory(widget.chatRoomData.avatar!).image,
+            ),
+
+            // Displays the editable room name
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -75,9 +85,43 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                     icon: const Icon(Icons.edit))
               ],
             ),
+            // Displays room count
+            Text("Group with ${_senders?.length} members:"),
+            // Displays room members below that
             SizedBox(
               width: 200.h,
+              child: (_senders == null)
+                  ? null
+                  : ListView.builder(
+                      itemCount: _senders!.length,
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        Sender? sndr = _senders?[index];
+                        if (sndr != null) {
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundImage: (sndr.avatar != null)
+                                  ? Image.memory(sndr.avatar!).image
+                                  : null,
+                            ),
+                            title: Text(
+                              (sndr.did == did) ? "You" : sndr.displayName,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                            subtitle: (sndr.description != null)
+                                ? Text(
+                                    sndr.description!,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  )
+                                : null,
+                          );
+                        }
+                        return null;
+                      }),
             )
+            // TODO: Display media & Links like whatsapp
           ],
         ));
   }
