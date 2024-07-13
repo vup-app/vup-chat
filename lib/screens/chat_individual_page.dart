@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:vup_chat/functions/general.dart';
@@ -33,6 +34,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   ChatRoomData? _chatRoomData;
   late bool _showScrollToBottom;
   double _scrollOffset = 0;
+  Uint8List? avatarCache;
 
   @override
   void initState() {
@@ -70,6 +72,9 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   void _getChatRoomData() async {
     await msg!.getChatRoomFromChatID(widget.id).then((val) => setState(() {
           _chatRoomData = val;
+          if (_chatRoomData != null && _chatRoomData!.avatar != avatarCache) {
+            avatarCache = _chatRoomData!.avatar;
+          }
         }));
   }
 
@@ -134,7 +139,12 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
             ? const CircularProgressIndicator()
             : Row(
                 children: [
-                  avatarFromMembersJSON(jsonDecode(_chatRoomData!.members)),
+                  CircleAvatar(
+                    backgroundImage:
+                        (_chatRoomData != null && _chatRoomData!.avatar != null)
+                            ? Image.memory(_chatRoomData!.avatar!).image
+                            : null,
+                  ),
                   const SizedBox(width: 8),
                   InkWell(
                     onTap: () {

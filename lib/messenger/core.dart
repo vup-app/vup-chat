@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:platform_local_notifications/platform_local_notifications.dart'
     as notif;
+import 'package:http/http.dart' as http;
+
 import 'package:s5/s5.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
@@ -96,15 +100,33 @@ class MsgCore {
     if (possibleSender == null) {
       final ActorProfile profile =
           (await session!.actor.getProfile(actor: did)).data;
+      Uint8List? avatarBytes;
+      try {
+        http.Response response = await http.get(
+          Uri.parse(profile.avatar!),
+        );
+        avatarBytes = response.bodyBytes;
+      } catch (e) {
+        logger.d(e);
+      }
       final Sender snd = Sender(
           did: profile.did,
           displayName: profile.displayName ?? "",
-          avatarUrl: profile.avatar);
+          avatar: avatarBytes);
       await db.checkAndInsertSenderATProto(snd);
       return snd;
     } else {
       return possibleSender;
     }
+  }
+
+  Future<List<Sender>> getSendersFromDIDList(String didList) async {
+    List<dynamic> memberDIDs = jsonDecode(didList);
+    List<Sender> sndrs = [];
+    for (String o in memberDIDs) {
+      sndrs.add(await msg!.getSenderFromDID(o));
+    }
+    return sndrs;
   }
 
   Future<String?> getChatIDFromMessageID(String mID) async {

@@ -4,7 +4,8 @@ import 'package:drift/drift.dart';
 class Senders extends Table {
   TextColumn get did => text()();
   TextColumn get displayName => text()();
-  TextColumn get avatarUrl => text().nullable()();
+  BlobColumn get avatar => blob().nullable()();
+  TextColumn get description => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {did};
@@ -39,6 +40,7 @@ class ChatRoom extends Table {
   BoolColumn get hidden => boolean().withDefault(const Constant(false))();
   IntColumn get unreadCount => integer().withDefault(const Constant(0))();
   DateTimeColumn get lastUpdated => dateTime()();
+  BlobColumn get avatar => blob().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

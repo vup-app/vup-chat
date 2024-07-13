@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:bluesky/bluesky_chat.dart';
 import 'package:drift/drift.dart';
 import 'package:vup_chat/definitions/s5embed.dart';
+import 'package:http/http.dart' as http;
+import 'package:vup_chat/main.dart';
 
 import 'connections/connection.dart' as impl;
 import 'tables.dart';
@@ -196,28 +198,26 @@ class MessageDatabase extends _$MessageDatabase {
     final senderExists = await (select(senders)
           ..where((tbl) => tbl.did.equals(sender.did)))
         .getSingleOrNull();
+
     if (senderExists == null) {
       into(senders).insert(SendersCompanion.insert(
-        did: sender.did,
-        displayName: sender.displayName,
-        avatarUrl: Value(sender.avatarUrl),
-      ));
+          did: sender.did,
+          displayName: sender.displayName,
+          avatar: Value(sender.avatar),
+          description: Value(sender.description)));
     } else {
       if (senderExists.displayName != sender.displayName) {
         await (update(senders)..where((tbl) => tbl.did.equals(sender.did)))
-            .write(SendersCompanion(
-          did: Value(senderExists.did),
-          displayName: Value(sender.displayName),
-          avatarUrl: Value(senderExists.avatarUrl),
-        ));
+            .write(
+                SendersCompanion(displayName: Value(senderExists.displayName)));
       }
-      if (senderExists.avatarUrl != sender.avatarUrl) {
+      if (senderExists.description != sender.description) {
         await (update(senders)..where((tbl) => tbl.did.equals(sender.did)))
-            .write(SendersCompanion(
-          did: Value(senderExists.did),
-          displayName: Value(senderExists.displayName),
-          avatarUrl: Value(sender.avatarUrl),
-        ));
+            .write(SendersCompanion(description: Value(sender.description)));
+      }
+      if (senderExists.avatar != sender.avatar) {
+        await (update(senders)..where((tbl) => tbl.did.equals(sender.did)))
+            .write(SendersCompanion(avatar: Value(sender.avatar)));
       }
     }
   }
@@ -307,16 +307,18 @@ class MessageDatabase extends _$MessageDatabase {
         .getSingleOrNull();
 
     if (chatRoomExists == null) {
-      // Serialize members to JSON
-      final List<Map<String, dynamic>> membersJson = convo.members
-          .map((member) => {
-                'did': member.did,
-                'handle': member.handle,
-                'displayName': member.displayName,
-                'avatar': member.avatar,
-                // Add other fields as needed
-              })
-          .toList();
+      // Pull sender dids
+      final List<String> members = convo.members.map((obj) => obj.did).toList();
+
+      Uint8List? avatarBytes;
+      try {
+        http.Response response = await http.get(
+          Uri.parse(convo.members.last.avatar!),
+        );
+        avatarBytes = response.bodyBytes;
+      } catch (e) {
+        logger.d(e);
+      }
 
       // Serialize lastMessage to JSON
       Map<String, dynamic>? lastMessageJson;
@@ -337,7 +339,7 @@ class MessageDatabase extends _$MessageDatabase {
         final Sender sender = Sender(
             did: convo.members.last.did,
             displayName: convo.members.last.handle,
-            avatarUrl: convo.members.last.avatar);
+            avatar: avatarBytes);
 
         // Check and insert the last message
         await checkAndInsertMessageATProto(
@@ -353,12 +355,13 @@ class MessageDatabase extends _$MessageDatabase {
                   convo.members.last
                       .handle, // TODO: Make this dynamic for group chats
               rev: convo.rev,
-              members: json.encode(membersJson),
+              members: json.encode(members),
               lastMessage: json.encode(lastMessageJson),
               muted: Value(convo.muted),
               hidden: const Value(false),
               unreadCount: Value(convo.unreadCount),
               lastUpdated: lastMessage.sentAt,
+              avatar: Value(avatarBytes),
             ),
             mode: InsertMode.insertOrReplace,
           );
@@ -366,18 +369,18 @@ class MessageDatabase extends _$MessageDatabase {
       } else {
         await into(chatRoom).insert(
           ChatRoomCompanion.insert(
-            id: convo.id,
-            roomName: convo.members.last.displayName ??
-                convo.members.last
-                    .handle, // TODO: Make this dynamic for group chats
-            rev: convo.rev,
-            members: json.encode(membersJson),
-            lastMessage: chatRoomExists?.lastMessage ?? "",
-            muted: Value(convo.muted),
-            hidden: const Value(false),
-            unreadCount: Value(convo.unreadCount),
-            lastUpdated: chatRoomExists?.lastUpdated ?? DateTime(0),
-          ),
+              id: convo.id,
+              roomName: convo.members.last.displayName ??
+                  convo.members.last
+                      .handle, // TODO: Make this dynamic for group chats
+              rev: convo.rev,
+              members: json.encode(members),
+              lastMessage: chatRoomExists?.lastMessage ?? "",
+              muted: Value(convo.muted),
+              hidden: const Value(false),
+              unreadCount: Value(convo.unreadCount),
+              lastUpdated: chatRoomExists?.lastUpdated ?? DateTime(0),
+              avatar: Value(avatarBytes)),
           mode: InsertMode.insertOrReplace,
         );
       }

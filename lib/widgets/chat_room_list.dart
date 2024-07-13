@@ -46,17 +46,15 @@ class ChatRoomListState extends State<ChatRoomList> {
                 child: Stack(
                   children: [
                     SizeFadeTransition(
-                      sizeFraction: 0.7,
-                      curve: Curves.easeInOut,
-                      animation: animation,
-                      child: buildChatRoomListItem(
-                        item,
-                        animation,
-                        context,
-                        widget.selectedChatIds,
-                        widget.onChatItemSelection,
-                      ),
-                    ),
+                        sizeFraction: 0.7,
+                        curve: Curves.easeInOut,
+                        animation: animation,
+                        child: ChatRoomListItem(
+                          chat: item,
+                          animation: animation,
+                          selectedItems: widget.selectedChatIds,
+                          onItemPressed: widget.onChatItemSelection,
+                        )),
                     if (widget.selectedChatIds.contains(item.id))
                       Positioned.fill(
                         child: Container(
@@ -110,15 +108,13 @@ class ChatRoomListState extends State<ChatRoomList> {
         },
         removeItemBuilder: (context, animation, oldItem) {
           return FadeTransition(
-            opacity: animation,
-            child: buildChatRoomListItem(
-              oldItem,
-              animation,
-              context,
-              widget.selectedChatIds,
-              widget.onChatItemSelection,
-            ),
-          );
+              opacity: animation,
+              child: ChatRoomListItem(
+                chat: oldItem,
+                animation: animation,
+                selectedItems: widget.selectedChatIds,
+                onItemPressed: widget.onChatItemSelection,
+              ));
         },
       ),
     );

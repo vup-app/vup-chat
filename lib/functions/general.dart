@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/main.dart';
 
@@ -7,10 +8,15 @@ bool isDesktop() {
 }
 
 CircleAvatar avatarFromMembersJSON(List<dynamic> membersJson) {
-  final CircleAvatar avatar = membersJson.isNotEmpty &&
-          membersJson.last['avatar'] != null
-      ? CircleAvatar(backgroundImage: NetworkImage(membersJson.last['avatar']))
-      : const CircleAvatar(child: Icon(Icons.person));
+  // Create CircleAvatar based on the avatar URL in the last element
+  final CircleAvatar avatar =
+      membersJson.isNotEmpty && membersJson.last['avatar'] != null
+          ? CircleAvatar(
+              backgroundImage:
+                  CachedNetworkImageProvider(membersJson.last['avatar']),
+            )
+          : const CircleAvatar(child: Icon(Icons.person));
+
   return avatar;
 }
 

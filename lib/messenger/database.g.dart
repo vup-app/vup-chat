@@ -19,14 +19,19 @@ class $SendersTable extends Senders with TableInfo<$SendersTable, Sender> {
   late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
       'display_name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _avatarUrlMeta =
-      const VerificationMeta('avatarUrl');
+  static const VerificationMeta _avatarMeta = const VerificationMeta('avatar');
   @override
-  late final GeneratedColumn<String> avatarUrl = GeneratedColumn<String>(
-      'avatar_url', aliasedName, true,
+  late final GeneratedColumn<Uint8List> avatar = GeneratedColumn<Uint8List>(
+      'avatar', aliasedName, true,
+      type: DriftSqlType.blob, requiredDuringInsert: false);
+  static const VerificationMeta _descriptionMeta =
+      const VerificationMeta('description');
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+      'description', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
   @override
-  List<GeneratedColumn> get $columns => [did, displayName, avatarUrl];
+  List<GeneratedColumn> get $columns => [did, displayName, avatar, description];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -51,9 +56,15 @@ class $SendersTable extends Senders with TableInfo<$SendersTable, Sender> {
     } else if (isInserting) {
       context.missing(_displayNameMeta);
     }
-    if (data.containsKey('avatar_url')) {
-      context.handle(_avatarUrlMeta,
-          avatarUrl.isAcceptableOrUnknown(data['avatar_url']!, _avatarUrlMeta));
+    if (data.containsKey('avatar')) {
+      context.handle(_avatarMeta,
+          avatar.isAcceptableOrUnknown(data['avatar']!, _avatarMeta));
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description']!, _descriptionMeta));
     }
     return context;
   }
@@ -68,8 +79,10 @@ class $SendersTable extends Senders with TableInfo<$SendersTable, Sender> {
           .read(DriftSqlType.string, data['${effectivePrefix}did'])!,
       displayName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}display_name'])!,
-      avatarUrl: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}avatar_url']),
+      avatar: attachedDatabase.typeMapping
+          .read(DriftSqlType.blob, data['${effectivePrefix}avatar']),
+      description: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}description']),
     );
   }
 
@@ -82,15 +95,23 @@ class $SendersTable extends Senders with TableInfo<$SendersTable, Sender> {
 class Sender extends DataClass implements Insertable<Sender> {
   final String did;
   final String displayName;
-  final String? avatarUrl;
-  const Sender({required this.did, required this.displayName, this.avatarUrl});
+  final Uint8List? avatar;
+  final String? description;
+  const Sender(
+      {required this.did,
+      required this.displayName,
+      this.avatar,
+      this.description});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['did'] = Variable<String>(did);
     map['display_name'] = Variable<String>(displayName);
-    if (!nullToAbsent || avatarUrl != null) {
-      map['avatar_url'] = Variable<String>(avatarUrl);
+    if (!nullToAbsent || avatar != null) {
+      map['avatar'] = Variable<Uint8List>(avatar);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
     }
     return map;
   }
@@ -99,9 +120,11 @@ class Sender extends DataClass implements Insertable<Sender> {
     return SendersCompanion(
       did: Value(did),
       displayName: Value(displayName),
-      avatarUrl: avatarUrl == null && nullToAbsent
+      avatar:
+          avatar == null && nullToAbsent ? const Value.absent() : Value(avatar),
+      description: description == null && nullToAbsent
           ? const Value.absent()
-          : Value(avatarUrl),
+          : Value(description),
     );
   }
 
@@ -111,7 +134,8 @@ class Sender extends DataClass implements Insertable<Sender> {
     return Sender(
       did: serializer.fromJson<String>(json['did']),
       displayName: serializer.fromJson<String>(json['displayName']),
-      avatarUrl: serializer.fromJson<String?>(json['avatarUrl']),
+      avatar: serializer.fromJson<Uint8List?>(json['avatar']),
+      description: serializer.fromJson<String?>(json['description']),
     );
   }
   @override
@@ -120,68 +144,79 @@ class Sender extends DataClass implements Insertable<Sender> {
     return <String, dynamic>{
       'did': serializer.toJson<String>(did),
       'displayName': serializer.toJson<String>(displayName),
-      'avatarUrl': serializer.toJson<String?>(avatarUrl),
+      'avatar': serializer.toJson<Uint8List?>(avatar),
+      'description': serializer.toJson<String?>(description),
     };
   }
 
   Sender copyWith(
           {String? did,
           String? displayName,
-          Value<String?> avatarUrl = const Value.absent()}) =>
+          Value<Uint8List?> avatar = const Value.absent(),
+          Value<String?> description = const Value.absent()}) =>
       Sender(
         did: did ?? this.did,
         displayName: displayName ?? this.displayName,
-        avatarUrl: avatarUrl.present ? avatarUrl.value : this.avatarUrl,
+        avatar: avatar.present ? avatar.value : this.avatar,
+        description: description.present ? description.value : this.description,
       );
   @override
   String toString() {
     return (StringBuffer('Sender(')
           ..write('did: $did, ')
           ..write('displayName: $displayName, ')
-          ..write('avatarUrl: $avatarUrl')
+          ..write('avatar: $avatar, ')
+          ..write('description: $description')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(did, displayName, avatarUrl);
+  int get hashCode => Object.hash(
+      did, displayName, $driftBlobEquality.hash(avatar), description);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Sender &&
           other.did == this.did &&
           other.displayName == this.displayName &&
-          other.avatarUrl == this.avatarUrl);
+          $driftBlobEquality.equals(other.avatar, this.avatar) &&
+          other.description == this.description);
 }
 
 class SendersCompanion extends UpdateCompanion<Sender> {
   final Value<String> did;
   final Value<String> displayName;
-  final Value<String?> avatarUrl;
+  final Value<Uint8List?> avatar;
+  final Value<String?> description;
   final Value<int> rowid;
   const SendersCompanion({
     this.did = const Value.absent(),
     this.displayName = const Value.absent(),
-    this.avatarUrl = const Value.absent(),
+    this.avatar = const Value.absent(),
+    this.description = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SendersCompanion.insert({
     required String did,
     required String displayName,
-    this.avatarUrl = const Value.absent(),
+    this.avatar = const Value.absent(),
+    this.description = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : did = Value(did),
         displayName = Value(displayName);
   static Insertable<Sender> custom({
     Expression<String>? did,
     Expression<String>? displayName,
-    Expression<String>? avatarUrl,
+    Expression<Uint8List>? avatar,
+    Expression<String>? description,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (did != null) 'did': did,
       if (displayName != null) 'display_name': displayName,
-      if (avatarUrl != null) 'avatar_url': avatarUrl,
+      if (avatar != null) 'avatar': avatar,
+      if (description != null) 'description': description,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -189,12 +224,14 @@ class SendersCompanion extends UpdateCompanion<Sender> {
   SendersCompanion copyWith(
       {Value<String>? did,
       Value<String>? displayName,
-      Value<String?>? avatarUrl,
+      Value<Uint8List?>? avatar,
+      Value<String?>? description,
       Value<int>? rowid}) {
     return SendersCompanion(
       did: did ?? this.did,
       displayName: displayName ?? this.displayName,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
+      avatar: avatar ?? this.avatar,
+      description: description ?? this.description,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -208,8 +245,11 @@ class SendersCompanion extends UpdateCompanion<Sender> {
     if (displayName.present) {
       map['display_name'] = Variable<String>(displayName.value);
     }
-    if (avatarUrl.present) {
-      map['avatar_url'] = Variable<String>(avatarUrl.value);
+    if (avatar.present) {
+      map['avatar'] = Variable<Uint8List>(avatar.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -222,7 +262,8 @@ class SendersCompanion extends UpdateCompanion<Sender> {
     return (StringBuffer('SendersCompanion(')
           ..write('did: $did, ')
           ..write('displayName: $displayName, ')
-          ..write('avatarUrl: $avatarUrl, ')
+          ..write('avatar: $avatar, ')
+          ..write('description: $description, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -751,6 +792,11 @@ class $ChatRoomTable extends ChatRoom
   late final GeneratedColumn<DateTime> lastUpdated = GeneratedColumn<DateTime>(
       'last_updated', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _avatarMeta = const VerificationMeta('avatar');
+  @override
+  late final GeneratedColumn<Uint8List> avatar = GeneratedColumn<Uint8List>(
+      'avatar', aliasedName, true,
+      type: DriftSqlType.blob, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -761,7 +807,8 @@ class $ChatRoomTable extends ChatRoom
         muted,
         hidden,
         unreadCount,
-        lastUpdated
+        lastUpdated,
+        avatar
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -826,6 +873,10 @@ class $ChatRoomTable extends ChatRoom
     } else if (isInserting) {
       context.missing(_lastUpdatedMeta);
     }
+    if (data.containsKey('avatar')) {
+      context.handle(_avatarMeta,
+          avatar.isAcceptableOrUnknown(data['avatar']!, _avatarMeta));
+    }
     return context;
   }
 
@@ -853,6 +904,8 @@ class $ChatRoomTable extends ChatRoom
           .read(DriftSqlType.int, data['${effectivePrefix}unread_count'])!,
       lastUpdated: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}last_updated'])!,
+      avatar: attachedDatabase.typeMapping
+          .read(DriftSqlType.blob, data['${effectivePrefix}avatar']),
     );
   }
 
@@ -872,6 +925,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
   final bool hidden;
   final int unreadCount;
   final DateTime lastUpdated;
+  final Uint8List? avatar;
   const ChatRoomData(
       {required this.id,
       required this.roomName,
@@ -881,7 +935,8 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
       required this.muted,
       required this.hidden,
       required this.unreadCount,
-      required this.lastUpdated});
+      required this.lastUpdated,
+      this.avatar});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -894,6 +949,9 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
     map['hidden'] = Variable<bool>(hidden);
     map['unread_count'] = Variable<int>(unreadCount);
     map['last_updated'] = Variable<DateTime>(lastUpdated);
+    if (!nullToAbsent || avatar != null) {
+      map['avatar'] = Variable<Uint8List>(avatar);
+    }
     return map;
   }
 
@@ -908,6 +966,8 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
       hidden: Value(hidden),
       unreadCount: Value(unreadCount),
       lastUpdated: Value(lastUpdated),
+      avatar:
+          avatar == null && nullToAbsent ? const Value.absent() : Value(avatar),
     );
   }
 
@@ -924,6 +984,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
       hidden: serializer.fromJson<bool>(json['hidden']),
       unreadCount: serializer.fromJson<int>(json['unreadCount']),
       lastUpdated: serializer.fromJson<DateTime>(json['lastUpdated']),
+      avatar: serializer.fromJson<Uint8List?>(json['avatar']),
     );
   }
   @override
@@ -939,6 +1000,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
       'hidden': serializer.toJson<bool>(hidden),
       'unreadCount': serializer.toJson<int>(unreadCount),
       'lastUpdated': serializer.toJson<DateTime>(lastUpdated),
+      'avatar': serializer.toJson<Uint8List?>(avatar),
     };
   }
 
@@ -951,7 +1013,8 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
           bool? muted,
           bool? hidden,
           int? unreadCount,
-          DateTime? lastUpdated}) =>
+          DateTime? lastUpdated,
+          Value<Uint8List?> avatar = const Value.absent()}) =>
       ChatRoomData(
         id: id ?? this.id,
         roomName: roomName ?? this.roomName,
@@ -962,6 +1025,7 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
         hidden: hidden ?? this.hidden,
         unreadCount: unreadCount ?? this.unreadCount,
         lastUpdated: lastUpdated ?? this.lastUpdated,
+        avatar: avatar.present ? avatar.value : this.avatar,
       );
   @override
   String toString() {
@@ -974,14 +1038,15 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
           ..write('muted: $muted, ')
           ..write('hidden: $hidden, ')
           ..write('unreadCount: $unreadCount, ')
-          ..write('lastUpdated: $lastUpdated')
+          ..write('lastUpdated: $lastUpdated, ')
+          ..write('avatar: $avatar')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, roomName, rev, members, lastMessage,
-      muted, hidden, unreadCount, lastUpdated);
+      muted, hidden, unreadCount, lastUpdated, $driftBlobEquality.hash(avatar));
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -994,7 +1059,8 @@ class ChatRoomData extends DataClass implements Insertable<ChatRoomData> {
           other.muted == this.muted &&
           other.hidden == this.hidden &&
           other.unreadCount == this.unreadCount &&
-          other.lastUpdated == this.lastUpdated);
+          other.lastUpdated == this.lastUpdated &&
+          $driftBlobEquality.equals(other.avatar, this.avatar));
 }
 
 class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
@@ -1007,6 +1073,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
   final Value<bool> hidden;
   final Value<int> unreadCount;
   final Value<DateTime> lastUpdated;
+  final Value<Uint8List?> avatar;
   final Value<int> rowid;
   const ChatRoomCompanion({
     this.id = const Value.absent(),
@@ -1018,6 +1085,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
     this.hidden = const Value.absent(),
     this.unreadCount = const Value.absent(),
     this.lastUpdated = const Value.absent(),
+    this.avatar = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChatRoomCompanion.insert({
@@ -1030,6 +1098,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
     this.hidden = const Value.absent(),
     this.unreadCount = const Value.absent(),
     required DateTime lastUpdated,
+    this.avatar = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         roomName = Value(roomName),
@@ -1047,6 +1116,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
     Expression<bool>? hidden,
     Expression<int>? unreadCount,
     Expression<DateTime>? lastUpdated,
+    Expression<Uint8List>? avatar,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1059,6 +1129,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
       if (hidden != null) 'hidden': hidden,
       if (unreadCount != null) 'unread_count': unreadCount,
       if (lastUpdated != null) 'last_updated': lastUpdated,
+      if (avatar != null) 'avatar': avatar,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1073,6 +1144,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
       Value<bool>? hidden,
       Value<int>? unreadCount,
       Value<DateTime>? lastUpdated,
+      Value<Uint8List?>? avatar,
       Value<int>? rowid}) {
     return ChatRoomCompanion(
       id: id ?? this.id,
@@ -1084,6 +1156,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
       hidden: hidden ?? this.hidden,
       unreadCount: unreadCount ?? this.unreadCount,
       lastUpdated: lastUpdated ?? this.lastUpdated,
+      avatar: avatar ?? this.avatar,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1118,6 +1191,9 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
     if (lastUpdated.present) {
       map['last_updated'] = Variable<DateTime>(lastUpdated.value);
     }
+    if (avatar.present) {
+      map['avatar'] = Variable<Uint8List>(avatar.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1136,6 +1212,7 @@ class ChatRoomCompanion extends UpdateCompanion<ChatRoomData> {
           ..write('hidden: $hidden, ')
           ..write('unreadCount: $unreadCount, ')
           ..write('lastUpdated: $lastUpdated, ')
+          ..write('avatar: $avatar, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1352,13 +1429,15 @@ abstract class _$MessageDatabase extends GeneratedDatabase {
 typedef $$SendersTableInsertCompanionBuilder = SendersCompanion Function({
   required String did,
   required String displayName,
-  Value<String?> avatarUrl,
+  Value<Uint8List?> avatar,
+  Value<String?> description,
   Value<int> rowid,
 });
 typedef $$SendersTableUpdateCompanionBuilder = SendersCompanion Function({
   Value<String> did,
   Value<String> displayName,
-  Value<String?> avatarUrl,
+  Value<Uint8List?> avatar,
+  Value<String?> description,
   Value<int> rowid,
 });
 
@@ -1383,25 +1462,29 @@ class $$SendersTableTableManager extends RootTableManager<
           getUpdateCompanionBuilder: ({
             Value<String> did = const Value.absent(),
             Value<String> displayName = const Value.absent(),
-            Value<String?> avatarUrl = const Value.absent(),
+            Value<Uint8List?> avatar = const Value.absent(),
+            Value<String?> description = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SendersCompanion(
             did: did,
             displayName: displayName,
-            avatarUrl: avatarUrl,
+            avatar: avatar,
+            description: description,
             rowid: rowid,
           ),
           getInsertCompanionBuilder: ({
             required String did,
             required String displayName,
-            Value<String?> avatarUrl = const Value.absent(),
+            Value<Uint8List?> avatar = const Value.absent(),
+            Value<String?> description = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SendersCompanion.insert(
             did: did,
             displayName: displayName,
-            avatarUrl: avatarUrl,
+            avatar: avatar,
+            description: description,
             rowid: rowid,
           ),
         ));
@@ -1432,8 +1515,13 @@ class $$SendersTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
-  ColumnFilters<String> get avatarUrl => $state.composableBuilder(
-      column: $state.table.avatarUrl,
+  ColumnFilters<Uint8List> get avatar => $state.composableBuilder(
+      column: $state.table.avatar,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get description => $state.composableBuilder(
+      column: $state.table.description,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -1464,8 +1552,13 @@ class $$SendersTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
-  ColumnOrderings<String> get avatarUrl => $state.composableBuilder(
-      column: $state.table.avatarUrl,
+  ColumnOrderings<Uint8List> get avatar => $state.composableBuilder(
+      column: $state.table.avatar,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get description => $state.composableBuilder(
+      column: $state.table.description,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
@@ -1713,6 +1806,7 @@ typedef $$ChatRoomTableInsertCompanionBuilder = ChatRoomCompanion Function({
   Value<bool> hidden,
   Value<int> unreadCount,
   required DateTime lastUpdated,
+  Value<Uint8List?> avatar,
   Value<int> rowid,
 });
 typedef $$ChatRoomTableUpdateCompanionBuilder = ChatRoomCompanion Function({
@@ -1725,6 +1819,7 @@ typedef $$ChatRoomTableUpdateCompanionBuilder = ChatRoomCompanion Function({
   Value<bool> hidden,
   Value<int> unreadCount,
   Value<DateTime> lastUpdated,
+  Value<Uint8List?> avatar,
   Value<int> rowid,
 });
 
@@ -1757,6 +1852,7 @@ class $$ChatRoomTableTableManager extends RootTableManager<
             Value<bool> hidden = const Value.absent(),
             Value<int> unreadCount = const Value.absent(),
             Value<DateTime> lastUpdated = const Value.absent(),
+            Value<Uint8List?> avatar = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ChatRoomCompanion(
@@ -1769,6 +1865,7 @@ class $$ChatRoomTableTableManager extends RootTableManager<
             hidden: hidden,
             unreadCount: unreadCount,
             lastUpdated: lastUpdated,
+            avatar: avatar,
             rowid: rowid,
           ),
           getInsertCompanionBuilder: ({
@@ -1781,6 +1878,7 @@ class $$ChatRoomTableTableManager extends RootTableManager<
             Value<bool> hidden = const Value.absent(),
             Value<int> unreadCount = const Value.absent(),
             required DateTime lastUpdated,
+            Value<Uint8List?> avatar = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ChatRoomCompanion.insert(
@@ -1793,6 +1891,7 @@ class $$ChatRoomTableTableManager extends RootTableManager<
             hidden: hidden,
             unreadCount: unreadCount,
             lastUpdated: lastUpdated,
+            avatar: avatar,
             rowid: rowid,
           ),
         ));
@@ -1858,6 +1957,11 @@ class $$ChatRoomTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<Uint8List> get avatar => $state.composableBuilder(
+      column: $state.table.avatar,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ComposableFilter chatRoomMessagesRefs(
       ComposableFilter Function($$ChatRoomMessagesTableFilterComposer f) f) {
     final $$ChatRoomMessagesTableFilterComposer composer =
@@ -1918,6 +2022,11 @@ class $$ChatRoomTableOrderingComposer
 
   ColumnOrderings<DateTime> get lastUpdated => $state.composableBuilder(
       column: $state.table.lastUpdated,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<Uint8List> get avatar => $state.composableBuilder(
+      column: $state.table.avatar,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }

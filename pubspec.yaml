@@ -44,6 +44,8 @@ dependencies:
   thumbhash: ^0.1.0+1
   based_split_view: ^1.2.0
   based_splash_page: ^1.0.1
+  cached_network_image: ^3.3.1
+  http: ^1.2.1
 
 dev_dependencies:
   flutter_test:

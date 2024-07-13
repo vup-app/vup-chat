@@ -1,61 +1,92 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/widgets/smart_date_time.dart';
 
-Widget buildChatRoomListItem(
-    ChatRoomData chat,
-    Animation<double> animation,
-    BuildContext context,
-    Set<String>? selectedItems,
-    Function(String) onItemPressed) {
-  // Parse members and last message
-  final List<dynamic> membersJson = jsonDecode(chat.members);
-  final Map<String, dynamic> lastMessageJson = json.decode(chat.lastMessage);
+class ChatRoomListItem extends StatefulWidget {
+  final ChatRoomData chat;
+  final Animation<double> animation;
+  final Set<String>? selectedItems;
+  final Function(String) onItemPressed;
 
-  final CircleAvatar avatar = avatarFromMembersJSON(membersJson);
-  final String lastMessageText = lastMessageJson['text'] ?? "";
+  const ChatRoomListItem(
+      {super.key,
+      required this.chat,
+      required this.animation,
+      required this.selectedItems,
+      required this.onItemPressed});
 
-  return SizeTransition(
-    sizeFactor: animation,
-    child: ListTile(
-      title: Text(
-        chat.roomName,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-        softWrap: true,
+  @override
+  ChatRoomListItemState createState() => ChatRoomListItemState();
+}
+
+class ChatRoomListItemState extends State<ChatRoomListItem> {
+  String? lastMessageText;
+  Uint8List? avatarBytesCache;
+
+  @override
+  void initState() {
+    _getLastMessage();
+    avatarBytesCache = widget.chat.avatar;
+    super.initState();
+  }
+
+  _getLastMessage() async {
+    Map<String, dynamic> lastMessageJson = json.decode(widget.chat.lastMessage);
+    setState(() {
+      lastMessageText = lastMessageJson['text'] ?? "";
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizeTransition(
+      sizeFactor: widget.animation,
+      child: ListTile(
+        title: Text(
+          widget.chat.roomName,
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+          softWrap: true,
+        ),
+        subtitle: Text(
+          lastMessageText ?? "",
+          overflow: TextOverflow.ellipsis,
+          maxLines: 2,
+          softWrap: true,
+        ),
+        leading: CircleAvatar(
+          backgroundImage: (avatarBytesCache == null)
+              ? null
+              : Image.memory(avatarBytesCache!).image,
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            (widget.chat.muted)
+                ? const Icon(Icons.notifications_off_outlined)
+                : Container(),
+            SmartDateTimeWidget(dateTime: widget.chat.lastUpdated)
+          ],
+        ),
+        onTap: () {
+          if (widget.selectedItems != null &&
+              widget.selectedItems!.isNotEmpty) {
+            widget.onItemPressed(widget.chat.id);
+          } else {
+            vupSplitViewKey.currentState?.pushAndRemoveUntil(
+                MaterialPageRoute(
+                    builder: (context) =>
+                        ChatIndividualPage(id: widget.chat.id)),
+                (Route<dynamic> route) => route.isFirst);
+          }
+        },
       ),
-      subtitle: Text(
-        lastMessageText,
-        overflow: TextOverflow.ellipsis,
-        maxLines: 2,
-        softWrap: true,
-      ),
-      leading: avatar,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          (chat.muted)
-              ? const Icon(Icons.notifications_off_outlined)
-              : Container(),
-          SmartDateTimeWidget(dateTime: chat.lastUpdated)
-        ],
-      ),
-      onTap: () {
-        if (selectedItems != null && selectedItems.isNotEmpty) {
-          onItemPressed(chat.id);
-        } else {
-          vupSplitViewKey.currentState?.pushAndRemoveUntil(
-              MaterialPageRoute(
-                  builder: (context) => ChatIndividualPage(id: chat.id)),
-              (Route<dynamic> route) => route.isFirst);
-        }
-      },
-    ),
-  );
+    );
+  }
 }
 
 Widget buildChatRoomSearchItemMessage(Message message, BuildContext ctx) {
@@ -78,9 +109,9 @@ Widget buildChatRoomSearchItemMessage(Message message, BuildContext ctx) {
               Sender? sender = snapshot.data![0] as Sender?;
               String chatID = snapshot.data![1] as String;
 
-              CircleAvatar cavatar = (sender != null)
+              CircleAvatar cavatar = (sender != null && sender.avatar != null)
                   ? CircleAvatar(
-                      backgroundImage: NetworkImage(sender.avatarUrl!))
+                      backgroundImage: Image.memory(sender.avatar!).image)
                   : const CircleAvatar(
                       child: Icon(Icons.person),
                     );

@@ -17,16 +17,21 @@ class ChatInfoPage extends StatefulWidget {
 
 class _ChatInfoPageState extends State<ChatInfoPage> {
   late ChatRoomData _chatRoomData;
+  List<Sender>? _senders;
 
   @override
   void initState() {
     _chatRoomData = widget.chatRoomData;
+    msg!.getSendersFromDIDList(widget.chatRoomData.members).then((val) {
+      setState(() {
+        _senders = val;
+      });
+    });
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    // final members = jsonDecode(widget.chatRoomData.members);
     return Scaffold(
         appBar: AppBar(),
         body: Column(
@@ -68,7 +73,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                     },
                     icon: const Icon(Icons.edit))
               ],
-            )
+            ),
+            const Text("Members"),
           ],
         ));
   }
