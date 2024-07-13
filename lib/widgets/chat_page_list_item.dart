@@ -89,55 +89,71 @@ class ChatRoomListItemState extends State<ChatRoomListItem> {
   }
 }
 
-Widget buildChatRoomSearchItemMessage(Message message, BuildContext ctx) {
-  return FutureBuilder<List<dynamic>>(
-    future: Future.wait([
-      msg!.getSenderFromDID(message.senderDid),
-      msg!.getChatIDFromMessageID(message.id)
-    ]),
-    builder: (BuildContext context, AsyncSnapshot<List<dynamic>> snapshot) {
-      switch (snapshot.connectionState) {
-        case ConnectionState.waiting:
-        // return const Text('Loading....');
-        default:
-          if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            if (snapshot.data != null &&
-                snapshot.data![0] != null &&
-                snapshot.data![1] != null) {
-              Sender? sender = snapshot.data![0] as Sender?;
-              String chatID = snapshot.data![1] as String;
+class ChatRoomSearchItem extends StatefulWidget {
+  final Message message;
 
-              CircleAvatar cavatar = (sender != null && sender.avatar != null)
-                  ? CircleAvatar(
-                      backgroundImage: Image.memory(sender.avatar!).image)
-                  : const CircleAvatar(
-                      child: Icon(Icons.person),
-                    );
-              return (sender != null)
-                  ? ListTile(
-                      title: Text(sender.displayName),
-                      subtitle: Text(message.message),
-                      leading: cavatar,
-                      onTap: () {
-                        vupSplitViewKey.currentState?.pushAndRemoveUntil(
-                            MaterialPageRoute(
-                                builder: (context) => ChatIndividualPage(
-                                      id: chatID,
-                                      messageIdToScrollTo: message.id,
-                                    )),
-                            (Route<dynamic> route) => route.isFirst);
-                      },
-                    )
-                  : const Text("failed to fetch sender");
-            } else {
-              return const Text("Failed fetching profile or chat data");
-            }
+  const ChatRoomSearchItem({super.key, required this.message});
+
+  @override
+  ChatRoomSearchItemState createState() => ChatRoomSearchItemState();
+}
+
+class ChatRoomSearchItemState extends State<ChatRoomSearchItem> {
+  Sender? sender;
+  String? chatID;
+  Uint8List? avatarBytesCache;
+
+  @override
+  void initState() {
+    _getIDAndSender();
+    super.initState();
+  }
+
+  void _getIDAndSender() {
+    msg!.getSenderFromDID(widget.message.senderDid).then((val) => setState(() {
+          sender = val;
+          if (sender != null) {
+            avatarBytesCache = sender!.avatar;
           }
-      }
-    },
-  );
+        }));
+    msg!.getChatIDFromMessageID(widget.message.id).then((val) => setState(() {
+          chatID = val;
+        }));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(
+        sender?.displayName ?? "",
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        softWrap: true,
+      ),
+      subtitle: Text(
+        widget.message.message,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        softWrap: true,
+      ),
+      leading: CircleAvatar(
+        backgroundImage: (avatarBytesCache != null)
+            ? Image.memory(avatarBytesCache!).image
+            : null,
+      ),
+      onTap: () {
+        if (chatID != null) {
+          vupSplitViewKey.currentState?.pushAndRemoveUntil(
+              MaterialPageRoute(
+                  builder: (context) => ChatIndividualPage(
+                        id: chatID!,
+                        messageIdToScrollTo: widget.message.id,
+                      )),
+              (Route<dynamic> route) => route.isFirst);
+        }
+      },
+    );
+  }
 }
 
 Widget buildChatRoomSearchItemActor() {

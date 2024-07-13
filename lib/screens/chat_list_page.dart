@@ -200,8 +200,8 @@ class ChatListPageState extends State<ChatListPage> {
                         child: ListView.builder(
                         itemCount: _searchedMessages!.length,
                         itemBuilder: (context, index) {
-                          return buildChatRoomSearchItemMessage(
-                              _searchedMessages![index], context);
+                          return ChatRoomSearchItem(
+                              message: _searchedMessages![index]);
                         },
                       ))
                 // So if the search doesn't contain text it just shows chats

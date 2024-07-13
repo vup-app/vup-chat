@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/text_input_page.dart';
@@ -74,7 +75,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                     icon: const Icon(Icons.edit))
               ],
             ),
-            const Text("Members"),
+            SizedBox(
+              width: 200.h,
+            )
           ],
         ));
   }
