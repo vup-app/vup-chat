@@ -4,6 +4,7 @@ import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
+import 'package:vup_chat/constants.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/screens/home_page.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
@@ -56,14 +57,17 @@ class LoginPageState extends State<LoginPage>
     await storage.write(key: 'password', value: passwordController.text);
     session = await tryLogIn(userController.text, passwordController.text);
     if (mounted && session != null) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BasedSplitView(
-        navigatorKey: vupSplitViewKey,
-        leftWidget: HomePage(
-          key: leftKey,
-        ),
-        rightPlaceholder: const PlaceHolderPage(),
-      ),));
-     
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BasedSplitView(
+              navigatorKey: vupSplitViewKey,
+              leftWidget: HomePage(
+                key: leftKey,
+              ),
+              rightPlaceholder: const PlaceHolderPage(),
+            ),
+          ));
     } else {
       setState(() {
         _isLoginFailed = true;
@@ -256,6 +260,16 @@ class LoginPageState extends State<LoginPage>
                   linkStyle:
                       TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
+                TextButton(
+                  onPressed: () => launchUrl(
+                      Uri.parse("https://github.com/vup-app/vup-chat/")),
+                  child: const Text(
+                    version,
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+
                 SizedBox(
                   height: 50.h,
                 ),
