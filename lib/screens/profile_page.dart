@@ -5,7 +5,6 @@ import 'package:shimmer/shimmer.dart';
 import 'package:vup_chat/bsky/log_out.dart';
 import 'package:vup_chat/bsky/profile_actions.dart';
 import 'package:vup_chat/main.dart';
-import 'package:vup_chat/screens/login_page.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
 import 'package:vup_chat/widgets/restart_widget.dart';
 

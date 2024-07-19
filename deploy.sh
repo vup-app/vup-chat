@@ -1,8 +1,3 @@
-# # Build linux, android, web
-# docker build -t vup-chat-linux-builder .
-
-# docker run --rm -v $(pwd)/docker-builds:/app/build vup-chat-linux-builder
-
 # Build web
 
 # flutter build web --web-renderer html

@@ -1,5 +1,4 @@
 import 'package:based_splash_page/based_splash_page.dart';
-import 'package:based_split_view/based_split_view.dart';
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
 import 'package:flutter/material.dart';
