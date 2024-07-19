@@ -19,19 +19,27 @@ jobs:
         run: flutter pub get
 
       # Build web
-      - run: flutter build web
+      - name: Build Web
+        run: flutter build web --web-renderer html
+
+      # Create a zip file for the web build
+      - name: Create web build zip
+        run: |
+          sudo apt-get install -y zip
+          zip -r vup-chat-web.zip build/web
 
       # Build linux
-      - run: |
+      - name: Build Linux
+        run: |
           sudo apt-get update -y
           sudo apt-get install -y ninja-build libgtk-3-dev libnotify-dev
-      - run: flutter build linux
+          flutter build linux
       - name: Upload release assets
         uses: alexellis/upload-assets@0.4.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_paths: '["./build/web/**", "./build/linux/x64/release/bundle/vup_chat"]'
+          asset_paths: '[".vup-chat-web.zip", "./build/linux/x64/release/bundle/vup_chat"]'
 # TODO: Add Windows build
 
 # TODO: Add MacOS & iOS bilds
