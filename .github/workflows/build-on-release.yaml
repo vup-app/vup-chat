@@ -39,7 +39,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_paths: '[".vup-chat-web.zip", "./build/linux/x64/release/bundle/vup_chat"]'
+          asset_paths: '["./vup-chat-web.zip", "./build/linux/x64/release/bundle/vup_chat"]'
 # TODO: Add Windows build
 
 # TODO: Add MacOS & iOS bilds
