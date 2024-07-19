@@ -46,6 +46,7 @@ dependencies:
   based_splash_page: ^1.0.1
   cached_network_image: ^3.3.1
   http: ^1.2.1
+  uuid: ^4.4.2
 
 dev_dependencies:
   flutter_test:

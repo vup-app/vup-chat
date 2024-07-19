@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart';
 
-// TODO: Move avatar to embedded photo file to speed up load times
 class Senders extends Table {
   TextColumn get did => text()();
   TextColumn get displayName => text()();
@@ -12,9 +11,9 @@ class Senders extends Table {
 }
 
 class Messages extends Table {
-  // TODO: Move message ID away from ATProto
   TextColumn get id => text()();
-  TextColumn get revision => text()();
+  TextColumn get bskyID => text().nullable()();
+  TextColumn get revision => text().nullable()();
   TextColumn get message => text()();
   TextColumn get senderDid =>
       text().customConstraint('REFERENCES senders(did) NOT NULL')();
@@ -29,7 +28,7 @@ class Messages extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-class ChatRoom extends Table {
+class ChatRooms extends Table {
   // TODO: Move chatroom ID away from ATProto
   TextColumn get id => text()();
   TextColumn get roomName => text()();
@@ -50,7 +49,7 @@ class ChatRoomMessages extends Table {
   TextColumn get chatId =>
       text().customConstraint('REFERENCES messages(id) NOT NULL')();
   TextColumn get chatRoomId =>
-      text().customConstraint('REFERENCES chat_room(id) NOT NULL')();
+      text().customConstraint('REFERENCES chat_rooms(id) NOT NULL')();
 
   @override
   Set<Column> get primaryKey => {chatId, chatRoomId};

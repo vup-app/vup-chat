@@ -5,7 +5,7 @@ import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/text_input_page.dart';
 
 class ChatInfoPage extends StatefulWidget {
-  final ChatRoomData chatRoomData;
+  final ChatRoom chatRoomData;
 
   const ChatInfoPage({
     required this.chatRoomData,
@@ -17,7 +17,7 @@ class ChatInfoPage extends StatefulWidget {
 }
 
 class _ChatInfoPageState extends State<ChatInfoPage> {
-  late ChatRoomData _chatRoomData;
+  late ChatRoom _chatRoomData;
   List<Sender>? _senders;
 
   @override

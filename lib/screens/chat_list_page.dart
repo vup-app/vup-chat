@@ -18,10 +18,11 @@ class ChatListPage extends StatefulWidget {
 
 class ChatListPageState extends State<ChatListPage> {
   final TextEditingController _textController = TextEditingController();
-  List<ChatRoomData> _chats = [];
+  List<ChatRoom> _chats = [];
   final Set<String> _selectedChatIds = {};
-  StreamSubscription<List<ChatRoomData>>? _subscription;
+  StreamSubscription<List<ChatRoom>>? _subscription;
   List<Message>? _searchedMessages;
+  List<ChatRoom>? _searchedChats;
   int? numHiddenChats;
   bool hiddenChatToggle = false;
 
@@ -54,13 +55,19 @@ class ChatListPageState extends State<ChatListPage> {
   // Listener to search on search changed
   void _onSearchChanged() {
     if (_textController.text.isNotEmpty) {
+      // not specifying chat room ID to search all possible rooms
       msg!.searchMessages(_textController.text, null).then(
         (msgs) {
           setState(() {
             _searchedMessages = msgs;
           });
         },
-      ); // not specifying chat room ID
+      );
+      msg!.searchChatRooms(_textController.text).then((chats) {
+        setState(() {
+          _searchedChats = chats;
+        });
+      });
     } else {
       setState(() {});
     }
@@ -110,7 +117,7 @@ class ChatListPageState extends State<ChatListPage> {
 
   void _checkForHiddenChats() {
     int acc = 0;
-    for (ChatRoomData chat in _chats) {
+    for (ChatRoom chat in _chats) {
       if (chat.hidden) acc++;
     }
     numHiddenChats = acc;
@@ -192,17 +199,34 @@ class ChatListPageState extends State<ChatListPage> {
                   )
                 : Container(),
             // This section swaps views if search is happening or not
-            (_textController.text.isNotEmpty && _searchedMessages != null)
+            (_textController.text.isNotEmpty &&
+                    _searchedMessages != null &&
+                    _searchedChats != null)
                 // But if the search does contain something, it shows the search view
                 ? (_searchedMessages!.isEmpty)
                     ? const Text("Crickets...")
                     : Expanded(
-                        child: ListView.builder(
-                        itemCount: _searchedMessages!.length,
-                        itemBuilder: (context, index) {
-                          return ChatRoomSearchItem(
-                              message: _searchedMessages![index]);
-                        },
+                        child: ListView(
+                        children: [
+                          const Text("Group names"),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _searchedChats!.length,
+                            itemBuilder: (context, index) {
+                              return ChatRoomSearchGroupItem(
+                                  chatRoom: _searchedChats![index]);
+                            },
+                          ),
+                          const Text("Messages"),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _searchedMessages!.length,
+                            itemBuilder: (context, index) {
+                              return ChatRoomSearchMessageItem(
+                                  message: _searchedMessages![index]);
+                            },
+                          )
+                        ],
                       ))
                 // So if the search doesn't contain text it just shows chats
                 : ChatRoomList(

@@ -1,13 +1,13 @@
+import 'package:based_split_view/based_split_view.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
-import 'package:vup_chat/constants.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/screens/home_page.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
+import 'package:vup_chat/screens/place_holder_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -56,10 +56,14 @@ class LoginPageState extends State<LoginPage>
     await storage.write(key: 'password', value: passwordController.text);
     session = await tryLogIn(userController.text, passwordController.text);
     if (mounted && session != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BasedSplitView(
+        navigatorKey: vupSplitViewKey,
+        leftWidget: HomePage(
+          key: leftKey,
+        ),
+        rightPlaceholder: const PlaceHolderPage(),
+      ),));
+     
     } else {
       setState(() {
         _isLoginFailed = true;
@@ -105,7 +109,10 @@ class LoginPageState extends State<LoginPage>
                 ),
                 Text(
                   "Vup Chat",
-                  style: TextStyle(color: Colors.white, fontSize: 25.h),
+                  style: TextStyle(
+                      fontSize: 25.h,
+                      decoration: TextDecoration.none,
+                      color: Theme.of(context).textTheme.bodyLarge?.color),
                 ),
                 Container(
                     height:
@@ -150,17 +157,18 @@ class LoginPageState extends State<LoginPage>
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: darkCardColor,
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: TextField(
                     textAlign: TextAlign.center,
                     autofillHints: const [AutofillHints.username],
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Email',
                       hintText: 'foo@bar.com',
                       border: OutlineInputBorder(
-                        borderSide: BorderSide.none,
+                        borderSide: BorderSide(
+                          width: 1.h,
+                        ),
                       ),
                     ),
                     controller: userController,
@@ -170,7 +178,6 @@ class LoginPageState extends State<LoginPage>
                 Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: darkCardColor,
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: TextField(
@@ -179,8 +186,10 @@ class LoginPageState extends State<LoginPage>
                       decoration: InputDecoration(
                         labelText: 'App Password',
                         hintText: 'ndsl-kdiw-ndba-nadk',
-                        border: const OutlineInputBorder(
-                          borderSide: BorderSide.none,
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            width: 1.h,
+                          ),
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(

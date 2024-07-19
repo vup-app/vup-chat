@@ -1,11 +1,14 @@
+import 'dart:convert';
+
 import 'package:animated_list_plus/animated_list_plus.dart';
 import 'package:animated_list_plus/transitions.dart';
 import 'package:flutter/material.dart';
+import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/widgets/chat_page_list_item.dart';
 
 class ChatRoomList extends StatefulWidget {
-  final List<ChatRoomData> chats;
+  final List<ChatRoom> chats;
   final Function(String) onChatItemSelection;
   final Function(String?) hideSelectedChats;
   final Function(String?) toggleNotificationsSelectedChats;
@@ -32,7 +35,7 @@ class ChatRoomListState extends State<ChatRoomList> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: ImplicitlyAnimatedList<ChatRoomData>(
+      child: ImplicitlyAnimatedList<ChatRoom>(
         items: widget.chats,
         areItemsTheSame: (a, b) =>
             (a.lastMessage == b.lastMessage && a.id == b.id),

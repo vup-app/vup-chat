@@ -6,6 +6,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
+import 'package:vup_chat/messenger/tables.dart';
 import 'package:vup_chat/screens/chat_info_page.dart';
 import 'package:vup_chat/widgets/message_item.dart';
 
@@ -31,7 +32,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   Timer? _timer;
   List<Message> _messages = [];
   StreamSubscription<List<Message>>? _subscription;
-  ChatRoomData? _chatRoomData;
+  ChatRoom? _chatRoomData;
   late bool _showScrollToBottom;
   double _scrollOffset = 0;
   Uint8List? avatarCache;
@@ -63,9 +64,11 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   void _subscribeToChat() {
     _subscription?.cancel(); // Cancel any existing subscription
     _subscription = msg!.subscribeChat(widget.id).listen((newMessages) {
-      setState(() {
-        _messages = newMessages;
-      });
+      if (_messages != newMessages) {
+        setState(() {
+          _messages = newMessages;
+        });
+      }
     });
   }
 

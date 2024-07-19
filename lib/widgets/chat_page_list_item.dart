@@ -7,7 +7,7 @@ import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/widgets/smart_date_time.dart';
 
 class ChatRoomListItem extends StatefulWidget {
-  final ChatRoomData chat;
+  final ChatRoom chat;
   final Animation<double> animation;
   final Set<String>? selectedItems;
   final Function(String) onItemPressed;
@@ -24,21 +24,12 @@ class ChatRoomListItem extends StatefulWidget {
 }
 
 class ChatRoomListItemState extends State<ChatRoomListItem> {
-  String? lastMessageText;
   Uint8List? avatarBytesCache;
 
   @override
   void initState() {
-    _getLastMessage();
     avatarBytesCache = widget.chat.avatar;
     super.initState();
-  }
-
-  _getLastMessage() async {
-    Map<String, dynamic> lastMessageJson = json.decode(widget.chat.lastMessage);
-    setState(() {
-      lastMessageText = lastMessageJson['text'] ?? "";
-    });
   }
 
   @override
@@ -53,7 +44,7 @@ class ChatRoomListItemState extends State<ChatRoomListItem> {
           softWrap: true,
         ),
         subtitle: Text(
-          lastMessageText ?? "",
+          jsonDecode(widget.chat.lastMessage)["text"] ?? "",
           overflow: TextOverflow.ellipsis,
           maxLines: 2,
           softWrap: true,
@@ -89,17 +80,20 @@ class ChatRoomListItemState extends State<ChatRoomListItem> {
   }
 }
 
-class ChatRoomSearchItem extends StatefulWidget {
+// TODO: Fix this pointing to the wrong chat
+class ChatRoomSearchMessageItem extends StatefulWidget {
   final Message message;
 
-  const ChatRoomSearchItem({super.key, required this.message});
+  const ChatRoomSearchMessageItem({super.key, required this.message});
 
   @override
-  ChatRoomSearchItemState createState() => ChatRoomSearchItemState();
+  ChatRoomSearchMessageItemState createState() =>
+      ChatRoomSearchMessageItemState();
 }
 
-class ChatRoomSearchItemState extends State<ChatRoomSearchItem> {
+class ChatRoomSearchMessageItemState extends State<ChatRoomSearchMessageItem> {
   Sender? sender;
+  ChatRoom? chatRoom;
   String? chatID;
   Uint8List? avatarBytesCache;
 
@@ -112,12 +106,15 @@ class ChatRoomSearchItemState extends State<ChatRoomSearchItem> {
   void _getIDAndSender() {
     msg!.getSenderFromDID(widget.message.senderDid).then((val) => setState(() {
           sender = val;
-          if (sender != null) {
-            avatarBytesCache = sender!.avatar;
-          }
         }));
     msg!.getChatIDFromMessageID(widget.message.id).then((val) => setState(() {
           chatID = val;
+          if (val != null && val.isNotEmpty) {
+            msg!.getChatRoomFromChatID(val).then((val2) => setState(() {
+                  chatRoom = val2;
+                  avatarBytesCache = val2?.avatar;
+                }));
+          }
         }));
   }
 
@@ -125,13 +122,13 @@ class ChatRoomSearchItemState extends State<ChatRoomSearchItem> {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(
-        sender?.displayName ?? "",
+        chatRoom?.roomName ?? "",
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
         softWrap: true,
       ),
       subtitle: Text(
-        widget.message.message,
+        "${(sender?.did == did) ? "You" : (sender?.displayName ?? "")}: ${widget.message.message}",
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
         softWrap: true,
@@ -151,6 +148,47 @@ class ChatRoomSearchItemState extends State<ChatRoomSearchItem> {
                       )),
               (Route<dynamic> route) => route.isFirst);
         }
+      },
+    );
+  }
+}
+
+class ChatRoomSearchGroupItem extends StatefulWidget {
+  final ChatRoom chatRoom;
+
+  const ChatRoomSearchGroupItem({super.key, required this.chatRoom});
+
+  @override
+  ChatRoomSearchGroupItemState createState() => ChatRoomSearchGroupItemState();
+}
+
+class ChatRoomSearchGroupItemState extends State<ChatRoomSearchGroupItem> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(
+        widget.chatRoom.roomName,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        softWrap: true,
+      ),
+      leading: CircleAvatar(
+        backgroundImage: (widget.chatRoom.avatar != null)
+            ? Image.memory(widget.chatRoom.avatar!).image
+            : null,
+      ),
+      onTap: () {
+        vupSplitViewKey.currentState?.pushAndRemoveUntil(
+            MaterialPageRoute(
+                builder: (context) => ChatIndividualPage(
+                      id: widget.chatRoom.id,
+                    )),
+            (Route<dynamic> route) => route.isFirst);
       },
     );
   }

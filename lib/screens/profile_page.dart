@@ -7,6 +7,7 @@ import 'package:vup_chat/bsky/profile_actions.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/screens/login_page.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
+import 'package:vup_chat/widgets/restart_widget.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -27,8 +28,7 @@ class ProfilePageState extends State<ProfilePage> {
   Future<void> _logOut() async {
     session = await tryLogOut();
     if (mounted && session == null) {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const LoginPage()));
+      RestartWidget.restartApp(context);
     }
   }
 

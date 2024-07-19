@@ -12,10 +12,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
 import 'package:vup_chat/functions/s5.dart';
 import 'package:vup_chat/messenger/core.dart';
-import 'package:vup_chat/screens/place_holder_page.dart';
 import 'package:vup_chat/theme.dart';
 import 'package:vup_chat/widgets/init_router.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
+import 'package:vup_chat/widgets/restart_widget.dart';
 
 // TODO: Move these to providers and stop mucking about with
 // global state
@@ -23,7 +23,7 @@ const FlutterSecureStorage storage = FlutterSecureStorage();
 final Logger logger = Logger();
 late SharedPreferences preferences;
 final vupSplitViewKey = GlobalKey<NavigatorState>();
-final _leftKey = GlobalKey();
+final leftKey = GlobalKey();
 MsgCore? msg;
 Bluesky? session;
 BlueskyChat? chatSession;
@@ -81,13 +81,7 @@ class VupChatState extends State<VupChat> {
             themeMode: _themeMode,
             debugShowCheckedModeBanner: false,
             home: BasedSplashPage(
-              rootPage: BasedSplitView(
-                navigatorKey: vupSplitViewKey,
-                leftWidget: InitRouter(
-                  key: _leftKey,
-                ),
-                rightPlaceholder: const PlaceHolderPage(),
-              ),
+              rootPage: const RestartWidget(child: InitRouter()),
               appIcon: img.Image.asset(
                 'static/icon.png',
                 width: 150.h,

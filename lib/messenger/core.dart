@@ -17,14 +17,14 @@ import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/functions/thumbhash.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
+import 'package:vup_chat/messenger/lock.dart';
 
 class MsgCore {
   final S5? s5;
   final MessageDatabase db;
   final Bluesky? bskySession;
   final BlueskyChat? bskyChatSessoion;
-  Timer? _timerShort; // To manage the periodic task
-  Timer? _timerLong;
+  final Lock _lock = Lock();
 
   // Named constructor
   MsgCore.custom({
@@ -51,28 +51,22 @@ class MsgCore {
     _initNotifications();
   }
 
-  void _startBackgroundTask() {
-    _timerShort = Timer.periodic(const Duration(seconds: 3), (timer) async {
+  void _startBackgroundTask() async {
+    while (true) {
       // grab message lsit
-      _populateListViewDBATProto();
-    });
-    _timerLong = Timer.periodic(const Duration(seconds: 10), (timer) async {
-      // grab all chats
-      _fetchAllChats();
+      await _populateListViewDBATProto();
+      await Future.delayed(const Duration(seconds: 5));
+      // grab all chats, add lock to make sure to only insert from here when
+      // background task is running
+      await _fetchAllChats();
       // also make sure the sessions are logged in
+      await Future.delayed(const Duration(seconds: 5));
       if (session == null ||
           session!.session == null ||
           session!.session!.active == false) {
         session = await tryLogIn(null, null);
       }
-    });
-  }
-
-  void stopBackgroundTask() {
-    _timerShort?.cancel();
-    _timerLong?.cancel();
-    _timerShort = null;
-    _timerLong = null;
+    }
   }
 
   void _initNotifications() async {
@@ -87,7 +81,7 @@ class MsgCore {
     }
   }
 
-  Stream<List<ChatRoomData>> subscribeChatRoom() {
+  Stream<List<ChatRoom>> subscribeChatRoom() {
     return db.watchChatRooms();
   }
 
@@ -130,11 +124,11 @@ class MsgCore {
   }
 
   Future<String?> getChatIDFromMessageID(String mID) async {
-    return db.getChatRoomIdFromMessageId(mID);
+    return db.getChatRoomsIdFromMessageId(mID);
   }
 
-  Future<ChatRoomData?> getChatRoomFromChatID(String chatID) async {
-    ChatRoomData? crd = await db.getChatRoomFromChatID(chatID);
+  Future<ChatRoom?> getChatRoomFromChatID(String chatID) async {
+    ChatRoom? crd = await db.getChatRoomFromChatID(chatID);
     if (crd == null && bskyChatSessoion != null) {
       final GetConvoOutput convoInfo =
           (await bskyChatSessoion!.convo.getConvo(convoId: chatID)).data;
@@ -147,6 +141,12 @@ class MsgCore {
     return await db.searchMessages(query, chatID);
   }
 
+  Future<List<ChatRoom>> searchChatRooms(
+    String query,
+  ) async {
+    return await db.searchChatRooms(query);
+  }
+
   // TODO create own local message ID's to associate with BSKY ID to speed up sending
   Future<void> sendMessage(String text, String chatID, Sender sender) async {
     // TODO: persist to DB BEFORE sneding to atproto to make things snappier
@@ -155,7 +155,10 @@ class MsgCore {
               .sendMessage(convoId: chatID, message: MessageInput(text: text)))
           .data;
       // Ignore this return because shouldn't notify for own message obv
-      db.checkAndInsertMessageATProto(message, chatID, false, sender, null);
+      String messageID =
+          await db.insertMessageLocal(message.text, chatID, sender, null);
+      await db.checkAndInsertMessageATProto(
+          messageID, message, chatID, false, sender, null);
     }
   }
 
@@ -186,8 +189,8 @@ class MsgCore {
           .data;
       logger.d("now the message view: ${message.toJson()}");
       // Ignore this return because shouldn't notify for own message obv
-      db.checkAndInsertMessageATProto(
-          message, chatID, false, sender, imageEmbed);
+      // db.checkAndInsertMessageATProto(
+      //     message, chatID, false, sender, imageEmbed);
     }
   }
 
@@ -228,7 +231,7 @@ class MsgCore {
     for (String _ in chatIDs) {}
   }
 
-  void _populateListViewDBATProto() async {
+  Future<void> _populateListViewDBATProto() async {
     final ListConvosOutput? ref = await getChatTimeline();
 
     if (ref != null) {
@@ -238,7 +241,7 @@ class MsgCore {
     }
   }
 
-  void _fetchAllChats() async {
+  Future<void> _fetchAllChats() async {
     final ListConvosOutput? ref = await getChatTimeline();
 
     if (ref != null) {
@@ -249,16 +252,30 @@ class MsgCore {
   }
 
   Future<void> checkForMessageUpdatesATProto(String chatID) async {
-    if (chatSession != null) {
-      final GetMessagesOutput ref =
-          (await chatSession!.convo.getMessages(convoId: chatID)).data;
-      final List<MessageView> messages = convertToMessageViews(ref.messages);
+    // add lock here to keep the db from colliding by getting written to by
+    // different threads
+    await _lock.acquire();
+    try {
+      if (chatSession != null) {
+        final GetMessagesOutput ref =
+            (await chatSession!.convo.getMessages(convoId: chatID)).data;
+        final List<MessageView> messages = convertToMessageViews(ref.messages);
 
-      for (var message in messages) {
-        final Sender snd = await getSenderFromDID(message.sender.did);
-        final bool _ = await db.checkAndInsertMessageATProto(
-            message, chatID, true, snd, null);
+        for (var message in messages) {
+          final Sender snd = await getSenderFromDID(message.sender.did);
+          // gotta check if it already exists or not
+          String? localMessageID =
+              await db.getMessageIDFromBskyValues(chatID, message.id);
+          if (localMessageID == null) {}
+          localMessageID ??=
+              await db.insertMessageLocal(message.text, chatID, snd, null);
+          // TODO: This isn't updating to show persisted
+          final bool _ = await db.checkAndInsertMessageATProto(
+              localMessageID, message, chatID, true, snd, null);
+        }
       }
+    } finally {
+      _lock.release();
     }
   }
 
