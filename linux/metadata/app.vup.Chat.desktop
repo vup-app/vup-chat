@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=vup-chat
+Terminal=false
+Name=Vup Chat
+Icon=app.vup.Chat
+Categories=Chat;Messaging;
+StartupWMClass=Vup-Chat
+GenericName=Chat Application
+Comment=Bsky messaging with S5 extensions
+MimeType=x-scheme-handler/vup-chat;
