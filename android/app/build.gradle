@@ -51,6 +51,13 @@ android {
             signingConfig = signingConfigs.debug
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "vup-chat.apk"
+        }
+    }
+
 }
 
 flutter {

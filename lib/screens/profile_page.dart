@@ -34,7 +34,8 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder<PersonalProfileInfo>(
+        body: SafeArea(
+      child: FutureBuilder<PersonalProfileInfo>(
         future: _profileInfoFuture,
         builder: (context, snapshot) {
           return AnimatedSwitcher(
@@ -43,7 +44,7 @@ class ProfilePageState extends State<ProfilePage> {
           );
         },
       ),
-    );
+    ));
   }
 
   Widget _buildContent(AsyncSnapshot<PersonalProfileInfo> snapshot) {

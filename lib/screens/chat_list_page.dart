@@ -130,114 +130,115 @@ class ChatListPageState extends State<ChatListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        // Defines app bar at top
-        appBar: _selectedChatIds.isNotEmpty
-            ? AppBar(
-                title: Text('${_selectedChatIds.length} selected'),
-                leading: Tooltip(
-                  message: "Clear Selection",
-                  child: IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () => setState(() {
-                      _selectedChatIds.clear();
-                    }),
-                  ),
-                ),
-                actions: [
-                  Tooltip(
-                    message: "Hide Chat",
-                    child: IconButton(
-                      icon: const Icon(Icons.archive_outlined),
-                      onPressed: () => _hideSelectedChats(null),
-                    ),
-                  ),
-                  Tooltip(
-                      message: "Toggle Chat Mute",
+    return SafeArea(
+        child: Scaffold(
+            // Defines app bar at top
+            appBar: _selectedChatIds.isNotEmpty
+                ? AppBar(
+                    title: Text('${_selectedChatIds.length} selected'),
+                    leading: Tooltip(
+                      message: "Clear Selection",
                       child: IconButton(
-                        icon: const Icon(Icons.edit_notifications_outlined),
-                        onPressed: () => _muteSelectedChats(null),
-                      )),
-                ],
-              )
-            : null,
-        // This defines the "new chat" prompt in the bototm right
-        floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.message_outlined),
-          onPressed: () {
-            vupSplitViewKey.currentState?.pushAndRemoveUntil(
-                MaterialPageRoute(
-                    builder: (context) => const SearchActorPage()),
-                (Route<dynamic> route) => route.isFirst);
-          },
-        ),
-        // Then we have the body contents
-        body: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // This is a complicated search bar
-            chatsSearchBar(_textController, _navToSettings, _navToProfile),
-            // Shows bar to show hidden chats if selected
-            (numHiddenChats != null && numHiddenChats! > 0)
-                ? Container(
-                    color: Theme.of(context).cardColor,
-                    child: ListTile(
-                      titleAlignment: ListTileTitleAlignment.center,
-                      leading: const Icon(Icons.archive),
-                      title: (numHiddenChats == 1)
-                          ? const Text("You have 1 hidden chat.")
-                          : Text("You have $numHiddenChats hidden chats."),
-                      trailing: Switch(
-                        value: hiddenChatToggle,
-                        onChanged: (value) {
-                          setState(() {
-                            hiddenChatToggle = !hiddenChatToggle;
-                          });
-                        },
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => setState(() {
+                          _selectedChatIds.clear();
+                        }),
                       ),
                     ),
+                    actions: [
+                      Tooltip(
+                        message: "Hide Chat",
+                        child: IconButton(
+                          icon: const Icon(Icons.archive_outlined),
+                          onPressed: () => _hideSelectedChats(null),
+                        ),
+                      ),
+                      Tooltip(
+                          message: "Toggle Chat Mute",
+                          child: IconButton(
+                            icon: const Icon(Icons.edit_notifications_outlined),
+                            onPressed: () => _muteSelectedChats(null),
+                          )),
+                    ],
                   )
-                : Container(),
-            // This section swaps views if search is happening or not
-            (_textController.text.isNotEmpty &&
-                    _searchedMessages != null &&
-                    _searchedChats != null)
-                // But if the search does contain something, it shows the search view
-                ? (_searchedMessages!.isEmpty)
-                    ? const Text("Crickets...")
-                    : Expanded(
-                        child: ListView(
-                        children: [
-                          const Text("Group names"),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: _searchedChats!.length,
-                            itemBuilder: (context, index) {
-                              return ChatRoomSearchGroupItem(
-                                  chatRoom: _searchedChats![index]);
+                : null,
+            // This defines the "new chat" prompt in the bototm right
+            floatingActionButton: FloatingActionButton(
+              child: const Icon(Icons.message_outlined),
+              onPressed: () {
+                vupSplitViewKey.currentState?.pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (context) => const SearchActorPage()),
+                    (Route<dynamic> route) => route.isFirst);
+              },
+            ),
+            // Then we have the body contents
+            body: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // This is a complicated search bar
+                chatsSearchBar(_textController, _navToSettings, _navToProfile),
+                // Shows bar to show hidden chats if selected
+                (numHiddenChats != null && numHiddenChats! > 0)
+                    ? Container(
+                        color: Theme.of(context).cardColor,
+                        child: ListTile(
+                          titleAlignment: ListTileTitleAlignment.center,
+                          leading: const Icon(Icons.archive),
+                          title: (numHiddenChats == 1)
+                              ? const Text("You have 1 hidden chat.")
+                              : Text("You have $numHiddenChats hidden chats."),
+                          trailing: Switch(
+                            value: hiddenChatToggle,
+                            onChanged: (value) {
+                              setState(() {
+                                hiddenChatToggle = !hiddenChatToggle;
+                              });
                             },
                           ),
-                          const Text("Messages"),
-                          ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: _searchedMessages!.length,
-                            itemBuilder: (context, index) {
-                              return ChatRoomSearchMessageItem(
-                                  message: _searchedMessages![index]);
-                            },
-                          )
-                        ],
-                      ))
-                // So if the search doesn't contain text it just shows chats
-                : ChatRoomList(
-                    chats: _chats,
-                    onChatItemSelection: _onChatItemSelection,
-                    selectedChatIds: _selectedChatIds,
-                    hideSelectedChats: _hideSelectedChats,
-                    toggleNotificationsSelectedChats: _muteSelectedChats,
-                    hiddenChatToggle: hiddenChatToggle,
-                  ),
-          ],
-        ));
+                        ),
+                      )
+                    : Container(),
+                // This section swaps views if search is happening or not
+                (_textController.text.isNotEmpty &&
+                        _searchedMessages != null &&
+                        _searchedChats != null)
+                    // But if the search does contain something, it shows the search view
+                    ? (_searchedMessages!.isEmpty)
+                        ? const Text("Crickets...")
+                        : Expanded(
+                            child: ListView(
+                            children: [
+                              const Text("Group names"),
+                              ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: _searchedChats!.length,
+                                itemBuilder: (context, index) {
+                                  return ChatRoomSearchGroupItem(
+                                      chatRoom: _searchedChats![index]);
+                                },
+                              ),
+                              const Text("Messages"),
+                              ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: _searchedMessages!.length,
+                                itemBuilder: (context, index) {
+                                  return ChatRoomSearchMessageItem(
+                                      message: _searchedMessages![index]);
+                                },
+                              )
+                            ],
+                          ))
+                    // So if the search doesn't contain text it just shows chats
+                    : ChatRoomList(
+                        chats: _chats,
+                        onChatItemSelection: _onChatItemSelection,
+                        selectedChatIds: _selectedChatIds,
+                        hideSelectedChats: _hideSelectedChats,
+                        toggleNotificationsSelectedChats: _muteSelectedChats,
+                        hiddenChatToggle: hiddenChatToggle,
+                      ),
+              ],
+            )));
   }
 }

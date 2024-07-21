@@ -91,6 +91,7 @@ class LoginPageState extends State<LoginPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Center(
         child: Container(
           margin: EdgeInsets.all(5.w), // Adjust margin as needed

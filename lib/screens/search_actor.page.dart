@@ -96,8 +96,8 @@ class SearchActorPageState extends State<SearchActorPage> {
             decoration: BoxDecoration(
                 color: Theme.of(context).cardColor,
                 borderRadius: const BorderRadius.all(Radius.circular(20))),
-            width: 200.w,
-            height: 600.h,
+            width: 350.w,
+            height: 650.h,
             child: Column(
               children: [
                 Center(
