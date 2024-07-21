@@ -40,6 +40,9 @@ class ChatRoomListState extends State<ChatRoomList> {
           if (item.hidden == widget.hiddenChatToggle) {
             return GestureDetector(
               onLongPress: () => widget.onChatItemSelection(item.id),
+              onTap: () => (widget.selectedChatIds.isNotEmpty)
+                  ? widget.onChatItemSelection(item.id)
+                  : null,
               child: MouseRegion(
                 onEnter: (_) => setState(() => hoveredChatId = item.id),
                 onExit: (_) => setState(() => hoveredChatId = null),
