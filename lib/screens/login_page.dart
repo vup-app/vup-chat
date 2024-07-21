@@ -91,7 +91,7 @@ class LoginPageState extends State<LoginPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body: Center(
         child: Container(
           margin: EdgeInsets.all(5.w), // Adjust margin as needed
@@ -102,9 +102,7 @@ class LoginPageState extends State<LoginPage>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(),
-                SizedBox(
-                  height: 80.h,
-                ),
+
                 img.Image.asset(
                   'static/icon.png',
                   width: 150.h,
@@ -119,9 +117,10 @@ class LoginPageState extends State<LoginPage>
                       decoration: TextDecoration.none,
                       color: Theme.of(context).textTheme.bodyLarge?.color),
                 ),
+                const Spacer(),
                 Container(
                     height:
-                        200.h, // This should match the height of the SizedBox
+                        10.h, // This should match the height of the SizedBox
                     alignment: Alignment.bottomRight,
                     child: Padding(
                       padding: const EdgeInsets.all(5),
@@ -271,9 +270,6 @@ class LoginPageState extends State<LoginPage>
                   ),
                 ),
 
-                SizedBox(
-                  height: 50.h,
-                ),
                 const Spacer()
               ],
             ),
