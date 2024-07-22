@@ -1,0 +1,1 @@
+Vup Chat is a bsky chat client extended with S5 to add more features. 
