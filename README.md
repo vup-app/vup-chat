@@ -10,7 +10,20 @@ Vup Chat is a messaging client build on top of the [AT Protocol](https://atproto
 
 ### Usage
 
-Download the binary for you platform on the [releases](https://github.com/vup-app/vup-chat/releases) page.
+> ⚠️ This app is still in rapid development, so things are likely to change and break. All messages are currently backed up to ATProto. Once E2EE is implemented, the DB will become stable and breaking changes will not be pushed on minor (x.X.x) versions.
+
+| Supported Platforms |     |
+| ------------------- | --- |
+| Android             | ✓   |
+| iOS                 | 🗙   |
+| Macos               | 🗙   |
+| Linux               | ✓   |
+| Windows             | 🗙   |
+| Web                 | ✓   |
+
+>
+
+Download the binary for your platform on the [releases](https://github.com/vup-app/vup-chat/releases) page.
 
 Development site is available [here](https://vup-chat.jptr.tech). Alternatively you can build the app yourself for any supported platform.
 
