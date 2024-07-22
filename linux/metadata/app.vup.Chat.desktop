@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Exec=vup-chat
+Exec=vup_chat
 Terminal=false
 Name=Vup Chat
 Icon=app.vup.Chat
