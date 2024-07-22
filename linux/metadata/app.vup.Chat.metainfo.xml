@@ -6,7 +6,7 @@
 <component type="desktop-application">
   <id>app.vup.Chat</id>
   <name>Vup Chat</name>
-  <summary>Open source messaging client build on bsky.</summary>
+  <summary>FLOSS messaging client for bsky</summary>
   <developer_name>covalent</developer_name>
   <url type="homepage">https://github.com/vup-app/vup-chat/</url>
   <metadata_license>CC-BY-4.0</metadata_license>
@@ -23,6 +23,7 @@
   <screenshots>
     <screenshot type="default">
       <image>https://github.com/vup-app/vup-chat/blob/main/static/UI.png?raw=true</image>
+      <caption>Vup Chat in light & dark themes.</caption>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1" />
