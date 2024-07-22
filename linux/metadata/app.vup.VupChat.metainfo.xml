@@ -4,7 +4,7 @@
     https://www.freedesktop.org/software/appstream/metainfocreator/#/
 -->
 <component type="desktop-application">
-  <id>app.vup.Chat</id>
+  <id>app.vup.VupChat</id>
   <name>Vup Chat</name>
   <summary>FLOSS messaging client for bsky</summary>
   <developer_name>covalent</developer_name>
@@ -19,7 +19,7 @@
   <description>
     <p>Vup Chat is a bsky chat client extended with S5 features. Find out more here: https://github.com/vup-app/vup-chat/</p>
   </description>
-  <launchable type="desktop-id">app.vup.Chat.desktop</launchable>
+  <launchable type="desktop-id">app.vup.VupChat.desktop</launchable>
   <screenshots>
     <screenshot type="default">
       <image>https://github.com/vup-app/vup-chat/blob/main/static/UI.png?raw=true</image>
