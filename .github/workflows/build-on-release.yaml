@@ -51,7 +51,7 @@ jobs:
       - name: 🔧 Build APK
         env:
           KEY_JKS: ${{ secrets.KEY_JKS }}
-          KEY_PASSWORD: ${{ secrets.ALIAS_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           ALIAS_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           base64 -d <<< $KEY_JKS > ./android/app/release-key.jks
