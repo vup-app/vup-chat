@@ -119,8 +119,7 @@ class LoginPageState extends State<LoginPage>
                 ),
                 const Spacer(),
                 Container(
-                    height:
-                        10.h, // This should match the height of the SizedBox
+                    height: 40, // This should match the height of the SizedBox
                     alignment: Alignment.bottomRight,
                     child: Padding(
                       padding: const EdgeInsets.all(5),

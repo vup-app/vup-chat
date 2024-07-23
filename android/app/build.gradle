@@ -20,13 +20,26 @@ if (flutterVersionCode == null) {
 
 def flutterVersionName = localProperties.getProperty("flutter.versionName")
 if (flutterVersionName == null) {
-    flutterVersionName = "1.0"
+    flutterVersionName = "0.0.1"
+}
+
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+} else {
+    // If the file does not exist, use environment variables (probably in a gh runner)
+    keystoreProperties['storeFile'] = 'release-key.jks'
+    keystoreProperties['storePassword'] = System.getenv('KEY_PASSWORD')
+    keystoreProperties['keyAlias'] = 'vup-chat'
+    keystoreProperties['keyPassword'] = System.getenv('KEY_PASSWORD') // They're the same
 }
 
 android {
     namespace = "chat.vup.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+    project.ext.set("appName", "vup-chat")
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -42,22 +55,23 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
+        setProperty("archivesBaseName", "$appName-$versionName-$versionCode")
+
     }
 
+    signingConfigs {
+       release {
+           keyAlias keystoreProperties['keyAlias']
+           keyPassword keystoreProperties['keyPassword']
+           storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+           storePassword keystoreProperties['storePassword']
+       }
+    }
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
-
-    applicationVariants.all { variant ->
-        variant.outputs.all {
-            outputFileName = "vup-chat.apk"
-        }
-    }
-
 }
 
 flutter {

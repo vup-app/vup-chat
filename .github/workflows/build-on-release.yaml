@@ -1,8 +1,9 @@
-name: Build On Release
+name: Release and build on tag
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - v*
 
 jobs:
   build-ubuntu:
@@ -46,9 +47,23 @@ jobs:
           zip -r ../../../../vup-chat-linux.zip bundle/
           cd ../../../..
 
-      # Bulid android
-      - name: Build Android
-        run: flutter build apk
+      # Bulid android SIGNED
+      - name: 🔧 Build APK
+        env:
+          KEY_JKS: ${{ secrets.KEY_JKS }}
+          KEY_PASSWORD: ${{ secrets.ALIAS_PASSWORD }}
+          ALIAS_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          base64 -d <<< $KEY_JKS > ./android/app/release-key.jks
+          ./flutterw build apk --release -v
+          cp build/app/outputs/apk/libre/release/*.apk outputs
+
+      # Create release
+      - name: Create a release with the APK.
+        uses: ncipollo/release-action@v1
+        with:
+          body: "[Changelog](https://github.com/${{ github.repository }}/blob/develop/CHANGELOG.md#${{ github.ref_name }})"
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Now upload those assets
       - name: Upload release assets
@@ -56,7 +71,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_paths: '["./vup-chat-web.zip", "./build/app/outputs/flutter-apk/app-release.apk", "vup-chat-linux.zip"]'
+          asset_paths: '["./vup-chat-web.zip", "./outputs/*", "vup-chat-linux.zip"]'
 # TODO: Add Windows build
 
 # TODO: Add MacOS & iOS bilds
