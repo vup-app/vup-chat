@@ -56,7 +56,7 @@ jobs:
         run: |
           base64 -d <<< $KEY_JKS > ./android/app/release-key.jks
           ./flutterw build apk --release -v
-          cp build/app/outputs/apk/libre/release/*.apk outputs
+          cp build/app/outputs/apk/release/*.apk outputs
 
       # Create release
       - name: Create a release with the APK.
