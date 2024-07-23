@@ -17,3 +17,17 @@ Run: `./deploy.sh`
 ### Publish New Flathub Version
 
 Go to [flathub github](github.com/flathub/app.vup.Chat). Bump release version in build script `app.vup.Chat.yaml` and update checksum.
+
+### Publish New Fdroid Version
+
+In [Fdroid Data](https://gitlab.com/lukehmcc/fdroid-data) repo. Add new line like so:
+
+```
+- versionName: 0.5.15
+    versionCode: 1
+    commit: v0.5.15
+    submodules: true
+    ...
+```
+
+And remember to update the latest version at the bottom.
