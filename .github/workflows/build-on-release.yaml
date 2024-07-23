@@ -56,13 +56,18 @@ jobs:
         run: |
           base64 -d <<< $KEY_JKS > ./android/app/release-key.jks
           ./flutterw build apk --release -v
-          cp build/app/outputs/apk/release/*.apk outputs
+          mkdir -p ./outputs
+          cp build/app/outputs/apk/release/*.apk ./outputs/
 
       # Create release
       - name: Create a release with the APK.
         uses: ncipollo/release-action@v1
         with:
-          body: "[Changelog](https://github.com/${{ github.repository }}/blob/develop/CHANGELOG.md#${{ github.ref_name }})"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "✏️ Generate release changelog"
+        uses: heinrichreimer/action-github-changelog-generator@v2.3
+        with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # Now upload those assets
