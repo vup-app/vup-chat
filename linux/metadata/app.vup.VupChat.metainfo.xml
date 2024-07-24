@@ -6,7 +6,7 @@
 <component type="desktop-application">
   <id>app.vup.VupChat</id>
   <name>Vup Chat</name>
-  <summary>FLOSS messaging client for bsky</summary>
+  <summary>FLOSS messenger for Bluesky</summary>
   <developer_name>covalent</developer_name>
   <url type="homepage">https://github.com/vup-app/vup-chat/</url>
   <metadata_license>CC-BY-4.0</metadata_license>
@@ -17,7 +17,7 @@
     <control>touch</control>
   </supports>
   <description>
-    <p>Vup Chat is a bsky chat client extended with S5 features. Find out more here: https://github.com/vup-app/vup-chat/</p>
+    <p>Modern messaging client build on ATProto.</p>
   </description>
   <launchable type="desktop-id">app.vup.VupChat.desktop</launchable>
   <screenshots>
@@ -30,4 +30,8 @@
   <releases>
     <release version="0.5.17" date="2024-07-22" />
   </releases>
+  <branding>
+    <color type="primary" scheme_preference="light">#1ed660</color>
+    <color type="primary" scheme_preference="dark">#1ed660</color>
+  </branding>
 </component>
