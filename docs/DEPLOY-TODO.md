@@ -9,7 +9,7 @@ Locations:
 1. pubspec.yaml
 2. lib/constants.dart
 3. linux/metadata/app.vup.Chat.metainfo.xml
-4. android/app/src/main/AndroidManifest.xml
+4. android/app/build.gradle
 
 ### Deploy Website
 
