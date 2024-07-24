@@ -29,10 +29,10 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 } else {
     // If the file does not exist, use environment variables (probably in a gh runner)
-    keystoreProperties['storeFile'] = 'release-key.jks'
-    keystoreProperties['storePassword'] = System.getenv('KEY_PASSWORD')
-    keystoreProperties['keyAlias'] = 'vup-chat'
-    keystoreProperties['keyPassword'] = System.getenv('KEY_PASSWORD') // They're the same
+    keystoreProperties['storeFile'] = 'release-key.jks' ?: "<NONE>"
+    keystoreProperties['storePassword'] = System.getenv('KEY_PASSWORD') ?: "<NONE>"
+    keystoreProperties['keyAlias'] = 'vup-chat' ?: "<NONE>"
+    keystoreProperties['keyPassword'] = System.getenv('KEY_PASSWORD') ?: "<NONE>" // They're the same
 }
 
 android {
@@ -51,7 +51,7 @@ android {
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = 1
-        versionName = "v0.5.17"
+        versionName = "v0.5.19"
         setProperty("archivesBaseName", "$appName-$versionName-$versionCode")
 
     }

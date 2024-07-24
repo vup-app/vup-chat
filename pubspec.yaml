@@ -2,7 +2,7 @@ name: vup_chat
 description: "Messenger app for ATProto powered by S5"
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 0.5.17
+version: 0.5.19
 
 environment:
   sdk: ">=3.4.1 <4.0.0"
