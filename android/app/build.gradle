@@ -51,7 +51,7 @@ android {
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = 1
-        versionName = "v0.5.16"
+        versionName = "v0.5.17"
         setProperty("archivesBaseName", "$appName-$versionName-$versionCode")
 
     }
