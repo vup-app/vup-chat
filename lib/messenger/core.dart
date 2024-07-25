@@ -6,11 +6,12 @@ import 'dart:typed_data';
 
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     as n;
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:s5/s5.dart';
+import 'package:s5/s5.dart' as s5lib;
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
 import 'package:vup_chat/definitions/s5embed.dart';
@@ -18,15 +19,18 @@ import 'package:vup_chat/functions/thumbhash.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/messenger/lock.dart';
+import 'package:vup_chat/screens/chat_individual_page.dart';
+import 'package:vup_chat/widgets/init_router.dart';
 
 class MsgCore {
-  final S5? s5;
+  final s5lib.S5? s5;
   final MessageDatabase db;
   final Bluesky? bskySession;
   final BlueskyChat? bskyChatSessoion;
   final Lock _lock = Lock();
   bool _firstSync = true;
   n.FlutterLocalNotificationsPlugin? notifier;
+  Map<String, int> messageNotifChannels = {};
 
   // Named constructor
   MsgCore.custom({
@@ -38,7 +42,7 @@ class MsgCore {
 
   // Unnamed constructor that initializes the database internally
   MsgCore({
-    S5? s5,
+    s5lib.S5? s5,
     Bluesky? bskySession,
     BlueskyChat? bskyChatSession,
   }) : this.custom(
@@ -179,7 +183,7 @@ class MsgCore {
     // everything up
     if (chatSession != null && s5 != null) {
       String? hash = await getThumbhashFromXFile(file);
-      final CID cid = await s5!.api.uploadBlob(await file.readAsBytes());
+      final s5lib.CID cid = await s5!.api.uploadBlob(await file.readAsBytes());
       final S5Embed imageEmbed = S5Embed(
           cid: cid.toBase58(),
           caption: caption,
@@ -190,7 +194,7 @@ class MsgCore {
               message: MessageInput(
                   embed: UConvoMessageEmbedUnknown(data: imageEmbed.toJson()),
                   text:
-                      "An S5 compatible client like Vup Chat is required to view this media.")))
+                      "An s5lib.S5 compatible client like Vup Chat is required to view this media.")))
           .data;
       logger.d("now the message view: ${message.toJson()}");
       // Ignore this return because shouldn't notify for own message obv
@@ -299,19 +303,41 @@ class MsgCore {
           msg.senderDid != did &&
           chatRoom != null &&
           snd != null) {
+        // LINUX CONFIG
         // TODO: Figure out why icon isn't working on linux
         n.LinuxNotificationDetails linuxDetails = n.LinuxNotificationDetails(
             icon: n.AssetsLinuxIcon("static/icon.svg"));
+        // ANDROID CONFIG
+        n.Person me = n.Person(name: snd.displayName);
+        final n.MessagingStyleInformation messagingStyle =
+            n.MessagingStyleInformation(
+          me,
+          groupConversation: true,
+        );
+
         n.AndroidNotificationDetails androidNotificationDetails =
             n.AndroidNotificationDetails(chatRoom.id, chatRoom.roomName,
-                priority: n.Priority.high, ticker: 'ticker');
+                priority: n.Priority.high,
+                ticker: 'ticker',
+                category: n.AndroidNotificationCategory.message);
         n.NotificationDetails details = n.NotificationDetails(
             linux: linuxDetails, android: androidNotificationDetails);
-        Random random = Random();
-        int randomNumber = random.nextInt(100000);
-        await notifier?.show(randomNumber, chatRoom.roomName,
+        // checks if notif channel exists, if it doesn't create it
+        // This is to allow chats to be grouped together
+        late int channel;
+        if (messageNotifChannels.containsKey(chatRoom.id)) {
+          messageNotifChannels[chatRoom.id] =
+              messageNotifChannels[chatRoom.id] ?? 0 + 1;
+          channel = (messageNotifChannels[chatRoom.id] ?? 0) + 1;
+        } else {
+          Random rand = Random();
+          final int idStart = rand.nextInt(10000);
+          messageNotifChannels[chatRoom.id] = idStart;
+          channel = idStart;
+        }
+        await notifier?.show(channel, chatRoom.roomName,
             "${snd.displayName}: ${msg.message}", details,
-            payload: msg.message);
+            payload: chatRoom.id);
       }
     }
   }
@@ -336,7 +362,16 @@ class MsgCore {
 
   Future<void> onDidReceiveNotificationResponse(
       n.NotificationResponse resp) async {
-    logger.d("notifcation responded: $resp");
+    if (resp.payload != null && resp.payload!.isNotEmpty) {
+      vupSplitViewKey.currentState?.pushAndRemoveUntil(
+          MaterialPageRoute(
+              builder: (context) => ChatIndividualPage(id: resp.payload!)),
+          (Route<dynamic> route) => route.isFirst);
+    } else {
+      vupSplitViewKey.currentState?.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const InitRouter()),
+          (Route<dynamic> route) => route.isFirst);
+    }
   }
 
   Future<void> requestPerms() async {
