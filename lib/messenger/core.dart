@@ -4,7 +4,6 @@ import 'dart:typed_data';
 
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     as n;
 import 'package:image_picker/image_picker.dart';
@@ -294,7 +293,7 @@ class MsgCore {
           msg.senderDid != did &&
           chatRoom != null &&
           snd != null) {
-        // TODO: Figure out why icon isn't working...
+        // TODO: Figure out why icon isn't working on linux
         n.LinuxNotificationDetails linuxDetails = n.LinuxNotificationDetails(
             icon: n.AssetsLinuxIcon("static/icon.svg"));
         n.NotificationDetails details =
