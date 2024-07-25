@@ -5,6 +5,7 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+// define properties
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
@@ -13,16 +14,7 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-def flutterVersionCode = localProperties.getProperty("flutter.versionCode")
-if (flutterVersionCode == null) {
-    flutterVersionCode = "1"
-}
-
-def flutterVersionName = localProperties.getProperty("flutter.versionName")
-if (flutterVersionName == null) {
-    flutterVersionName = "0.0.1"
-}
-
+// Define keystore for signing
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
@@ -32,7 +24,7 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties['storeFile'] = 'release-key.jks' ?: "<NONE>"
     keystoreProperties['storePassword'] = System.getenv('KEY_PASSWORD') ?: "<NONE>"
     keystoreProperties['keyAlias'] = 'vup-chat' ?: "<NONE>"
-    keystoreProperties['keyPassword'] = System.getenv('KEY_PASSWORD') ?: "<NONE>" // They're the same
+    keystoreProperties['keyPassword'] = System.getenv('KEY_PASSWORD') ?: "<NONE>"
 }
 
 android {
@@ -42,6 +34,9 @@ android {
     project.ext.set("appName", "vup-chat")
 
     compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+        // Sets Java compatibility to Java 8
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
@@ -53,6 +48,7 @@ android {
         versionCode = 1
         versionName = "0.5.20"
         setProperty("archivesBaseName", "$appName-$versionName-$versionCode")
+        multiDexEnabled true
 
     }
 
@@ -68,6 +64,10 @@ android {
         release {
             signingConfig signingConfigs.release
         }
+    }
+
+    dependencies {
+        coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
     }
 }
 

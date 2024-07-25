@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bluesky/bluesky.dart';
@@ -71,11 +73,15 @@ class MsgCore {
 
   void _initNotifications() async {
     notifier = n.FlutterLocalNotificationsPlugin();
-// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+    // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
     const n.LinuxInitializationSettings initializationSettingsLinux =
         n.LinuxInitializationSettings(defaultActionName: 'Open notification');
+    const n.AndroidInitializationSettings initializationSettingsAndroid =
+        n.AndroidInitializationSettings('@mipmap/launcher_icon');
     const n.InitializationSettings initializationSettings =
-        n.InitializationSettings(linux: initializationSettingsLinux);
+        n.InitializationSettings(
+            linux: initializationSettingsLinux,
+            android: initializationSettingsAndroid);
     await notifier?.initialize(initializationSettings,
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
   }
@@ -296,10 +302,15 @@ class MsgCore {
         // TODO: Figure out why icon isn't working on linux
         n.LinuxNotificationDetails linuxDetails = n.LinuxNotificationDetails(
             icon: n.AssetsLinuxIcon("static/icon.svg"));
-        n.NotificationDetails details =
-            n.NotificationDetails(linux: linuxDetails);
-        await notifier?.show(
-            0, chatRoom.roomName, "${snd.displayName}: ${msg.message}", details,
+        n.AndroidNotificationDetails androidNotificationDetails =
+            n.AndroidNotificationDetails(chatRoom.id, chatRoom.roomName,
+                priority: n.Priority.high, ticker: 'ticker');
+        n.NotificationDetails details = n.NotificationDetails(
+            linux: linuxDetails, android: androidNotificationDetails);
+        Random random = Random();
+        int randomNumber = random.nextInt(100000);
+        await notifier?.show(randomNumber, chatRoom.roomName,
+            "${snd.displayName}: ${msg.message}", details,
             payload: msg.message);
       }
     }
@@ -326,5 +337,14 @@ class MsgCore {
   Future<void> onDidReceiveNotificationResponse(
       n.NotificationResponse resp) async {
     logger.d("notifcation responded: $resp");
+  }
+
+  Future<void> requestPerms() async {
+    if (Platform.isAndroid) {
+      notifier
+          ?.resolvePlatformSpecificImplementation<
+              n.AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+    }
   }
 }

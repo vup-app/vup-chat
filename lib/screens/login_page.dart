@@ -56,6 +56,7 @@ class LoginPageState extends State<LoginPage>
     await storage.write(key: 'user', value: userController.text);
     await storage.write(key: 'password', value: passwordController.text);
     session = await tryLogIn(userController.text, passwordController.text);
+    await msg?.requestPerms();
     if (mounted && session != null) {
       Navigator.pushReplacement(
           context,
