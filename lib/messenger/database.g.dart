@@ -160,6 +160,17 @@ class Sender extends DataClass implements Insertable<Sender> {
         avatar: avatar.present ? avatar.value : this.avatar,
         description: description.present ? description.value : this.description,
       );
+  Sender copyWithCompanion(SendersCompanion data) {
+    return Sender(
+      did: data.did.present ? data.did.value : this.did,
+      displayName:
+          data.displayName.present ? data.displayName.value : this.displayName,
+      avatar: data.avatar.present ? data.avatar.value : this.avatar,
+      description:
+          data.description.present ? data.description.value : this.description,
+    );
+  }
+
   @override
   String toString() {
     return (StringBuffer('Sender(')
@@ -572,6 +583,21 @@ class Message extends DataClass implements Insertable<Message> {
         read: read ?? this.read,
         embed: embed ?? this.embed,
       );
+  Message copyWithCompanion(MessagesCompanion data) {
+    return Message(
+      id: data.id.present ? data.id.value : this.id,
+      bskyID: data.bskyID.present ? data.bskyID.value : this.bskyID,
+      revision: data.revision.present ? data.revision.value : this.revision,
+      message: data.message.present ? data.message.value : this.message,
+      senderDid: data.senderDid.present ? data.senderDid.value : this.senderDid,
+      replyTo: data.replyTo.present ? data.replyTo.value : this.replyTo,
+      sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
+      persisted: data.persisted.present ? data.persisted.value : this.persisted,
+      read: data.read.present ? data.read.value : this.read,
+      embed: data.embed.present ? data.embed.value : this.embed,
+    );
+  }
+
   @override
   String toString() {
     return (StringBuffer('Message(')
@@ -1064,6 +1090,24 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
         lastUpdated: lastUpdated ?? this.lastUpdated,
         avatar: avatar.present ? avatar.value : this.avatar,
       );
+  ChatRoom copyWithCompanion(ChatRoomsCompanion data) {
+    return ChatRoom(
+      id: data.id.present ? data.id.value : this.id,
+      roomName: data.roomName.present ? data.roomName.value : this.roomName,
+      rev: data.rev.present ? data.rev.value : this.rev,
+      members: data.members.present ? data.members.value : this.members,
+      lastMessage:
+          data.lastMessage.present ? data.lastMessage.value : this.lastMessage,
+      muted: data.muted.present ? data.muted.value : this.muted,
+      hidden: data.hidden.present ? data.hidden.value : this.hidden,
+      unreadCount:
+          data.unreadCount.present ? data.unreadCount.value : this.unreadCount,
+      lastUpdated:
+          data.lastUpdated.present ? data.lastUpdated.value : this.lastUpdated,
+      avatar: data.avatar.present ? data.avatar.value : this.avatar,
+    );
+  }
+
   @override
   String toString() {
     return (StringBuffer('ChatRoom(')
@@ -1366,6 +1410,14 @@ class ChatRoomMessage extends DataClass implements Insertable<ChatRoomMessage> {
         chatId: chatId ?? this.chatId,
         chatRoomId: chatRoomId ?? this.chatRoomId,
       );
+  ChatRoomMessage copyWithCompanion(ChatRoomMessagesCompanion data) {
+    return ChatRoomMessage(
+      chatId: data.chatId.present ? data.chatId.value : this.chatId,
+      chatRoomId:
+          data.chatRoomId.present ? data.chatRoomId.value : this.chatRoomId,
+    );
+  }
+
   @override
   String toString() {
     return (StringBuffer('ChatRoomMessage(')
@@ -1449,7 +1501,7 @@ class ChatRoomMessagesCompanion extends UpdateCompanion<ChatRoomMessage> {
 
 abstract class _$MessageDatabase extends GeneratedDatabase {
   _$MessageDatabase(QueryExecutor e) : super(e);
-  _$MessageDatabaseManager get managers => _$MessageDatabaseManager(this);
+  $MessageDatabaseManager get managers => $MessageDatabaseManager(this);
   late final $SendersTable senders = $SendersTable(this);
   late final $MessagesTable messages = $MessagesTable(this);
   late final $ChatRoomsTable chatRooms = $ChatRoomsTable(this);
@@ -1463,7 +1515,7 @@ abstract class _$MessageDatabase extends GeneratedDatabase {
       [senders, messages, chatRooms, chatRoomMessages];
 }
 
-typedef $$SendersTableInsertCompanionBuilder = SendersCompanion Function({
+typedef $$SendersTableCreateCompanionBuilder = SendersCompanion Function({
   required String did,
   required String displayName,
   Value<Uint8List?> avatar,
@@ -1484,8 +1536,7 @@ class $$SendersTableTableManager extends RootTableManager<
     Sender,
     $$SendersTableFilterComposer,
     $$SendersTableOrderingComposer,
-    $$SendersTableProcessedTableManager,
-    $$SendersTableInsertCompanionBuilder,
+    $$SendersTableCreateCompanionBuilder,
     $$SendersTableUpdateCompanionBuilder> {
   $$SendersTableTableManager(_$MessageDatabase db, $SendersTable table)
       : super(TableManagerState(
@@ -1495,8 +1546,7 @@ class $$SendersTableTableManager extends RootTableManager<
               $$SendersTableFilterComposer(ComposerState(db, table)),
           orderingComposer:
               $$SendersTableOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) => $$SendersTableProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
+          updateCompanionCallback: ({
             Value<String> did = const Value.absent(),
             Value<String> displayName = const Value.absent(),
             Value<Uint8List?> avatar = const Value.absent(),
@@ -1510,7 +1560,7 @@ class $$SendersTableTableManager extends RootTableManager<
             description: description,
             rowid: rowid,
           ),
-          getInsertCompanionBuilder: ({
+          createCompanionCallback: ({
             required String did,
             required String displayName,
             Value<Uint8List?> avatar = const Value.absent(),
@@ -1525,18 +1575,6 @@ class $$SendersTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
         ));
-}
-
-class $$SendersTableProcessedTableManager extends ProcessedTableManager<
-    _$MessageDatabase,
-    $SendersTable,
-    Sender,
-    $$SendersTableFilterComposer,
-    $$SendersTableOrderingComposer,
-    $$SendersTableProcessedTableManager,
-    $$SendersTableInsertCompanionBuilder,
-    $$SendersTableUpdateCompanionBuilder> {
-  $$SendersTableProcessedTableManager(super.$state);
 }
 
 class $$SendersTableFilterComposer
@@ -1600,7 +1638,7 @@ class $$SendersTableOrderingComposer
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
-typedef $$MessagesTableInsertCompanionBuilder = MessagesCompanion Function({
+typedef $$MessagesTableCreateCompanionBuilder = MessagesCompanion Function({
   required String id,
   Value<String?> bskyID,
   Value<String?> revision,
@@ -1633,8 +1671,7 @@ class $$MessagesTableTableManager extends RootTableManager<
     Message,
     $$MessagesTableFilterComposer,
     $$MessagesTableOrderingComposer,
-    $$MessagesTableProcessedTableManager,
-    $$MessagesTableInsertCompanionBuilder,
+    $$MessagesTableCreateCompanionBuilder,
     $$MessagesTableUpdateCompanionBuilder> {
   $$MessagesTableTableManager(_$MessageDatabase db, $MessagesTable table)
       : super(TableManagerState(
@@ -1644,9 +1681,7 @@ class $$MessagesTableTableManager extends RootTableManager<
               $$MessagesTableFilterComposer(ComposerState(db, table)),
           orderingComposer:
               $$MessagesTableOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $$MessagesTableProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
+          updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String?> bskyID = const Value.absent(),
             Value<String?> revision = const Value.absent(),
@@ -1672,7 +1707,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             embed: embed,
             rowid: rowid,
           ),
-          getInsertCompanionBuilder: ({
+          createCompanionCallback: ({
             required String id,
             Value<String?> bskyID = const Value.absent(),
             Value<String?> revision = const Value.absent(),
@@ -1699,18 +1734,6 @@ class $$MessagesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
         ));
-}
-
-class $$MessagesTableProcessedTableManager extends ProcessedTableManager<
-    _$MessageDatabase,
-    $MessagesTable,
-    Message,
-    $$MessagesTableFilterComposer,
-    $$MessagesTableOrderingComposer,
-    $$MessagesTableProcessedTableManager,
-    $$MessagesTableInsertCompanionBuilder,
-    $$MessagesTableUpdateCompanionBuilder> {
-  $$MessagesTableProcessedTableManager(super.$state);
 }
 
 class $$MessagesTableFilterComposer
@@ -1849,7 +1872,7 @@ class $$MessagesTableOrderingComposer
   }
 }
 
-typedef $$ChatRoomsTableInsertCompanionBuilder = ChatRoomsCompanion Function({
+typedef $$ChatRoomsTableCreateCompanionBuilder = ChatRoomsCompanion Function({
   required String id,
   required String roomName,
   required String rev,
@@ -1882,8 +1905,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
     ChatRoom,
     $$ChatRoomsTableFilterComposer,
     $$ChatRoomsTableOrderingComposer,
-    $$ChatRoomsTableProcessedTableManager,
-    $$ChatRoomsTableInsertCompanionBuilder,
+    $$ChatRoomsTableCreateCompanionBuilder,
     $$ChatRoomsTableUpdateCompanionBuilder> {
   $$ChatRoomsTableTableManager(_$MessageDatabase db, $ChatRoomsTable table)
       : super(TableManagerState(
@@ -1893,9 +1915,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
               $$ChatRoomsTableFilterComposer(ComposerState(db, table)),
           orderingComposer:
               $$ChatRoomsTableOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $$ChatRoomsTableProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
+          updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> roomName = const Value.absent(),
             Value<String> rev = const Value.absent(),
@@ -1921,7 +1941,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
             avatar: avatar,
             rowid: rowid,
           ),
-          getInsertCompanionBuilder: ({
+          createCompanionCallback: ({
             required String id,
             required String roomName,
             required String rev,
@@ -1948,18 +1968,6 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
         ));
-}
-
-class $$ChatRoomsTableProcessedTableManager extends ProcessedTableManager<
-    _$MessageDatabase,
-    $ChatRoomsTable,
-    ChatRoom,
-    $$ChatRoomsTableFilterComposer,
-    $$ChatRoomsTableOrderingComposer,
-    $$ChatRoomsTableProcessedTableManager,
-    $$ChatRoomsTableInsertCompanionBuilder,
-    $$ChatRoomsTableUpdateCompanionBuilder> {
-  $$ChatRoomsTableProcessedTableManager(super.$state);
 }
 
 class $$ChatRoomsTableFilterComposer
@@ -2084,7 +2092,7 @@ class $$ChatRoomsTableOrderingComposer
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
-typedef $$ChatRoomMessagesTableInsertCompanionBuilder
+typedef $$ChatRoomMessagesTableCreateCompanionBuilder
     = ChatRoomMessagesCompanion Function({
   required String chatId,
   required String chatRoomId,
@@ -2103,8 +2111,7 @@ class $$ChatRoomMessagesTableTableManager extends RootTableManager<
     ChatRoomMessage,
     $$ChatRoomMessagesTableFilterComposer,
     $$ChatRoomMessagesTableOrderingComposer,
-    $$ChatRoomMessagesTableProcessedTableManager,
-    $$ChatRoomMessagesTableInsertCompanionBuilder,
+    $$ChatRoomMessagesTableCreateCompanionBuilder,
     $$ChatRoomMessagesTableUpdateCompanionBuilder> {
   $$ChatRoomMessagesTableTableManager(
       _$MessageDatabase db, $ChatRoomMessagesTable table)
@@ -2115,9 +2122,7 @@ class $$ChatRoomMessagesTableTableManager extends RootTableManager<
               $$ChatRoomMessagesTableFilterComposer(ComposerState(db, table)),
           orderingComposer:
               $$ChatRoomMessagesTableOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $$ChatRoomMessagesTableProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
+          updateCompanionCallback: ({
             Value<String> chatId = const Value.absent(),
             Value<String> chatRoomId = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -2127,7 +2132,7 @@ class $$ChatRoomMessagesTableTableManager extends RootTableManager<
             chatRoomId: chatRoomId,
             rowid: rowid,
           ),
-          getInsertCompanionBuilder: ({
+          createCompanionCallback: ({
             required String chatId,
             required String chatRoomId,
             Value<int> rowid = const Value.absent(),
@@ -2138,19 +2143,6 @@ class $$ChatRoomMessagesTableTableManager extends RootTableManager<
             rowid: rowid,
           ),
         ));
-}
-
-class $$ChatRoomMessagesTableProcessedTableManager
-    extends ProcessedTableManager<
-        _$MessageDatabase,
-        $ChatRoomMessagesTable,
-        ChatRoomMessage,
-        $$ChatRoomMessagesTableFilterComposer,
-        $$ChatRoomMessagesTableOrderingComposer,
-        $$ChatRoomMessagesTableProcessedTableManager,
-        $$ChatRoomMessagesTableInsertCompanionBuilder,
-        $$ChatRoomMessagesTableUpdateCompanionBuilder> {
-  $$ChatRoomMessagesTableProcessedTableManager(super.$state);
 }
 
 class $$ChatRoomMessagesTableFilterComposer
@@ -2209,9 +2201,9 @@ class $$ChatRoomMessagesTableOrderingComposer
   }
 }
 
-class _$MessageDatabaseManager {
+class $MessageDatabaseManager {
   final _$MessageDatabase _db;
-  _$MessageDatabaseManager(this._db);
+  $MessageDatabaseManager(this._db);
   $$SendersTableTableManager get senders =>
       $$SendersTableTableManager(_db, _db.senders);
   $$MessagesTableTableManager get messages =>

@@ -442,4 +442,10 @@ class MessageDatabase extends _$MessageDatabase {
       }
     }
   }
+
+  // Get message from local ID
+  Future<Message?> getMessageFromLocalID(String messageID) async {
+    final query = select(messages)..where((t) => t.id.equals(messageID));
+    return query.getSingleOrNull();
+  }
 }

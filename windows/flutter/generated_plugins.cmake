@@ -5,8 +5,6 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_windows
   flutter_secure_storage_windows
-  local_notifier
-  quick_notify_2
   sqlite3_flutter_libs
   url_launcher_windows
 )

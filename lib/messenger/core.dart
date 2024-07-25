@@ -4,16 +4,15 @@ import 'dart:typed_data';
 
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'
+    as n;
 import 'package:image_picker/image_picker.dart';
-import 'package:platform_local_notifications/platform_local_notifications.dart'
-    as notif;
 import 'package:http/http.dart' as http;
-
 import 'package:s5/s5.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
 import 'package:vup_chat/definitions/s5embed.dart';
-import 'package:vup_chat/functions/general.dart';
 import 'package:vup_chat/functions/thumbhash.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
@@ -25,6 +24,8 @@ class MsgCore {
   final Bluesky? bskySession;
   final BlueskyChat? bskyChatSessoion;
   final Lock _lock = Lock();
+  bool _firstSync = true;
+  n.FlutterLocalNotificationsPlugin? notifier;
 
   // Named constructor
   MsgCore.custom({
@@ -70,15 +71,14 @@ class MsgCore {
   }
 
   void _initNotifications() async {
-    await notif.PlatformNotifier.I.init(appName: "Vup Chat");
-    // check if you have already asked
-    final bool? notifAllow = preferences.getBool("notification-permissions");
-    if (notifAllow == null) {
-      bool? isAccepted = isDesktop()
-          ? true
-          : await notif.PlatformNotifier.I.requestPermissions();
-      preferences.setBool("notification-permissions", isAccepted ?? false);
-    }
+    notifier = n.FlutterLocalNotificationsPlugin();
+// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+    const n.LinuxInitializationSettings initializationSettingsLinux =
+        n.LinuxInitializationSettings(defaultActionName: 'Open notification');
+    const n.InitializationSettings initializationSettings =
+        n.InitializationSettings(linux: initializationSettingsLinux);
+    await notifier?.initialize(initializationSettings,
+        onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
   }
 
   Stream<List<ChatRoom>> subscribeChatRoom() {
@@ -269,13 +269,40 @@ class MsgCore {
           if (localMessageID == null) {}
           localMessageID ??=
               await db.insertMessageLocal(message.text, chatID, snd, null);
-          // TODO: This isn't updating to show persisted
-          final bool _ = await db.checkAndInsertMessageATProto(
+          final bool shouldNotify = await db.checkAndInsertMessageATProto(
               localMessageID, message, chatID, true, snd, null);
+          shouldNotify ? notifyUser(localMessageID, chatID) : null;
         }
       }
     } finally {
       _lock.release();
+      _firstSync = false;
+    }
+  }
+
+  Future<void> notifyUser(String localMessageID, String chatID) async {
+    // Check if this is first sync or not
+    // We don't want to spam the user with notifications from an initial sync
+    // when the app opens
+    if (!_firstSync) {
+      // Grab message & chat room from DB
+      final Message? msg = await db.getMessageFromLocalID(localMessageID);
+      final Sender? snd =
+          (msg != null) ? await db.getSenderByDID(msg.senderDid) : null;
+      final ChatRoom? chatRoom = await db.getChatRoomFromChatID(chatID);
+      if (msg != null &&
+          msg.senderDid != did &&
+          chatRoom != null &&
+          snd != null) {
+        // TODO: Figure out why icon isn't working...
+        n.LinuxNotificationDetails linuxDetails = n.LinuxNotificationDetails(
+            icon: n.AssetsLinuxIcon("static/icon.svg"));
+        n.NotificationDetails details =
+            n.NotificationDetails(linux: linuxDetails);
+        await notifier?.show(
+            0, chatRoom.roomName, "${snd.displayName}: ${msg.message}", details,
+            payload: msg.message);
+      }
     }
   }
 
@@ -295,5 +322,10 @@ class MsgCore {
 
   Future<void> setRoomName(String chatID, String newRoomName) async {
     db.changeRoomName(chatID, newRoomName);
+  }
+
+  Future<void> onDidReceiveNotificationResponse(
+      n.NotificationResponse resp) async {
+    logger.d("notifcation responded: $resp");
   }
 }
