@@ -6,7 +6,7 @@
 <component type="desktop-application">
   <id>app.vup.VupChat</id>
   <name>Vup Chat</name>
-  <summary>FLOSS messenger for Bluesky</summary>
+  <summary>Messenger for Bluesky</summary>
   <developer_name>covalent</developer_name>
   <url type="homepage">https://github.com/vup-app/vup-chat/</url>
   <metadata_license>CC-BY-4.0</metadata_license>
@@ -17,7 +17,7 @@
     <control>touch</control>
   </supports>
   <description>
-    <p>Modern messaging client build on ATProto.</p>
+    <p>Modern messaging client build on ATProto extended with S5 technology to allow for a larger featureset.</p>
   </description>
   <launchable type="desktop-id">app.vup.VupChat.desktop</launchable>
   <screenshots>
