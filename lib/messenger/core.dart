@@ -7,6 +7,8 @@ import 'dart:typed_data';
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     as n;
 import 'package:image_picker/image_picker.dart';
@@ -14,6 +16,7 @@ import 'package:http/http.dart' as http;
 import 'package:s5/s5.dart' as s5lib;
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
+import 'package:vup_chat/definitions/notificationPayload.dart';
 import 'package:vup_chat/definitions/s5embed.dart';
 import 'package:vup_chat/functions/thumbhash.dart';
 import 'package:vup_chat/main.dart';
@@ -28,9 +31,13 @@ class MsgCore {
   final Bluesky? bskySession;
   final BlueskyChat? bskyChatSessoion;
   final Lock _lock = Lock();
-  bool _firstSync = true;
+  bool _firstSync =
+      false; // disabled for now, TODO: find better way to not spam users on first sync
+  // handles notificaitons
   n.FlutterLocalNotificationsPlugin? notifier;
+  // Keeps track of notification channels
   Map<String, int> messageNotifChannels = {};
+  StreamSubscription<FGBGType>? subscription;
 
   // Named constructor
   MsgCore.custom({
@@ -293,7 +300,16 @@ class MsgCore {
     // Check if this is first sync or not
     // We don't want to spam the user with notifications from an initial sync
     // when the app opens
-    if (!_firstSync) {
+
+    final bool allowNotifGlobal =
+        (preferences.getBool("notif-global") ?? false);
+    logger.d(
+        "(!$_firstSync && ($inBackground || ${chatID != currentChatID}) && $allowNotifGlobal)");
+
+    if (!_firstSync &&
+        (inBackground || chatID != currentChatID) &&
+        allowNotifGlobal) {
+      logger.d("got in");
       // Grab message & chat room from DB
       final Message? msg = await db.getMessageFromLocalID(localMessageID);
       final Sender? snd =
@@ -308,18 +324,26 @@ class MsgCore {
         n.LinuxNotificationDetails linuxDetails = n.LinuxNotificationDetails(
             icon: n.AssetsLinuxIcon("static/icon.svg"));
         // ANDROID CONFIG
-        n.Person me = n.Person(name: snd.displayName);
-        final n.MessagingStyleInformation messagingStyle =
-            n.MessagingStyleInformation(
-          me,
-          groupConversation: true,
-        );
-
         n.AndroidNotificationDetails androidNotificationDetails =
-            n.AndroidNotificationDetails(chatRoom.id, chatRoom.roomName,
-                priority: n.Priority.high,
-                ticker: 'ticker',
-                category: n.AndroidNotificationCategory.message);
+            n.AndroidNotificationDetails(
+          chatRoom.id,
+          chatRoom.roomName,
+          priority: n.Priority.high,
+          ticker: 'ticker',
+          category: n.AndroidNotificationCategory.message,
+          actions: <n.AndroidNotificationAction>[
+            const n.AndroidNotificationAction(
+              'text_id_1',
+              'Reply',
+              showsUserInterface: true,
+              inputs: <n.AndroidNotificationActionInput>[
+                n.AndroidNotificationActionInput(
+                  label: 'Enter a message',
+                ),
+              ],
+            ),
+          ],
+        );
         n.NotificationDetails details = n.NotificationDetails(
             linux: linuxDetails, android: androidNotificationDetails);
         // checks if notif channel exists, if it doesn't create it
@@ -335,9 +359,12 @@ class MsgCore {
           messageNotifChannels[chatRoom.id] = idStart;
           channel = idStart;
         }
-        await notifier?.show(channel, chatRoom.roomName,
+        final payload =
+            jsonEncode(NotificationPayload(did: snd.did, chatID: chatID))
+                .toString();
+        await notifier!.show(channel, chatRoom.roomName,
             "${snd.displayName}: ${msg.message}", details,
-            payload: chatRoom.id);
+            payload: payload);
       }
     }
   }
@@ -362,15 +389,43 @@ class MsgCore {
 
   Future<void> onDidReceiveNotificationResponse(
       n.NotificationResponse resp) async {
+    // Check for payload
     if (resp.payload != null && resp.payload!.isNotEmpty) {
-      vupSplitViewKey.currentState?.pushAndRemoveUntil(
-          MaterialPageRoute(
-              builder: (context) => ChatIndividualPage(id: resp.payload!)),
-          (Route<dynamic> route) => route.isFirst);
-    } else {
-      vupSplitViewKey.currentState?.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const InitRouter()),
-          (Route<dynamic> route) => route.isFirst);
+      try {
+        NotificationPayload payload =
+            NotificationPayload.fromJson(jsonDecode(resp.payload!));
+
+        // If there is an action and an attached message, send that as a message
+        if (resp.notificationResponseType ==
+                n.NotificationResponseType.selectedNotificationAction &&
+            resp.input != null &&
+            resp.input!.isNotEmpty) {
+          final Sender? snd = await msg?.getSenderFromDID(payload.did!);
+          if (snd != null) {
+            sendMessage(
+              resp.input!,
+              payload.chatID,
+              snd,
+            );
+          }
+        }
+        // If the notification is simply clicked on, go to the chat channel
+        // TODO: Figure out why pushing from this context creates dirty build state
+        else if (resp.notificationResponseType ==
+            n.NotificationResponseType.selectedNotification) {
+          vupSplitViewKey.currentState?.pushAndRemoveUntil(
+            MaterialPageRoute(
+                builder: (context) => ChatIndividualPage(id: payload.chatID)),
+            (Route<dynamic> route) => route.isFirst,
+          );
+        } else {
+          vupSplitViewKey.currentState?.pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const InitRouter()),
+              (Route<dynamic> route) => route.isFirst);
+        }
+      } catch (e) {
+        logger.e("Failed to fetch payload: $e");
+      }
     }
   }
 

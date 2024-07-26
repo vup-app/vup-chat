@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:path/path.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
@@ -41,6 +43,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     _getChatRoomData();
     _showScrollToBottom = (widget.messageIdToScrollTo == null) ? false : true;
     _scrollOffsetTracker();
+    currentChatID = widget.id;
     super.initState();
   }
 
@@ -49,6 +52,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     _timer?.cancel();
     _messageController.dispose();
     _subscription?.cancel();
+    currentChatID = "";
     super.dispose();
   }
 
@@ -231,9 +235,14 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                     Expanded(
                       child: TextField(
                         controller: _messageController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'Type a message',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20.h),
+                            borderSide: BorderSide(
+                              width: 1.h,
+                            ),
+                          ),
                         ),
                         textInputAction: TextInputAction.go,
                         onSubmitted: (_) => _sendmsg(),

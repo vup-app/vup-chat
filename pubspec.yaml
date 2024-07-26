@@ -47,6 +47,7 @@ dependencies:
   http: ^1.2.1
   uuid: ^4.4.2
   flutter_local_notifications: ^17.2.1+2
+  flutter_fgbg: ^0.3.0
 
 dev_dependencies:
   flutter_test:

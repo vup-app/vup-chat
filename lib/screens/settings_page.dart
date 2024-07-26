@@ -21,8 +21,7 @@ class SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     setState(() {
-      globalNotifications =
-          preferences.getBool("notification-permissions") ?? false;
+      globalNotifications = preferences.getBool("notif-global") ?? false;
     });
   }
 
@@ -35,14 +34,6 @@ class SettingsPageState extends State<SettingsPage> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // desktop mode switch
-          const Row(
-            children: [
-              SizedBox(height: 20),
-              Text('Desktop Mode: '),
-              DesktopModeSwitch(),
-            ],
-          ),
           // enable global notifications switch
           Row(
             children: [
@@ -54,7 +45,7 @@ class SettingsPageState extends State<SettingsPage> {
                   setState(() {
                     globalNotifications = val;
                   });
-                  preferences.setBool("notification-permissions", val);
+                  preferences.setBool("notif-global", val);
                 },
               )
             ],

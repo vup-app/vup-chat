@@ -1,8 +1,14 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:based_splash_page/based_splash_page.dart';
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/src/widgets/navigator.dart' as nav;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -28,6 +34,8 @@ Bluesky? session;
 BlueskyChat? chatSession;
 S5? s5;
 String? did;
+bool inBackground = false;
+String currentChatID = "";
 
 void main() async {
   // grab login credentials and try to log in
@@ -56,6 +64,7 @@ class VupChat extends StatefulWidget {
 
 class VupChatState extends State<VupChat> {
   final ThemeMode _themeMode = ThemeMode.system;
+  late StreamSubscription<FGBGType> subscription;
 
   // void _toggleTheme() {
   //   setState(() {
@@ -63,6 +72,29 @@ class VupChatState extends State<VupChat> {
   //         _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
   //   });
   // }
+
+  @override
+  void initState() {
+    if (Platform.isAndroid || Platform.isIOS) {
+      subscription = FGBGEvents.stream.listen((event) {
+        switch (event) {
+          case FGBGType.foreground:
+            inBackground = false;
+          case FGBGType.background:
+            inBackground = true;
+        }
+      });
+    }
+
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    subscription.cancel();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
