@@ -303,9 +303,10 @@ class MsgCore {
 
     final bool allowNotifGlobal =
         (preferences.getBool("notif-global") ?? false);
-    logger.d(
-        "(!$_firstSync && ($inBackground || ${chatID != currentChatID}) && $allowNotifGlobal)");
-
+    // Params:
+    // - NOT the first sync
+    // - IN the background OR the current chat isn't the focused one
+    // - Global Notifications are allowed
     if (!_firstSync &&
         (inBackground || chatID != currentChatID) &&
         allowNotifGlobal) {
