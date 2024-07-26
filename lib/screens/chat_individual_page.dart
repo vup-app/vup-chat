@@ -99,9 +99,10 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   }
 
   void _sendmsg() async {
-    await msg!.sendMessage(_messageController.text, widget.id,
-        (await msg!.getSenderFromDID(did!)));
+    final String tmpText = _messageController.text;
     _messageController.clear();
+    await msg!
+        .sendMessage(tmpText, widget.id, (await msg!.getSenderFromDID(did!)));
     _scrollToBottom();
   }
 
