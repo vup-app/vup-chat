@@ -1,3 +1,4 @@
+import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vup_chat/main.dart';
@@ -19,17 +20,42 @@ class ChatInfoPage extends StatefulWidget {
 class _ChatInfoPageState extends State<ChatInfoPage> {
   late ChatRoom _chatRoomData;
   List<Sender>? _senders;
+  int _callNotificationSliderState = 0;
+  int _textNotificationSliderState = 0;
+  final List<String> _notificationOptions = ["disable", "silent", "normal"];
 
   @override
   void initState() {
     _chatRoomData = widget.chatRoomData;
+    _getNotificationLevels();
     msg!.getSendersFromDIDList(widget.chatRoomData.members).then((val) {
       setState(() {
         _senders = val;
-        logger.d(_senders);
       });
     });
     super.initState();
+  }
+
+  Future<void> _getNotificationLevels() async {
+    final List<String> prevNotificationLevels =
+        widget.chatRoomData.notificationLevel.split("-");
+    setState(() {
+      try {
+        _callNotificationSliderState =
+            _notificationOptions.indexOf(prevNotificationLevels[0]);
+        _textNotificationSliderState =
+            _notificationOptions.indexOf(prevNotificationLevels[1]);
+      } catch (e) {
+        logger.e("Failed to parse notification levels");
+      }
+    });
+  }
+
+  Future<void> _persistNotificationState() async {
+    await msg?.db.setNotificationLevel(
+        widget.chatRoomData.id,
+        _notificationOptions[_callNotificationSliderState],
+        _notificationOptions[_textNotificationSliderState]);
   }
 
   @override
@@ -120,7 +146,88 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                         }
                         return null;
                       }),
-            )
+            ),
+            const Center(
+              child: Text("Notifications:"),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.call),
+                const SizedBox(
+                  width: 10,
+                ),
+                AnimatedToggleSwitch.size(
+                  current: _callNotificationSliderState,
+                  iconAnimationType: AnimationType.onHover,
+                  onChanged: (value) {
+                    setState(() {
+                      _callNotificationSliderState = value;
+                    });
+                    _persistNotificationState();
+                  },
+                  values: const [0, 1, 2],
+                  customIconBuilder: (context, local, global) {
+                    return Text(_notificationOptions[local.value]);
+                  },
+                  indicatorSize: const Size.fromWidth(120),
+                  style: ToggleStyle(
+                    indicatorColor: Theme.of(context).primaryColor,
+                    borderColor: Colors.transparent,
+                    borderRadius: BorderRadius.circular(10.0),
+                    boxShadow: [
+                      const BoxShadow(
+                        color: Colors.black26,
+                        spreadRadius: 1,
+                        blurRadius: 2,
+                        offset: Offset(0, 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.message),
+                const SizedBox(
+                  width: 10,
+                ),
+                AnimatedToggleSwitch.size(
+                  current: _textNotificationSliderState,
+                  iconAnimationType: AnimationType.onHover,
+                  onChanged: (value) {
+                    setState(() {
+                      _textNotificationSliderState = value;
+                    });
+                    _persistNotificationState();
+                  },
+                  values: const [0, 1, 2],
+                  customIconBuilder: (context, local, global) {
+                    return Text(_notificationOptions[local.value]);
+                  },
+                  indicatorSize: const Size.fromWidth(120),
+                  style: ToggleStyle(
+                    indicatorColor: Theme.of(context).primaryColor,
+                    borderColor: Colors.transparent,
+                    borderRadius: BorderRadius.circular(10.0),
+                    boxShadow: [
+                      const BoxShadow(
+                        color: Colors.black26,
+                        spreadRadius: 1,
+                        blurRadius: 2,
+                        offset: Offset(0, 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
             // TODO: Display media & Links like whatsapp
           ],
         ));

@@ -212,20 +212,24 @@ class MsgCore {
 
   Future<void> toggleChatMutes(List<String> chatIDs) async {
     for (String chatID in chatIDs) {
-      // modes
-      // 1: Mute
-      // 2: Unmute
-      // 3: Toggle -> default for now
-      await db.chatMuteHelper(chatID, 3);
-
-      // gotta check current state in db and write that to bsky
-      bool? currMuted = await db.isMuted(chatID);
-      if (currMuted == false) {
-        // if null just assume it's not muted to not mess up remote state
-        await chatSession!.convo.unmuteConvo(convoId: chatID);
+      // get the chatroom info for each
+      final ChatRoom? chatRoom = await db.getChatRoomFromChatID(chatID);
+      if (chatRoom != null) {
+        final List<String> notifLevels = chatRoom.notificationLevel.split("-");
+        final bool currMuted =
+            (notifLevels[0] == "disable") && (notifLevels[1] == "disable");
+        // invert this because we're toggling and flipping
+        if (currMuted == true) {
+          // if null just assume it's not muted to not mess up remote state
+          await chatSession!.convo.unmuteConvo(convoId: chatID);
+          await db.setNotificationLevel(chatID, "normal", "normal");
+        } else {
+          // should cover all cases
+          await chatSession!.convo.muteConvo(convoId: chatID);
+          await db.setNotificationLevel(chatID, "disable", "disable");
+        }
       } else {
-        // should cover all cases
-        await chatSession!.convo.muteConvo(convoId: chatID);
+        logger.e("failed to fetch chatroom");
       }
     }
   }
@@ -287,7 +291,7 @@ class MsgCore {
               await db.insertMessageLocal(message.text, chatID, snd, null);
           final bool shouldNotify = await db.checkAndInsertMessageATProto(
               localMessageID, message, chatID, true, snd, null);
-          shouldNotify ? notifyUser(localMessageID, chatID) : null;
+          shouldNotify ? notifyUserOfMessage(localMessageID, chatID) : null;
         }
       }
     } finally {
@@ -296,30 +300,34 @@ class MsgCore {
     }
   }
 
-  Future<void> notifyUser(String localMessageID, String chatID) async {
+  Future<void> notifyUserOfMessage(String localMessageID, String chatID) async {
     // Check if this is first sync or not
     // We don't want to spam the user with notifications from an initial sync
     // when the app opens
 
     final bool allowNotifGlobal =
         (preferences.getBool("notif-global") ?? false);
+
+    // Get chatRoom from DB
+    final ChatRoom? chatRoom = await db.getChatRoomFromChatID(chatID);
+
     // Params:
+    // - ChatRoom is NOT null
     // - NOT the first sync
     // - IN the background OR the current chat isn't the focused one
     // - Global Notifications are allowed
-    if (!_firstSync &&
+    // - Per message notifications are enabled
+    if (chatRoom != null &&
+        !_firstSync &&
         (inBackground || chatID != currentChatID) &&
-        allowNotifGlobal) {
-      logger.d("got in");
-      // Grab message & chat room from DB
+        allowNotifGlobal &&
+        (chatRoom.notificationLevel.split("-")[1] != "disable")) {
+      // Grab message from DB
       final Message? msg = await db.getMessageFromLocalID(localMessageID);
       final Sender? snd =
           (msg != null) ? await db.getSenderByDID(msg.senderDid) : null;
-      final ChatRoom? chatRoom = await db.getChatRoomFromChatID(chatID);
-      if (msg != null &&
-          msg.senderDid != did &&
-          chatRoom != null &&
-          snd != null) {
+
+      if (msg != null && msg.senderDid != did && snd != null) {
         // LINUX CONFIG
         // TODO: Figure out why icon isn't working on linux
         n.LinuxNotificationDetails linuxDetails = n.LinuxNotificationDetails(

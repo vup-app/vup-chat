@@ -823,15 +823,14 @@ class $ChatRoomsTable extends ChatRooms
   late final GeneratedColumn<String> lastMessage = GeneratedColumn<String>(
       'last_message', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _mutedMeta = const VerificationMeta('muted');
+  static const VerificationMeta _notificationLevelMeta =
+      const VerificationMeta('notificationLevel');
   @override
-  late final GeneratedColumn<bool> muted = GeneratedColumn<bool>(
-      'muted', aliasedName, false,
-      type: DriftSqlType.bool,
-      requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('CHECK ("muted" IN (0, 1))'),
-      defaultValue: const Constant(false));
+  late final GeneratedColumn<String> notificationLevel =
+      GeneratedColumn<String>('notification_level', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant("normal-normal"));
   static const VerificationMeta _hiddenMeta = const VerificationMeta('hidden');
   @override
   late final GeneratedColumn<bool> hidden = GeneratedColumn<bool>(
@@ -867,7 +866,7 @@ class $ChatRoomsTable extends ChatRooms
         rev,
         members,
         lastMessage,
-        muted,
+        notificationLevel,
         hidden,
         unreadCount,
         lastUpdated,
@@ -914,9 +913,11 @@ class $ChatRoomsTable extends ChatRooms
     } else if (isInserting) {
       context.missing(_lastMessageMeta);
     }
-    if (data.containsKey('muted')) {
+    if (data.containsKey('notification_level')) {
       context.handle(
-          _mutedMeta, muted.isAcceptableOrUnknown(data['muted']!, _mutedMeta));
+          _notificationLevelMeta,
+          notificationLevel.isAcceptableOrUnknown(
+              data['notification_level']!, _notificationLevelMeta));
     }
     if (data.containsKey('hidden')) {
       context.handle(_hiddenMeta,
@@ -959,8 +960,8 @@ class $ChatRoomsTable extends ChatRooms
           .read(DriftSqlType.string, data['${effectivePrefix}members'])!,
       lastMessage: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}last_message'])!,
-      muted: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}muted'])!,
+      notificationLevel: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}notification_level'])!,
       hidden: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}hidden'])!,
       unreadCount: attachedDatabase.typeMapping
@@ -984,7 +985,13 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
   final String rev;
   final String members;
   final String lastMessage;
-  final bool muted;
+
+  /// Notification Level:
+  /// First: Call level
+  /// Second: Message level
+  /// Options: [disable, silent, normal]
+  /// Ex: silent-normal -> Silenced calls & normal text
+  final String notificationLevel;
   final bool hidden;
   final int unreadCount;
   final DateTime lastUpdated;
@@ -995,7 +1002,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       required this.rev,
       required this.members,
       required this.lastMessage,
-      required this.muted,
+      required this.notificationLevel,
       required this.hidden,
       required this.unreadCount,
       required this.lastUpdated,
@@ -1008,7 +1015,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     map['rev'] = Variable<String>(rev);
     map['members'] = Variable<String>(members);
     map['last_message'] = Variable<String>(lastMessage);
-    map['muted'] = Variable<bool>(muted);
+    map['notification_level'] = Variable<String>(notificationLevel);
     map['hidden'] = Variable<bool>(hidden);
     map['unread_count'] = Variable<int>(unreadCount);
     map['last_updated'] = Variable<DateTime>(lastUpdated);
@@ -1025,7 +1032,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       rev: Value(rev),
       members: Value(members),
       lastMessage: Value(lastMessage),
-      muted: Value(muted),
+      notificationLevel: Value(notificationLevel),
       hidden: Value(hidden),
       unreadCount: Value(unreadCount),
       lastUpdated: Value(lastUpdated),
@@ -1043,7 +1050,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       rev: serializer.fromJson<String>(json['rev']),
       members: serializer.fromJson<String>(json['members']),
       lastMessage: serializer.fromJson<String>(json['lastMessage']),
-      muted: serializer.fromJson<bool>(json['muted']),
+      notificationLevel: serializer.fromJson<String>(json['notificationLevel']),
       hidden: serializer.fromJson<bool>(json['hidden']),
       unreadCount: serializer.fromJson<int>(json['unreadCount']),
       lastUpdated: serializer.fromJson<DateTime>(json['lastUpdated']),
@@ -1059,7 +1066,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       'rev': serializer.toJson<String>(rev),
       'members': serializer.toJson<String>(members),
       'lastMessage': serializer.toJson<String>(lastMessage),
-      'muted': serializer.toJson<bool>(muted),
+      'notificationLevel': serializer.toJson<String>(notificationLevel),
       'hidden': serializer.toJson<bool>(hidden),
       'unreadCount': serializer.toJson<int>(unreadCount),
       'lastUpdated': serializer.toJson<DateTime>(lastUpdated),
@@ -1073,7 +1080,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           String? rev,
           String? members,
           String? lastMessage,
-          bool? muted,
+          String? notificationLevel,
           bool? hidden,
           int? unreadCount,
           DateTime? lastUpdated,
@@ -1084,7 +1091,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
         rev: rev ?? this.rev,
         members: members ?? this.members,
         lastMessage: lastMessage ?? this.lastMessage,
-        muted: muted ?? this.muted,
+        notificationLevel: notificationLevel ?? this.notificationLevel,
         hidden: hidden ?? this.hidden,
         unreadCount: unreadCount ?? this.unreadCount,
         lastUpdated: lastUpdated ?? this.lastUpdated,
@@ -1098,7 +1105,9 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       members: data.members.present ? data.members.value : this.members,
       lastMessage:
           data.lastMessage.present ? data.lastMessage.value : this.lastMessage,
-      muted: data.muted.present ? data.muted.value : this.muted,
+      notificationLevel: data.notificationLevel.present
+          ? data.notificationLevel.value
+          : this.notificationLevel,
       hidden: data.hidden.present ? data.hidden.value : this.hidden,
       unreadCount:
           data.unreadCount.present ? data.unreadCount.value : this.unreadCount,
@@ -1116,7 +1125,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           ..write('rev: $rev, ')
           ..write('members: $members, ')
           ..write('lastMessage: $lastMessage, ')
-          ..write('muted: $muted, ')
+          ..write('notificationLevel: $notificationLevel, ')
           ..write('hidden: $hidden, ')
           ..write('unreadCount: $unreadCount, ')
           ..write('lastUpdated: $lastUpdated, ')
@@ -1126,8 +1135,17 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
   }
 
   @override
-  int get hashCode => Object.hash(id, roomName, rev, members, lastMessage,
-      muted, hidden, unreadCount, lastUpdated, $driftBlobEquality.hash(avatar));
+  int get hashCode => Object.hash(
+      id,
+      roomName,
+      rev,
+      members,
+      lastMessage,
+      notificationLevel,
+      hidden,
+      unreadCount,
+      lastUpdated,
+      $driftBlobEquality.hash(avatar));
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1137,7 +1155,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           other.rev == this.rev &&
           other.members == this.members &&
           other.lastMessage == this.lastMessage &&
-          other.muted == this.muted &&
+          other.notificationLevel == this.notificationLevel &&
           other.hidden == this.hidden &&
           other.unreadCount == this.unreadCount &&
           other.lastUpdated == this.lastUpdated &&
@@ -1150,7 +1168,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
   final Value<String> rev;
   final Value<String> members;
   final Value<String> lastMessage;
-  final Value<bool> muted;
+  final Value<String> notificationLevel;
   final Value<bool> hidden;
   final Value<int> unreadCount;
   final Value<DateTime> lastUpdated;
@@ -1162,7 +1180,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     this.rev = const Value.absent(),
     this.members = const Value.absent(),
     this.lastMessage = const Value.absent(),
-    this.muted = const Value.absent(),
+    this.notificationLevel = const Value.absent(),
     this.hidden = const Value.absent(),
     this.unreadCount = const Value.absent(),
     this.lastUpdated = const Value.absent(),
@@ -1175,7 +1193,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     required String rev,
     required String members,
     required String lastMessage,
-    this.muted = const Value.absent(),
+    this.notificationLevel = const Value.absent(),
     this.hidden = const Value.absent(),
     this.unreadCount = const Value.absent(),
     required DateTime lastUpdated,
@@ -1193,7 +1211,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     Expression<String>? rev,
     Expression<String>? members,
     Expression<String>? lastMessage,
-    Expression<bool>? muted,
+    Expression<String>? notificationLevel,
     Expression<bool>? hidden,
     Expression<int>? unreadCount,
     Expression<DateTime>? lastUpdated,
@@ -1206,7 +1224,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
       if (rev != null) 'rev': rev,
       if (members != null) 'members': members,
       if (lastMessage != null) 'last_message': lastMessage,
-      if (muted != null) 'muted': muted,
+      if (notificationLevel != null) 'notification_level': notificationLevel,
       if (hidden != null) 'hidden': hidden,
       if (unreadCount != null) 'unread_count': unreadCount,
       if (lastUpdated != null) 'last_updated': lastUpdated,
@@ -1221,7 +1239,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
       Value<String>? rev,
       Value<String>? members,
       Value<String>? lastMessage,
-      Value<bool>? muted,
+      Value<String>? notificationLevel,
       Value<bool>? hidden,
       Value<int>? unreadCount,
       Value<DateTime>? lastUpdated,
@@ -1233,7 +1251,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
       rev: rev ?? this.rev,
       members: members ?? this.members,
       lastMessage: lastMessage ?? this.lastMessage,
-      muted: muted ?? this.muted,
+      notificationLevel: notificationLevel ?? this.notificationLevel,
       hidden: hidden ?? this.hidden,
       unreadCount: unreadCount ?? this.unreadCount,
       lastUpdated: lastUpdated ?? this.lastUpdated,
@@ -1260,8 +1278,8 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     if (lastMessage.present) {
       map['last_message'] = Variable<String>(lastMessage.value);
     }
-    if (muted.present) {
-      map['muted'] = Variable<bool>(muted.value);
+    if (notificationLevel.present) {
+      map['notification_level'] = Variable<String>(notificationLevel.value);
     }
     if (hidden.present) {
       map['hidden'] = Variable<bool>(hidden.value);
@@ -1289,7 +1307,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
           ..write('rev: $rev, ')
           ..write('members: $members, ')
           ..write('lastMessage: $lastMessage, ')
-          ..write('muted: $muted, ')
+          ..write('notificationLevel: $notificationLevel, ')
           ..write('hidden: $hidden, ')
           ..write('unreadCount: $unreadCount, ')
           ..write('lastUpdated: $lastUpdated, ')
@@ -1878,7 +1896,7 @@ typedef $$ChatRoomsTableCreateCompanionBuilder = ChatRoomsCompanion Function({
   required String rev,
   required String members,
   required String lastMessage,
-  Value<bool> muted,
+  Value<String> notificationLevel,
   Value<bool> hidden,
   Value<int> unreadCount,
   required DateTime lastUpdated,
@@ -1891,7 +1909,7 @@ typedef $$ChatRoomsTableUpdateCompanionBuilder = ChatRoomsCompanion Function({
   Value<String> rev,
   Value<String> members,
   Value<String> lastMessage,
-  Value<bool> muted,
+  Value<String> notificationLevel,
   Value<bool> hidden,
   Value<int> unreadCount,
   Value<DateTime> lastUpdated,
@@ -1921,7 +1939,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
             Value<String> rev = const Value.absent(),
             Value<String> members = const Value.absent(),
             Value<String> lastMessage = const Value.absent(),
-            Value<bool> muted = const Value.absent(),
+            Value<String> notificationLevel = const Value.absent(),
             Value<bool> hidden = const Value.absent(),
             Value<int> unreadCount = const Value.absent(),
             Value<DateTime> lastUpdated = const Value.absent(),
@@ -1934,7 +1952,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
             rev: rev,
             members: members,
             lastMessage: lastMessage,
-            muted: muted,
+            notificationLevel: notificationLevel,
             hidden: hidden,
             unreadCount: unreadCount,
             lastUpdated: lastUpdated,
@@ -1947,7 +1965,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
             required String rev,
             required String members,
             required String lastMessage,
-            Value<bool> muted = const Value.absent(),
+            Value<String> notificationLevel = const Value.absent(),
             Value<bool> hidden = const Value.absent(),
             Value<int> unreadCount = const Value.absent(),
             required DateTime lastUpdated,
@@ -1960,7 +1978,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
             rev: rev,
             members: members,
             lastMessage: lastMessage,
-            muted: muted,
+            notificationLevel: notificationLevel,
             hidden: hidden,
             unreadCount: unreadCount,
             lastUpdated: lastUpdated,
@@ -1998,8 +2016,8 @@ class $$ChatRoomsTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
-  ColumnFilters<bool> get muted => $state.composableBuilder(
-      column: $state.table.muted,
+  ColumnFilters<String> get notificationLevel => $state.composableBuilder(
+      column: $state.table.notificationLevel,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -2066,8 +2084,8 @@ class $$ChatRoomsTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
-  ColumnOrderings<bool> get muted => $state.composableBuilder(
-      column: $state.table.muted,
+  ColumnOrderings<String> get notificationLevel => $state.composableBuilder(
+      column: $state.table.notificationLevel,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

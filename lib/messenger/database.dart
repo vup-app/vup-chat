@@ -61,44 +61,42 @@ class MessageDatabase extends _$MessageDatabase {
         .write(ChatRoomsCompanion(roomName: Value(newRoomName)));
   }
 
-  // Toggle Mute
-  Future<void> chatMuteHelper(String chatID, int mode) async {
-    // 1: mute
-    // 2: unmute
-    // 3: toggle
-    switch (mode) {
-      case 1:
-        {
-          await (update(chatRooms)..where((t) => t.id.equals(chatID)))
-              .write(const ChatRoomsCompanion(muted: Value(true)));
+  // Change Notification Level
+  Future<void> setNotificationLevel(
+      String chatID, String? callLevel, String? messageLevel) async {
+    // Check if there are inputs set to the function
+    final bool validateNewCallLevel = (callLevel != null &&
+        (callLevel == "disable" ||
+            callLevel == "silent" ||
+            callLevel == "normal"));
+    final bool validateNewMessageLevel = (messageLevel != null &&
+        (messageLevel == "disable" ||
+            messageLevel == "silent" ||
+            messageLevel == "normal"));
+    if (validateNewCallLevel || validateNewMessageLevel) {
+      // Get the current chatRoom and check it's notification level
+      final ChatRoom? chatRoom = await (select(chatRooms)
+            ..where((t) => t.id.equals(chatID)))
+          .getSingleOrNull();
+      if (chatRoom != null) {
+        // Now construct the new notification level string
+        final List<String> splitNotificationLevel =
+            chatRoom.notificationLevel.split("-");
+        late String newNoticiationLevel;
+        if (validateNewCallLevel && validateNewMessageLevel) {
+          newNoticiationLevel = "$callLevel-$messageLevel";
+        } else if (validateNewCallLevel && !validateNewMessageLevel) {
+          newNoticiationLevel = "$callLevel-${splitNotificationLevel[1]}";
+        } else if (!validateNewCallLevel && validateNewMessageLevel) {
+          newNoticiationLevel = "${splitNotificationLevel[0]}-$messageLevel";
+        } else {
+          newNoticiationLevel =
+              "${splitNotificationLevel[0]}-${splitNotificationLevel[1]}";
         }
-      case 2:
-        {
-          await (update(chatRooms)..where((t) => t.id.equals(chatID)))
-              .write(const ChatRoomsCompanion(muted: Value(false)));
-        }
-      case 3:
-        {
-          bool? curMuted = await isMuted(chatID);
-          if (curMuted != null) {
-            // Inverter ternary switch (probably works)
-            await (update(chatRooms)..where((t) => t.id.equals(chatID))).write(
-                ChatRoomsCompanion(muted: Value(curMuted ? false : true)));
-          }
-        }
-      default:
-        return; // this should never be reached
-    }
-  }
-
-  // Checks if muted currently
-  Future<bool?> isMuted(String chatID) async {
-    final query = select(chatRooms)..where((t) => t.id.equals(chatID));
-    final res = await query.getSingleOrNull();
-    if (res != null) {
-      return res.muted;
-    } else {
-      return null;
+        // And update the chatRoom
+        await (update(chatRooms)..where((t) => t.id.equals(chatID))).write(
+            ChatRoomsCompanion(notificationLevel: Value(newNoticiationLevel)));
+      }
     }
   }
 
@@ -413,7 +411,6 @@ class MessageDatabase extends _$MessageDatabase {
               rev: convo.rev,
               members: json.encode(members),
               lastMessage: json.encode(lastMessageJson),
-              muted: Value(convo.muted),
               hidden: const Value(false),
               unreadCount: Value(convo.unreadCount),
               lastUpdated: lastMessage.sentAt,
@@ -432,7 +429,6 @@ class MessageDatabase extends _$MessageDatabase {
               rev: convo.rev,
               members: json.encode(members),
               lastMessage: chatRoomExists?.lastMessage ?? "",
-              muted: Value(convo.muted),
               hidden: const Value(false),
               unreadCount: Value(convo.unreadCount),
               lastUpdated: chatRoomExists?.lastUpdated ?? DateTime(0),

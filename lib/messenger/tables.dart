@@ -35,7 +35,14 @@ class ChatRooms extends Table {
   TextColumn get rev => text()();
   TextColumn get members => text()(); // Serialized JSON
   TextColumn get lastMessage => text()(); // Serialized JSON
-  BoolColumn get muted => boolean().withDefault(const Constant(false))();
+
+  /// Notification Level:
+  /// First: Call level
+  /// Second: Message level
+  /// Options: [disable, silent, normal]
+  /// Ex: silent-normal -> Silenced calls & normal text
+  TextColumn get notificationLevel =>
+      text().withDefault(const Constant("normal-normal"))();
   BoolColumn get hidden => boolean().withDefault(const Constant(false))();
   IntColumn get unreadCount => integer().withDefault(const Constant(0))();
   DateTimeColumn get lastUpdated => dateTime()();

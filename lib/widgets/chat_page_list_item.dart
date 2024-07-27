@@ -57,7 +57,7 @@ class ChatRoomListItemState extends State<ChatRoomListItem> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            (widget.chat.muted)
+            (widget.chat.notificationLevel.split("-")[1] == "disable")
                 ? const Icon(Icons.notifications_off_outlined)
                 : Container(),
             SmartDateTimeWidget(dateTime: widget.chat.lastUpdated)
