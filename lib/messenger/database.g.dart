@@ -353,6 +353,16 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
   late final GeneratedColumn<String> embed = GeneratedColumn<String>(
       'embed', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _starredMeta =
+      const VerificationMeta('starred');
+  @override
+  late final GeneratedColumn<bool> starred = GeneratedColumn<bool>(
+      'starred', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("starred" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -364,7 +374,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
         sentAt,
         persisted,
         read,
-        embed
+        embed,
+        starred
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -425,6 +436,10 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
     } else if (isInserting) {
       context.missing(_embedMeta);
     }
+    if (data.containsKey('starred')) {
+      context.handle(_starredMeta,
+          starred.isAcceptableOrUnknown(data['starred']!, _starredMeta));
+    }
     return context;
   }
 
@@ -454,6 +469,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
           .read(DriftSqlType.bool, data['${effectivePrefix}read'])!,
       embed: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}embed'])!,
+      starred: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}starred'])!,
     );
   }
 
@@ -474,6 +491,7 @@ class Message extends DataClass implements Insertable<Message> {
   final bool persisted;
   final bool read;
   final String embed;
+  final bool starred;
   const Message(
       {required this.id,
       this.bskyID,
@@ -484,7 +502,8 @@ class Message extends DataClass implements Insertable<Message> {
       required this.sentAt,
       required this.persisted,
       required this.read,
-      required this.embed});
+      required this.embed,
+      required this.starred});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -504,6 +523,7 @@ class Message extends DataClass implements Insertable<Message> {
     map['persisted'] = Variable<bool>(persisted);
     map['read'] = Variable<bool>(read);
     map['embed'] = Variable<String>(embed);
+    map['starred'] = Variable<bool>(starred);
     return map;
   }
 
@@ -524,6 +544,7 @@ class Message extends DataClass implements Insertable<Message> {
       persisted: Value(persisted),
       read: Value(read),
       embed: Value(embed),
+      starred: Value(starred),
     );
   }
 
@@ -541,6 +562,7 @@ class Message extends DataClass implements Insertable<Message> {
       persisted: serializer.fromJson<bool>(json['persisted']),
       read: serializer.fromJson<bool>(json['read']),
       embed: serializer.fromJson<String>(json['embed']),
+      starred: serializer.fromJson<bool>(json['starred']),
     );
   }
   @override
@@ -557,6 +579,7 @@ class Message extends DataClass implements Insertable<Message> {
       'persisted': serializer.toJson<bool>(persisted),
       'read': serializer.toJson<bool>(read),
       'embed': serializer.toJson<String>(embed),
+      'starred': serializer.toJson<bool>(starred),
     };
   }
 
@@ -570,7 +593,8 @@ class Message extends DataClass implements Insertable<Message> {
           DateTime? sentAt,
           bool? persisted,
           bool? read,
-          String? embed}) =>
+          String? embed,
+          bool? starred}) =>
       Message(
         id: id ?? this.id,
         bskyID: bskyID.present ? bskyID.value : this.bskyID,
@@ -582,6 +606,7 @@ class Message extends DataClass implements Insertable<Message> {
         persisted: persisted ?? this.persisted,
         read: read ?? this.read,
         embed: embed ?? this.embed,
+        starred: starred ?? this.starred,
       );
   Message copyWithCompanion(MessagesCompanion data) {
     return Message(
@@ -595,6 +620,7 @@ class Message extends DataClass implements Insertable<Message> {
       persisted: data.persisted.present ? data.persisted.value : this.persisted,
       read: data.read.present ? data.read.value : this.read,
       embed: data.embed.present ? data.embed.value : this.embed,
+      starred: data.starred.present ? data.starred.value : this.starred,
     );
   }
 
@@ -610,14 +636,15 @@ class Message extends DataClass implements Insertable<Message> {
           ..write('sentAt: $sentAt, ')
           ..write('persisted: $persisted, ')
           ..write('read: $read, ')
-          ..write('embed: $embed')
+          ..write('embed: $embed, ')
+          ..write('starred: $starred')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, bskyID, revision, message, senderDid,
-      replyTo, sentAt, persisted, read, embed);
+      replyTo, sentAt, persisted, read, embed, starred);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -631,7 +658,8 @@ class Message extends DataClass implements Insertable<Message> {
           other.sentAt == this.sentAt &&
           other.persisted == this.persisted &&
           other.read == this.read &&
-          other.embed == this.embed);
+          other.embed == this.embed &&
+          other.starred == this.starred);
 }
 
 class MessagesCompanion extends UpdateCompanion<Message> {
@@ -645,6 +673,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<bool> persisted;
   final Value<bool> read;
   final Value<String> embed;
+  final Value<bool> starred;
   final Value<int> rowid;
   const MessagesCompanion({
     this.id = const Value.absent(),
@@ -657,6 +686,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     this.persisted = const Value.absent(),
     this.read = const Value.absent(),
     this.embed = const Value.absent(),
+    this.starred = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MessagesCompanion.insert({
@@ -670,6 +700,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     this.persisted = const Value.absent(),
     this.read = const Value.absent(),
     required String embed,
+    this.starred = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         message = Value(message),
@@ -687,6 +718,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     Expression<bool>? persisted,
     Expression<bool>? read,
     Expression<String>? embed,
+    Expression<bool>? starred,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -700,6 +732,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       if (persisted != null) 'persisted': persisted,
       if (read != null) 'read': read,
       if (embed != null) 'embed': embed,
+      if (starred != null) 'starred': starred,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -715,6 +748,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       Value<bool>? persisted,
       Value<bool>? read,
       Value<String>? embed,
+      Value<bool>? starred,
       Value<int>? rowid}) {
     return MessagesCompanion(
       id: id ?? this.id,
@@ -727,6 +761,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       persisted: persisted ?? this.persisted,
       read: read ?? this.read,
       embed: embed ?? this.embed,
+      starred: starred ?? this.starred,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -764,6 +799,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     if (embed.present) {
       map['embed'] = Variable<String>(embed.value);
     }
+    if (starred.present) {
+      map['starred'] = Variable<bool>(starred.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -783,6 +821,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
           ..write('persisted: $persisted, ')
           ..write('read: $read, ')
           ..write('embed: $embed, ')
+          ..write('starred: $starred, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -859,6 +898,15 @@ class $ChatRoomsTable extends ChatRooms
   late final GeneratedColumn<Uint8List> avatar = GeneratedColumn<Uint8List>(
       'avatar', aliasedName, true,
       type: DriftSqlType.blob, requiredDuringInsert: false);
+  static const VerificationMeta _pinnedMeta = const VerificationMeta('pinned');
+  @override
+  late final GeneratedColumn<bool> pinned = GeneratedColumn<bool>(
+      'pinned', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("pinned" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -870,7 +918,8 @@ class $ChatRoomsTable extends ChatRooms
         hidden,
         unreadCount,
         lastUpdated,
-        avatar
+        avatar,
+        pinned
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -941,6 +990,10 @@ class $ChatRoomsTable extends ChatRooms
       context.handle(_avatarMeta,
           avatar.isAcceptableOrUnknown(data['avatar']!, _avatarMeta));
     }
+    if (data.containsKey('pinned')) {
+      context.handle(_pinnedMeta,
+          pinned.isAcceptableOrUnknown(data['pinned']!, _pinnedMeta));
+    }
     return context;
   }
 
@@ -970,6 +1023,8 @@ class $ChatRoomsTable extends ChatRooms
           .read(DriftSqlType.dateTime, data['${effectivePrefix}last_updated'])!,
       avatar: attachedDatabase.typeMapping
           .read(DriftSqlType.blob, data['${effectivePrefix}avatar']),
+      pinned: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}pinned'])!,
     );
   }
 
@@ -996,6 +1051,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
   final int unreadCount;
   final DateTime lastUpdated;
   final Uint8List? avatar;
+  final bool pinned;
   const ChatRoom(
       {required this.id,
       required this.roomName,
@@ -1006,7 +1062,8 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       required this.hidden,
       required this.unreadCount,
       required this.lastUpdated,
-      this.avatar});
+      this.avatar,
+      required this.pinned});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1022,6 +1079,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     if (!nullToAbsent || avatar != null) {
       map['avatar'] = Variable<Uint8List>(avatar);
     }
+    map['pinned'] = Variable<bool>(pinned);
     return map;
   }
 
@@ -1038,6 +1096,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       lastUpdated: Value(lastUpdated),
       avatar:
           avatar == null && nullToAbsent ? const Value.absent() : Value(avatar),
+      pinned: Value(pinned),
     );
   }
 
@@ -1055,6 +1114,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       unreadCount: serializer.fromJson<int>(json['unreadCount']),
       lastUpdated: serializer.fromJson<DateTime>(json['lastUpdated']),
       avatar: serializer.fromJson<Uint8List?>(json['avatar']),
+      pinned: serializer.fromJson<bool>(json['pinned']),
     );
   }
   @override
@@ -1071,6 +1131,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       'unreadCount': serializer.toJson<int>(unreadCount),
       'lastUpdated': serializer.toJson<DateTime>(lastUpdated),
       'avatar': serializer.toJson<Uint8List?>(avatar),
+      'pinned': serializer.toJson<bool>(pinned),
     };
   }
 
@@ -1084,7 +1145,8 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           bool? hidden,
           int? unreadCount,
           DateTime? lastUpdated,
-          Value<Uint8List?> avatar = const Value.absent()}) =>
+          Value<Uint8List?> avatar = const Value.absent(),
+          bool? pinned}) =>
       ChatRoom(
         id: id ?? this.id,
         roomName: roomName ?? this.roomName,
@@ -1096,6 +1158,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
         unreadCount: unreadCount ?? this.unreadCount,
         lastUpdated: lastUpdated ?? this.lastUpdated,
         avatar: avatar.present ? avatar.value : this.avatar,
+        pinned: pinned ?? this.pinned,
       );
   ChatRoom copyWithCompanion(ChatRoomsCompanion data) {
     return ChatRoom(
@@ -1114,6 +1177,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       lastUpdated:
           data.lastUpdated.present ? data.lastUpdated.value : this.lastUpdated,
       avatar: data.avatar.present ? data.avatar.value : this.avatar,
+      pinned: data.pinned.present ? data.pinned.value : this.pinned,
     );
   }
 
@@ -1129,7 +1193,8 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           ..write('hidden: $hidden, ')
           ..write('unreadCount: $unreadCount, ')
           ..write('lastUpdated: $lastUpdated, ')
-          ..write('avatar: $avatar')
+          ..write('avatar: $avatar, ')
+          ..write('pinned: $pinned')
           ..write(')'))
         .toString();
   }
@@ -1145,7 +1210,8 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       hidden,
       unreadCount,
       lastUpdated,
-      $driftBlobEquality.hash(avatar));
+      $driftBlobEquality.hash(avatar),
+      pinned);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1159,7 +1225,8 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
           other.hidden == this.hidden &&
           other.unreadCount == this.unreadCount &&
           other.lastUpdated == this.lastUpdated &&
-          $driftBlobEquality.equals(other.avatar, this.avatar));
+          $driftBlobEquality.equals(other.avatar, this.avatar) &&
+          other.pinned == this.pinned);
 }
 
 class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
@@ -1173,6 +1240,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
   final Value<int> unreadCount;
   final Value<DateTime> lastUpdated;
   final Value<Uint8List?> avatar;
+  final Value<bool> pinned;
   final Value<int> rowid;
   const ChatRoomsCompanion({
     this.id = const Value.absent(),
@@ -1185,6 +1253,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     this.unreadCount = const Value.absent(),
     this.lastUpdated = const Value.absent(),
     this.avatar = const Value.absent(),
+    this.pinned = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ChatRoomsCompanion.insert({
@@ -1198,6 +1267,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     this.unreadCount = const Value.absent(),
     required DateTime lastUpdated,
     this.avatar = const Value.absent(),
+    this.pinned = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         roomName = Value(roomName),
@@ -1216,6 +1286,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     Expression<int>? unreadCount,
     Expression<DateTime>? lastUpdated,
     Expression<Uint8List>? avatar,
+    Expression<bool>? pinned,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1229,6 +1300,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
       if (unreadCount != null) 'unread_count': unreadCount,
       if (lastUpdated != null) 'last_updated': lastUpdated,
       if (avatar != null) 'avatar': avatar,
+      if (pinned != null) 'pinned': pinned,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1244,6 +1316,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
       Value<int>? unreadCount,
       Value<DateTime>? lastUpdated,
       Value<Uint8List?>? avatar,
+      Value<bool>? pinned,
       Value<int>? rowid}) {
     return ChatRoomsCompanion(
       id: id ?? this.id,
@@ -1256,6 +1329,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
       unreadCount: unreadCount ?? this.unreadCount,
       lastUpdated: lastUpdated ?? this.lastUpdated,
       avatar: avatar ?? this.avatar,
+      pinned: pinned ?? this.pinned,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1293,6 +1367,9 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     if (avatar.present) {
       map['avatar'] = Variable<Uint8List>(avatar.value);
     }
+    if (pinned.present) {
+      map['pinned'] = Variable<bool>(pinned.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1312,6 +1389,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
           ..write('unreadCount: $unreadCount, ')
           ..write('lastUpdated: $lastUpdated, ')
           ..write('avatar: $avatar, ')
+          ..write('pinned: $pinned, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1667,6 +1745,7 @@ typedef $$MessagesTableCreateCompanionBuilder = MessagesCompanion Function({
   Value<bool> persisted,
   Value<bool> read,
   required String embed,
+  Value<bool> starred,
   Value<int> rowid,
 });
 typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
@@ -1680,6 +1759,7 @@ typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
   Value<bool> persisted,
   Value<bool> read,
   Value<String> embed,
+  Value<bool> starred,
   Value<int> rowid,
 });
 
@@ -1710,6 +1790,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             Value<bool> persisted = const Value.absent(),
             Value<bool> read = const Value.absent(),
             Value<String> embed = const Value.absent(),
+            Value<bool> starred = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MessagesCompanion(
@@ -1723,6 +1804,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             persisted: persisted,
             read: read,
             embed: embed,
+            starred: starred,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1736,6 +1818,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             Value<bool> persisted = const Value.absent(),
             Value<bool> read = const Value.absent(),
             required String embed,
+            Value<bool> starred = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MessagesCompanion.insert(
@@ -1749,6 +1832,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             persisted: persisted,
             read: read,
             embed: embed,
+            starred: starred,
             rowid: rowid,
           ),
         ));
@@ -1799,6 +1883,11 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<String> get embed => $state.composableBuilder(
       column: $state.table.embed,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get starred => $state.composableBuilder(
+      column: $state.table.starred,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -1877,6 +1966,11 @@ class $$MessagesTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
+  ColumnOrderings<bool> get starred => $state.composableBuilder(
+      column: $state.table.starred,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
   $$SendersTableOrderingComposer get senderDid {
     final $$SendersTableOrderingComposer composer = $state.composerBuilder(
         composer: this,
@@ -1901,6 +1995,7 @@ typedef $$ChatRoomsTableCreateCompanionBuilder = ChatRoomsCompanion Function({
   Value<int> unreadCount,
   required DateTime lastUpdated,
   Value<Uint8List?> avatar,
+  Value<bool> pinned,
   Value<int> rowid,
 });
 typedef $$ChatRoomsTableUpdateCompanionBuilder = ChatRoomsCompanion Function({
@@ -1914,6 +2009,7 @@ typedef $$ChatRoomsTableUpdateCompanionBuilder = ChatRoomsCompanion Function({
   Value<int> unreadCount,
   Value<DateTime> lastUpdated,
   Value<Uint8List?> avatar,
+  Value<bool> pinned,
   Value<int> rowid,
 });
 
@@ -1944,6 +2040,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
             Value<int> unreadCount = const Value.absent(),
             Value<DateTime> lastUpdated = const Value.absent(),
             Value<Uint8List?> avatar = const Value.absent(),
+            Value<bool> pinned = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ChatRoomsCompanion(
@@ -1957,6 +2054,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
             unreadCount: unreadCount,
             lastUpdated: lastUpdated,
             avatar: avatar,
+            pinned: pinned,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1970,6 +2068,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
             Value<int> unreadCount = const Value.absent(),
             required DateTime lastUpdated,
             Value<Uint8List?> avatar = const Value.absent(),
+            Value<bool> pinned = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ChatRoomsCompanion.insert(
@@ -1983,6 +2082,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
             unreadCount: unreadCount,
             lastUpdated: lastUpdated,
             avatar: avatar,
+            pinned: pinned,
             rowid: rowid,
           ),
         ));
@@ -2038,6 +2138,11 @@ class $$ChatRoomsTableFilterComposer
 
   ColumnFilters<Uint8List> get avatar => $state.composableBuilder(
       column: $state.table.avatar,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get pinned => $state.composableBuilder(
+      column: $state.table.pinned,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -2106,6 +2211,11 @@ class $$ChatRoomsTableOrderingComposer
 
   ColumnOrderings<Uint8List> get avatar => $state.composableBuilder(
       column: $state.table.avatar,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get pinned => $state.composableBuilder(
+      column: $state.table.pinned,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }

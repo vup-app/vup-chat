@@ -23,6 +23,7 @@ class Messages extends Table {
   BoolColumn get persisted => boolean().withDefault(const Constant(false))();
   BoolColumn get read => boolean().withDefault(const Constant(false))();
   TextColumn get embed => text()(); // Serialized JSON
+  BoolColumn get starred => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -47,6 +48,7 @@ class ChatRooms extends Table {
   IntColumn get unreadCount => integer().withDefault(const Constant(0))();
   DateTimeColumn get lastUpdated => dateTime()();
   BlobColumn get avatar => blob().nullable()();
+  BoolColumn get pinned => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};

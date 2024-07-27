@@ -62,174 +62,192 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(),
-        body: Column(
-          children: [
-            // Displays the circle avatar of room
-            CircleAvatar(
-              radius: 80.h,
-              backgroundImage: (widget.chatRoomData.avatar == null)
-                  ? null
-                  : Image.memory(widget.chatRoomData.avatar!).image,
-            ),
+        body: Center(
+            child: SizedBox(
+                width: 250.w,
+                child: ListView(
+                  children: [
+                    // Displays the circle avatar of room
+                    CircleAvatar(
+                      radius: 80.h,
+                      child: ClipOval(
+                          child: (widget.chatRoomData.avatar == null)
+                              ? null
+                              : Image.memory(
+                                  widget.chatRoomData.avatar!,
+                                )),
+                    ),
 
-            // Displays the editable room name
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _chatRoomData.roomName,
-                  style: const TextStyle(fontSize: 30),
-                ),
-                IconButton(
-                    onPressed: () {
-                      Navigator.of(context)
-                          .push(
-                        PageRouteBuilder(
-                          opaque: false, // set to false
-                          pageBuilder: (_, __, ___) => (const TextInputPage(
-                            title: "Change Room Name",
-                          )),
+                    // Displays the editable room name
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _chatRoomData.roomName,
+                          style: const TextStyle(fontSize: 30),
                         ),
-                      )
-                          .then(
-                        (value) {
-                          if (msg != null && (value as String).isNotEmpty) {
-                            msg!.setRoomName(widget.chatRoomData.id, value);
-                            msg!
-                                .getChatRoomFromChatID(_chatRoomData.id)
-                                .then((val) {
-                              if (val != null) {
-                                setState(() {
-                                  _chatRoomData = val;
-                                });
-                              }
-                            });
-                          }
-                        },
-                      );
-                    },
-                    icon: const Icon(Icons.edit))
-              ],
-            ),
-            // Displays room count
-            Text("Group with ${_senders?.length} members:"),
-            // Displays room members below that
-            SizedBox(
-              width: 200.h,
-              child: (_senders == null)
-                  ? null
-                  : ListView.builder(
-                      itemCount: _senders!.length,
-                      shrinkWrap: true,
-                      itemBuilder: (context, index) {
-                        Sender? sndr = _senders?[index];
-                        if (sndr != null) {
-                          return ListTile(
-                            leading: CircleAvatar(
-                              backgroundImage: (sndr.avatar != null)
-                                  ? Image.memory(sndr.avatar!).image
-                                  : null,
-                            ),
-                            title: Text(
-                              (sndr.did == did) ? "You" : sndr.displayName,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                            ),
-                            subtitle: (sndr.description != null)
-                                ? Text(
-                                    sndr.description!,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  )
-                                : null,
-                          );
-                        }
-                        return null;
-                      }),
-            ),
-            const Center(
-              child: Text("Notifications:"),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.call),
-                const SizedBox(
-                  width: 10,
-                ),
-                AnimatedToggleSwitch.size(
-                  current: _callNotificationSliderState,
-                  iconAnimationType: AnimationType.onHover,
-                  onChanged: (value) {
-                    setState(() {
-                      _callNotificationSliderState = value;
-                    });
-                    _persistNotificationState();
-                  },
-                  values: const [0, 1, 2],
-                  customIconBuilder: (context, local, global) {
-                    return Text(_notificationOptions[local.value]);
-                  },
-                  indicatorSize: const Size.fromWidth(120),
-                  style: ToggleStyle(
-                    indicatorColor: Theme.of(context).primaryColor,
-                    borderColor: Colors.transparent,
-                    borderRadius: BorderRadius.circular(10.0),
-                    boxShadow: [
-                      const BoxShadow(
-                        color: Colors.black26,
-                        spreadRadius: 1,
-                        blurRadius: 2,
-                        offset: Offset(0, 1.5),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.message),
-                const SizedBox(
-                  width: 10,
-                ),
-                AnimatedToggleSwitch.size(
-                  current: _textNotificationSliderState,
-                  iconAnimationType: AnimationType.onHover,
-                  onChanged: (value) {
-                    setState(() {
-                      _textNotificationSliderState = value;
-                    });
-                    _persistNotificationState();
-                  },
-                  values: const [0, 1, 2],
-                  customIconBuilder: (context, local, global) {
-                    return Text(_notificationOptions[local.value]);
-                  },
-                  indicatorSize: const Size.fromWidth(120),
-                  style: ToggleStyle(
-                    indicatorColor: Theme.of(context).primaryColor,
-                    borderColor: Colors.transparent,
-                    borderRadius: BorderRadius.circular(10.0),
-                    boxShadow: [
-                      const BoxShadow(
-                        color: Colors.black26,
-                        spreadRadius: 1,
-                        blurRadius: 2,
-                        offset: Offset(0, 1.5),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                        IconButton(
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .push(
+                                PageRouteBuilder(
+                                  opaque: false, // set to false
+                                  pageBuilder: (_, __, ___) =>
+                                      (const TextInputPage(
+                                    title: "Change Room Name",
+                                  )),
+                                ),
+                              )
+                                  .then(
+                                (value) {
+                                  if (msg != null &&
+                                      (value as String).isNotEmpty) {
+                                    msg!.setRoomName(
+                                        widget.chatRoomData.id, value);
+                                    msg!
+                                        .getChatRoomFromChatID(_chatRoomData.id)
+                                        .then((val) {
+                                      if (val != null) {
+                                        setState(() {
+                                          _chatRoomData = val;
+                                        });
+                                      }
+                                    });
+                                  }
+                                },
+                              );
+                            },
+                            icon: const Icon(Icons.edit))
+                      ],
+                    ),
+                    // Displays room count
+                    Center(
+                      child: Text("Group with ${_senders?.length} members:"),
+                    ),
 
-            // TODO: Display media & Links like whatsapp
-          ],
-        ));
+                    // Displays room members below that
+                    Center(
+                      child: SizedBox(
+                        width: 250.h,
+                        child: (_senders == null)
+                            ? null
+                            : ListView.builder(
+                                itemCount: _senders!.length,
+                                shrinkWrap: true,
+                                itemBuilder: (context, index) {
+                                  Sender? sndr = _senders?[index];
+                                  if (sndr != null) {
+                                    return ListTile(
+                                      leading: CircleAvatar(
+                                        backgroundImage: (sndr.avatar != null)
+                                            ? Image.memory(sndr.avatar!).image
+                                            : null,
+                                      ),
+                                      title: Text(
+                                        (sndr.did == did)
+                                            ? "You"
+                                            : sndr.displayName,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                      subtitle: (sndr.description != null)
+                                          ? Text(
+                                              sndr.description!,
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 1,
+                                            )
+                                          : null,
+                                    );
+                                  }
+                                  return null;
+                                }),
+                      ),
+                    ),
+                    const Center(
+                      child: Text("Notifications:"),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.call),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        AnimatedToggleSwitch.size(
+                          current: _callNotificationSliderState,
+                          iconAnimationType: AnimationType.onHover,
+                          onChanged: (value) {
+                            setState(() {
+                              _callNotificationSliderState = value;
+                            });
+                            _persistNotificationState();
+                          },
+                          values: const [0, 1, 2],
+                          customIconBuilder: (context, local, global) {
+                            return Text(_notificationOptions[local.value]);
+                          },
+                          indicatorSize:
+                              Size.fromWidth((60.w > 80.h) ? 80.h : 60.w),
+                          style: ToggleStyle(
+                            indicatorColor: Theme.of(context).primaryColor,
+                            borderColor: Colors.transparent,
+                            borderRadius: BorderRadius.circular(10.0),
+                            boxShadow: [
+                              const BoxShadow(
+                                color: Colors.black26,
+                                spreadRadius: 1,
+                                blurRadius: 2,
+                                offset: Offset(0, 1.5),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.message),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        AnimatedToggleSwitch.size(
+                          current: _textNotificationSliderState,
+                          iconAnimationType: AnimationType.onHover,
+                          onChanged: (value) {
+                            setState(() {
+                              _textNotificationSliderState = value;
+                            });
+                            _persistNotificationState();
+                          },
+                          values: const [0, 1, 2],
+                          customIconBuilder: (context, local, global) {
+                            return Text(_notificationOptions[local.value]);
+                          },
+                          indicatorSize:
+                              Size.fromWidth((69.w > 80.h) ? 80.h : 60.w),
+                          style: ToggleStyle(
+                            indicatorColor: Theme.of(context).primaryColor,
+                            borderColor: Colors.transparent,
+                            borderRadius: BorderRadius.circular(10.0),
+                            boxShadow: [
+                              const BoxShadow(
+                                color: Colors.black26,
+                                spreadRadius: 1,
+                                blurRadius: 2,
+                                offset: Offset(0, 1.5),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // TODO: Display media & Links like whatsapp
+                  ],
+                ))));
   }
 }
