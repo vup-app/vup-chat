@@ -45,8 +45,8 @@ android {
         applicationId = "app.vup.vupchat"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 1
-        versionName = "0.5.20"
+        versionCode = 2
+        versionName = "0.6.0"
         setProperty("archivesBaseName", "$appName-$versionName-$versionCode")
         multiDexEnabled true
 
