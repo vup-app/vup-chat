@@ -24,6 +24,7 @@ jobs:
         with:
           github-token: ${{ secrets.github_token }}
           skip-git-pull: "true"
+          version-file: "./pubspec.yaml"
 
       # Get the dependencies going
       - name: Set up Flutter
