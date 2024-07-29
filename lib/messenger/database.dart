@@ -101,22 +101,22 @@ class MessageDatabase extends _$MessageDatabase {
   }
 
   // Toggle Hidden
-  Future<void> chatHiddenHelper(String chatID, int mode) async {
+  Future<void> chatHiddenHelper(String chatID, String mode) async {
     // 1: hide
     // 2: unhide
     // 3: toggle
     switch (mode) {
-      case 1:
+      case "hide":
         {
           await (update(chatRooms)..where((t) => t.id.equals(chatID)))
               .write(const ChatRoomsCompanion(hidden: Value(true)));
         }
-      case 2:
+      case "unhide":
         {
           await (update(chatRooms)..where((t) => t.id.equals(chatID)))
               .write(const ChatRoomsCompanion(hidden: Value(false)));
         }
-      case 3:
+      case "toggle-hide":
         {
           bool? curHidden = await isHidden(chatID);
           if (curHidden != null) {
@@ -130,12 +130,53 @@ class MessageDatabase extends _$MessageDatabase {
     }
   }
 
+  // Toggle Pin
+  Future<void> chatPinHelper(String chatID, String mode) async {
+    // 1: pin
+    // 2: unpin
+    // 3: toggle
+    switch (mode) {
+      case "pin":
+        {
+          await (update(chatRooms)..where((t) => t.id.equals(chatID)))
+              .write(const ChatRoomsCompanion(pinned: Value(true)));
+        }
+      case "unpin":
+        {
+          await (update(chatRooms)..where((t) => t.id.equals(chatID)))
+              .write(const ChatRoomsCompanion(pinned: Value(false)));
+        }
+      case "toggle-pin":
+        {
+          bool? curPinned = await isPinned(chatID);
+          if (curPinned != null) {
+            // Inverter ternary switch (probably works)
+            await (update(chatRooms)..where((t) => t.id.equals(chatID))).write(
+                ChatRoomsCompanion(pinned: Value(curPinned ? false : true)));
+          }
+        }
+      default:
+        return; // this should never be reached
+    }
+  }
+
   // Checks if muted currently
   Future<bool?> isHidden(String chatID) async {
     final query = select(chatRooms)..where((t) => t.id.equals(chatID));
     final res = await query.getSingleOrNull();
     if (res != null) {
       return res.hidden;
+    } else {
+      return null;
+    }
+  }
+
+  // Checks if pinned currently
+  Future<bool?> isPinned(String chatID) async {
+    final query = select(chatRooms)..where((t) => t.id.equals(chatID));
+    final res = await query.getSingleOrNull();
+    if (res != null) {
+      return res.pinned;
     } else {
       return null;
     }
@@ -202,6 +243,7 @@ class MessageDatabase extends _$MessageDatabase {
   Stream<List<ChatRoom>> watchChatRooms() {
     final query = select(chatRooms)
       ..orderBy([
+        (u) => OrderingTerm(expression: u.pinned, mode: OrderingMode.desc),
         (u) => OrderingTerm(expression: u.lastUpdated, mode: OrderingMode.desc),
       ]);
     return query.watch();

@@ -115,6 +115,15 @@ class ChatListPageState extends State<ChatListPage> {
     });
   }
 
+  // Optional ChatID is for when using the 3 button menu
+  void _pinSelectedChats(String? optionalChatID) {
+    if (optionalChatID != null) _selectedChatIds.add(optionalChatID);
+    msg!.toggleChatPin(_selectedChatIds.toList());
+    setState(() {
+      _selectedChatIds.clear();
+    });
+  }
+
   void _checkForHiddenChats() {
     int acc = 0;
     for (ChatRoom chat in _chats) {
@@ -159,6 +168,13 @@ class ChatListPageState extends State<ChatListPage> {
                             icon: const Icon(Icons.edit_notifications_outlined),
                             onPressed: () => _muteSelectedChats(null),
                           )),
+                      Tooltip(
+                        message: "Toggle Chat Pin",
+                        child: IconButton(
+                          icon: const Icon(Icons.push_pin_outlined),
+                          onPressed: () => _pinSelectedChats(null),
+                        ),
+                      )
                     ],
                   )
                 : null,
@@ -236,6 +252,7 @@ class ChatListPageState extends State<ChatListPage> {
                         selectedChatIds: _selectedChatIds,
                         hideSelectedChats: _hideSelectedChats,
                         toggleNotificationsSelectedChats: _muteSelectedChats,
+                        togglePinSelectedChats: _pinSelectedChats,
                         hiddenChatToggle: hiddenChatToggle,
                       ),
               ],

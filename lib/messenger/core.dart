@@ -236,13 +236,17 @@ class MsgCore {
 
   Future<void> toggleChatHidden(List<String> chatIDs) async {
     for (String chatID in chatIDs) {
-      // modes
-      // 1: Hide
-      // 2: Unhide
-      // 3: Toggle -> default for now
-      await db.chatHiddenHelper(chatID, 3);
+      await db.chatHiddenHelper(chatID, "toggle-hide");
 
       // bsky doesn't impl hidden chats so this is purely local
+    }
+  }
+
+  Future<void> toggleChatPin(List<String> chatIDs) async {
+    for (String chatID in chatIDs) {
+      await db.chatPinHelper(chatID, "toggle-pin");
+
+      // bsky doesn't impl pinned chats so this is purely local
     }
   }
 

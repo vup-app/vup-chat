@@ -24,11 +24,8 @@ class ChatRoomListItem extends StatefulWidget {
 }
 
 class ChatRoomListItemState extends State<ChatRoomListItem> {
-  Uint8List? avatarBytesCache;
-
   @override
   void initState() {
-    avatarBytesCache = widget.chat.avatar;
     super.initState();
   }
 
@@ -50,13 +47,16 @@ class ChatRoomListItemState extends State<ChatRoomListItem> {
           softWrap: true,
         ),
         leading: CircleAvatar(
-          backgroundImage: (avatarBytesCache == null)
+          backgroundImage: (widget.chat.avatar == null)
               ? null
-              : Image.memory(avatarBytesCache!).image,
+              : Image.memory(widget.chat.avatar!).image,
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            (widget.chat.pinned)
+                ? const Icon(Icons.push_pin_outlined)
+                : Container(),
             (widget.chat.notificationLevel.split("-")[1] == "disable")
                 ? const Icon(Icons.notifications_off_outlined)
                 : Container(),

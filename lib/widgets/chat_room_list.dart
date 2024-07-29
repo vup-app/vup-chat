@@ -9,6 +9,7 @@ class ChatRoomList extends StatefulWidget {
   final Function(String) onChatItemSelection;
   final Function(String?) hideSelectedChats;
   final Function(String?) toggleNotificationsSelectedChats;
+  final Function(String?) togglePinSelectedChats;
   final Set<String> selectedChatIds;
   final bool hiddenChatToggle;
 
@@ -18,6 +19,7 @@ class ChatRoomList extends StatefulWidget {
     required this.onChatItemSelection,
     required this.hideSelectedChats,
     required this.toggleNotificationsSelectedChats,
+    required this.togglePinSelectedChats,
     required this.selectedChatIds,
     required this.hiddenChatToggle,
   });
@@ -75,8 +77,10 @@ class ChatRoomListState extends State<ChatRoomList> {
                             // Handle menu item selection
                             if (value == 'Toggle Notifications') {
                               widget.toggleNotificationsSelectedChats(item.id);
-                            } else if (value == "Hide Message") {
+                            } else if (value == "Toggle Hidden") {
                               widget.hideSelectedChats(item.id);
+                            } else if (value == "Toggle Pinned") {
+                              widget.togglePinSelectedChats(item.id);
                             }
                           },
                           icon: const Icon(Icons.more_vert),
@@ -90,10 +94,17 @@ class ChatRoomListState extends State<ChatRoomList> {
                                 ),
                               ),
                               const PopupMenuItem<String>(
-                                value: 'Hide Message',
+                                value: 'Toggle Hidden',
                                 child: ListTile(
                                   leading: Icon(Icons.archive_outlined),
-                                  title: Text('Hide Message'),
+                                  title: Text('Toggle Hidden'),
+                                ),
+                              ),
+                              const PopupMenuItem<String>(
+                                value: 'Toggle Pinned',
+                                child: ListTile(
+                                  leading: Icon(Icons.push_pin_outlined),
+                                  title: Text('Toggle Pinned'),
                                 ),
                               ),
                             ];

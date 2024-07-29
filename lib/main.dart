@@ -34,7 +34,7 @@ bool inBackground = false;
 String currentChatID = "";
 
 void main() async {
-  // Init preferences because it's really fast
+  // Init preferences here because it's really fast
   preferences = await SharedPreferences.getInstance();
   // Go go program!
   runApp(const VupChat());
