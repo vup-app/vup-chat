@@ -12,19 +12,17 @@ jobs:
     permissions:
       contents: write
     steps:
-      # Set up repo
-      - name: Clone repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      # Setup Repo
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      # Changelog time!
-      - name: Conventional Changelog Action
-        uses: TriPSs/conventional-changelog-action@v5
+      # Create tag based changelog
+      - name: Create changelog text
+        id: changelog
+        uses: loopwerk/tag-changelog@v1
         with:
-          github-token: ${{ secrets.github_token }}
-          skip-git-pull: "true"
-          version-file: "./pubspec.yaml"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          exclude_types: other,ci
 
       # Get the dependencies going
       - name: Set up Flutter
@@ -90,7 +88,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          asset_paths: '["./vup-chat-web.zip", "./outputs/*", "vup-chat-linux.zip", "CHANGELOG.md"]'
+          asset_paths: '["./vup-chat-web.zip", "./outputs/*", "vup-chat-linux.zip"]'
 # TODO: Add Windows build
 
 # TODO: Add MacOS & iOS bilds
