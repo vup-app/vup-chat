@@ -5,17 +5,13 @@ import 'package:based_splash_page/based_splash_page.dart';
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter/src/widgets/navigator.dart' as nav;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:s5/s5.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vup_chat/bsky/try_log_in.dart';
-import 'package:vup_chat/functions/s5.dart';
 import 'package:vup_chat/messenger/core.dart';
 import 'package:vup_chat/theme.dart';
 import 'package:vup_chat/widgets/init_router.dart';
@@ -38,19 +34,8 @@ bool inBackground = false;
 String currentChatID = "";
 
 void main() async {
-  // grab login credentials and try to log in
-  WidgetsFlutterBinding.ensureInitialized();
-  // TODO: Make app retry if entered on online mode
-  try {
-    session = await tryLogIn(null, null);
-    preferences = await SharedPreferences.getInstance();
-    s5 = await initS5();
-  } catch (e) {
-    logger.d("Failed to connect to an online session: $e");
-  }
-  msg = MsgCore(s5: s5, bskySession: session, bskyChatSession: chatSession);
-  msg!.init();
-
+  // Init preferences because it's really fast
+  preferences = await SharedPreferences.getInstance();
   // Go go program!
   runApp(const VupChat());
 }

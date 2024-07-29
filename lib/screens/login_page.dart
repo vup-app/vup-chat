@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
 import 'package:vup_chat/constants.dart';
 import 'package:vup_chat/main.dart';
-import 'package:vup_chat/screens/home_page.dart';
+import 'package:vup_chat/screens/chat_list_page.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
 import 'package:vup_chat/screens/place_holder_page.dart';
 
@@ -47,7 +47,7 @@ class LoginPageState extends State<LoginPage>
     if (session != null && mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const ChatListPage()),
       );
     }
   }
@@ -63,7 +63,7 @@ class LoginPageState extends State<LoginPage>
           MaterialPageRoute(
             builder: (context) => BasedSplitView(
               navigatorKey: vupSplitViewKey,
-              leftWidget: HomePage(
+              leftWidget: ChatListPage(
                 key: leftKey,
               ),
               rightPlaceholder: const PlaceHolderPage(),

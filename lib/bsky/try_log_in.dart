@@ -30,5 +30,6 @@ Future<Bluesky?> tryLogIn(String? user, String? password) async {
 
   did = session.data.did;
   chatSession = blueskyChatSession;
+  preferences.setBool("logged-in", true);
   return blueskySession;
 }
