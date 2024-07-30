@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
@@ -72,30 +70,24 @@ class MessageItemState extends State<MessageItem> {
                   )),
                   // This swaps between the selectable text and normal text when selection mode is
                   // on to make selection easier
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      (widget.selectedMessages.isNotEmpty)
-                          ? Text(
-                              widget.message.message,
-                              style: TextStyle(
-                                color: isMe
-                                    ? Theme.of(context).cardColor
-                                    : Colors.black,
-                              ),
-                            )
-                          : SelectableText(
-                              widget.message.message,
-                              style: TextStyle(
-                                color: isMe
-                                    ? Theme.of(context).cardColor
-                                    : Colors.black,
-                              ),
-                              selectionControls:
-                                  MaterialTextSelectionControls(),
-                            ),
-                    ],
-                  ),
+                  child: (widget.selectedMessages.isNotEmpty)
+                      ? Text(
+                          widget.message.message,
+                          style: TextStyle(
+                            color: isMe
+                                ? Theme.of(context).cardColor
+                                : Colors.black,
+                          ),
+                        )
+                      : SelectableText(
+                          widget.message.message,
+                          style: TextStyle(
+                            color: isMe
+                                ? Theme.of(context).cardColor
+                                : Colors.black,
+                          ),
+                          selectionControls: MaterialTextSelectionControls(),
+                        ),
                 ),
               ),
               Positioned(
