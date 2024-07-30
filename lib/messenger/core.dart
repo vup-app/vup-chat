@@ -101,8 +101,12 @@ class MsgCore {
     return db.watchChatRooms();
   }
 
-  Stream<List<Message>> subscribeChat(String chatID) {
-    return db.watchChatForMessage(chatID);
+  Stream<List<Message>> subscribeChat(String chatID, bool starredOnly) {
+    if (starredOnly) {
+      return db.watchChatForMessageStarred(chatID);
+    } else {
+      return db.watchChatForMessage(chatID);
+    }
   }
 
   Future<Sender> getSenderFromDID(String did) async {
@@ -247,6 +251,14 @@ class MsgCore {
       await db.chatPinHelper(chatID, "toggle-pin");
 
       // bsky doesn't impl pinned chats so this is purely local
+    }
+  }
+
+  Future<void> toggleChatStar(List<String> chatIDs) async {
+    for (String chatID in chatIDs) {
+      await db.msgStarHelper(chatID, "toggle-star");
+
+      // bsky doesn't impl starred chats so this is purely local
     }
   }
 
@@ -428,7 +440,10 @@ class MsgCore {
             n.NotificationResponseType.selectedNotification) {
           vupSplitViewKey.currentState?.pushAndRemoveUntil(
             MaterialPageRoute(
-                builder: (context) => ChatIndividualPage(id: payload.chatID)),
+                builder: (context) => ChatIndividualPage(
+                      id: payload.chatID,
+                      starredOnly: false,
+                    )),
             (Route<dynamic> route) => route.isFirst,
           );
         } else {

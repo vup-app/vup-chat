@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
+import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/screens/text_input_page.dart';
 
 class ChatInfoPage extends StatefulWidget {
@@ -64,7 +65,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         appBar: AppBar(),
         body: Center(
             child: SizedBox(
-                width: 250.w,
+                width: 150.w,
                 child: ListView(
                   children: [
                     // Displays the circle avatar of room
@@ -163,6 +164,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                                 }),
                       ),
                     ),
+                    // Shows the notification toggle
                     const Center(
                       child: Text("Notifications:"),
                     ),
@@ -244,6 +246,23 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(
+                      height: 10,
+                    ),
+
+                    // Display a button to go to starred messages
+                    ElevatedButton(
+                      onPressed: () {
+                        vupSplitViewKey.currentState?.push(MaterialPageRoute(
+                            builder: (context) => ChatIndividualPage(
+                                id: widget.chatRoomData.id,
+                                starredOnly: true)));
+                      },
+                      child: const ListTile(
+                        title: Text("Starred Messages"),
+                        trailing: Icon(Icons.arrow_forward),
+                      ),
                     ),
 
                     // TODO: Display media & Links like whatsapp

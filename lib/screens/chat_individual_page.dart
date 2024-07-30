@@ -11,11 +11,13 @@ import 'package:vup_chat/widgets/message_item.dart';
 class ChatIndividualPage extends StatefulWidget {
   final String id;
   final String? messageIdToScrollTo; // Optional parameter
+  final bool starredOnly;
 
   const ChatIndividualPage({
     super.key,
     required this.id,
     this.messageIdToScrollTo,
+    required this.starredOnly,
   });
 
   @override
@@ -34,6 +36,8 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   late bool _showScrollToBottom;
   double _scrollOffset = 0;
   Uint8List? avatarCache;
+  final Set<Message> _selectedMessages = {};
+  bool doesSelectedMessagesContainStar = false;
 
   @override
   void initState() {
@@ -63,7 +67,8 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
 
   void _subscribeToChat() {
     _subscription?.cancel(); // Cancel any existing subscription
-    _subscription = msg!.subscribeChat(widget.id).listen((newMessages) {
+    _subscription =
+        msg!.subscribeChat(widget.id, widget.starredOnly).listen((newMessages) {
       if (_messages != newMessages) {
         setState(() {
           _messages = newMessages;
@@ -135,43 +140,94 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   //   }
   // }
 
+  void _msgSelector(Message msg) {
+    // This does the selecting of the messages
+    setState(() {
+      if (_selectedMessages.contains(msg)) {
+        _selectedMessages.remove(msg);
+      } else {
+        _selectedMessages.add(msg);
+      }
+    });
+    // Then this checks if any of the messges are starred to know what
+    // icon to put in the appbar
+    bool doesContainStar = false;
+    for (Message msg in _selectedMessages) {
+      if (msg.starred) {
+        doesContainStar = true;
+        break;
+      }
+    }
+    setState(() {
+      doesSelectedMessagesContainStar = doesContainStar;
+    });
+  }
+
+  void _starHelper(Message? optionalMsg) async {
+    if (optionalMsg != null) {
+      _selectedMessages.add(optionalMsg);
+    }
+    final List<String> tmpSelectedMessages =
+        _selectedMessages.map((t) => t.id).toList();
+    setState(() {
+      _selectedMessages.clear();
+    });
+    await msg?.toggleChatStar(tmpSelectedMessages);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: (_chatRoomData == null)
-            ? const CircularProgressIndicator()
-            : Row(
-                children: [
-                  CircleAvatar(
-                    backgroundImage:
-                        (_chatRoomData != null && _chatRoomData!.avatar != null)
-                            ? Image.memory(_chatRoomData!.avatar!).image
-                            : null,
-                  ),
-                  const SizedBox(width: 8),
-                  InkWell(
-                    onTap: () {
-                      if (_chatRoomData != null) {
-                        // TODO: make this properly update on pop
-                        vupSplitViewKey.currentState
-                            ?.push(
-                          MaterialPageRoute(
-                              builder: (context) => ChatInfoPage(
-                                    chatRoomData: _chatRoomData!,
-                                  )),
-                        )
-                            .then((_) {
-                          _getChatRoomData();
-                        });
-                      }
-                    },
-                    child: Text(_chatRoomData?.roomName ?? "Erm"),
-                  ),
-                ],
+      appBar: (_selectedMessages.isEmpty)
+          ? AppBar(
+              title: (_chatRoomData == null)
+                  ? const CircularProgressIndicator()
+                  : Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundImage: (_chatRoomData != null &&
+                                  _chatRoomData!.avatar != null)
+                              ? Image.memory(_chatRoomData!.avatar!).image
+                              : null,
+                        ),
+                        const SizedBox(width: 8),
+                        InkWell(
+                          onTap: () {
+                            if (_chatRoomData != null) {
+                              // TODO: make this properly update on pop
+                              vupSplitViewKey.currentState
+                                  ?.push(
+                                MaterialPageRoute(
+                                    builder: (context) => ChatInfoPage(
+                                          chatRoomData: _chatRoomData!,
+                                        )),
+                              )
+                                  .then((_) {
+                                _getChatRoomData();
+                              });
+                            }
+                          },
+                          child: Text(_chatRoomData?.roomName ?? "Erm"),
+                        ),
+                      ],
+                    ),
+              backgroundColor: Theme.of(context).cardColor,
+            )
+          : AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: () => setState(() {
+                  _selectedMessages.clear();
+                }),
               ),
-        backgroundColor: Theme.of(context).cardColor,
-      ),
+              actions: [
+                IconButton(
+                    onPressed: () => _starHelper(null),
+                    icon: (doesSelectedMessagesContainStar)
+                        ? const Icon(Icons.star)
+                        : const Icon(Icons.star_outline)),
+              ],
+            ),
       body: Center(
         child: SizedBox(
           child: Column(
@@ -195,8 +251,12 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                             itemBuilder: (context, index) {
                               if (index >= 0) {
                                 final message = _messages[index];
-                                return buildMessageItem(message,
-                                    const AlwaysStoppedAnimation(1.0), context);
+                                return MessageItem(
+                                  message: message,
+                                  animation: const AlwaysStoppedAnimation(1.0),
+                                  selectedMessages: _selectedMessages,
+                                  msgSelector: _msgSelector,
+                                );
                               } else {
                                 return Container();
                               }

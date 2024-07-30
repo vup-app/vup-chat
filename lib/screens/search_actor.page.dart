@@ -71,6 +71,7 @@ class SearchActorPageState extends State<SearchActorPage> {
         MaterialPageRoute(
           builder: (context) => ChatIndividualPage(
             id: chatID,
+            starredOnly: false,
           ),
         ),
       );

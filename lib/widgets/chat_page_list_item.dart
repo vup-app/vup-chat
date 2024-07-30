@@ -70,8 +70,10 @@ class ChatRoomListItemState extends State<ChatRoomListItem> {
           } else {
             vupSplitViewKey.currentState?.pushAndRemoveUntil(
                 MaterialPageRoute(
-                    builder: (context) =>
-                        ChatIndividualPage(id: widget.chat.id)),
+                    builder: (context) => ChatIndividualPage(
+                          id: widget.chat.id,
+                          starredOnly: false,
+                        )),
                 (Route<dynamic> route) => route.isFirst);
           }
         },
@@ -145,6 +147,7 @@ class ChatRoomSearchMessageItemState extends State<ChatRoomSearchMessageItem> {
                   builder: (context) => ChatIndividualPage(
                         id: chatID!,
                         messageIdToScrollTo: widget.message.id,
+                        starredOnly: false,
                       )),
               (Route<dynamic> route) => route.isFirst);
         }
@@ -187,6 +190,7 @@ class ChatRoomSearchGroupItemState extends State<ChatRoomSearchGroupItem> {
             MaterialPageRoute(
                 builder: (context) => ChatIndividualPage(
                       id: widget.chatRoom.id,
+                      starredOnly: false,
                     )),
             (Route<dynamic> route) => route.isFirst);
       },

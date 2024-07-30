@@ -160,6 +160,36 @@ class MessageDatabase extends _$MessageDatabase {
     }
   }
 
+  // Toggle Star
+  Future<void> msgStarHelper(String msgID, String mode) async {
+    // 1: star
+    // 2: unstar
+    // 3: toggle
+    switch (mode) {
+      case "star":
+        {
+          await (update(messages)..where((t) => t.id.equals(msgID)))
+              .write(const MessagesCompanion(starred: Value(true)));
+        }
+      case "unstar":
+        {
+          await (update(messages)..where((t) => t.id.equals(msgID)))
+              .write(const MessagesCompanion(starred: Value(false)));
+        }
+      case "toggle-star":
+        {
+          bool? curStarred = await isStarred(msgID);
+          if (curStarred != null) {
+            // Inverter ternary switch (probably works)
+            await (update(messages)..where((t) => t.id.equals(msgID))).write(
+                MessagesCompanion(starred: Value(curStarred ? false : true)));
+          }
+        }
+      default:
+        return; // this should never be reached
+    }
+  }
+
   // Checks if muted currently
   Future<bool?> isHidden(String chatID) async {
     final query = select(chatRooms)..where((t) => t.id.equals(chatID));
@@ -177,6 +207,17 @@ class MessageDatabase extends _$MessageDatabase {
     final res = await query.getSingleOrNull();
     if (res != null) {
       return res.pinned;
+    } else {
+      return null;
+    }
+  }
+
+  // Checks if starred currently
+  Future<bool?> isStarred(String msgID) async {
+    final query = select(messages)..where((t) => t.id.equals(msgID));
+    final res = await query.getSingleOrNull();
+    if (res != null) {
+      return res.starred;
     } else {
       return null;
     }
@@ -233,7 +274,22 @@ class MessageDatabase extends _$MessageDatabase {
       ..orderBy([
         OrderingTerm(expression: messages.sentAt, mode: OrderingMode.desc),
       ]);
+    return query
+        .watch()
+        .map((rows) => rows.map((row) => row.readTable(messages)).toList());
+  }
 
+  // Stream to watch messages which are starred
+  Stream<List<Message>> watchChatForMessageStarred(String chatID) {
+    final query = select(messages).join([
+      innerJoin(
+          chatRoomMessages, chatRoomMessages.chatId.equalsExp(messages.id)),
+    ])
+      ..where(chatRoomMessages.chatRoomId.equals(chatID))
+      ..where(messages.starred.equals(true))
+      ..orderBy([
+        OrderingTerm(expression: messages.sentAt, mode: OrderingMode.desc),
+      ]);
     return query
         .watch()
         .map((rows) => rows.map((row) => row.readTable(messages)).toList());
