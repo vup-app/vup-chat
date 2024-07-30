@@ -1,19 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     as n;
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:s5/s5.dart' as s5lib;
+import 'package:universal_io/io.dart';
 import 'package:vup_chat/bsky/chat_actions.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
 import 'package:vup_chat/definitions/notificationPayload.dart';
@@ -61,7 +60,9 @@ class MsgCore {
 
   void init() async {
     _startBackgroundTask();
-    _initNotifications();
+    if (!kIsWeb) {
+      _initNotifications();
+    }
   }
 
   void _startBackgroundTask() async {
@@ -387,7 +388,7 @@ class MsgCore {
         final payload =
             jsonEncode(NotificationPayload(did: snd.did, chatID: chatID))
                 .toString();
-        await notifier!.show(channel, chatRoom.roomName,
+        await notifier?.show(channel, chatRoom.roomName,
             "${snd.displayName}: ${msg.message}", details,
             payload: payload);
       }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:based_splash_page/based_splash_page.dart';
 import 'package:bluesky/bluesky.dart';
@@ -12,6 +11,7 @@ import 'package:logger/logger.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:s5/s5.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:universal_io/io.dart';
 import 'package:vup_chat/messenger/core.dart';
 import 'package:vup_chat/theme.dart';
 import 'package:vup_chat/widgets/init_router.dart';
