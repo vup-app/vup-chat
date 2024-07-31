@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:vup_chat/functions/getAvatar.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/chat_info_page.dart';
@@ -184,12 +185,8 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                   ? const CircularProgressIndicator()
                   : Row(
                       children: [
-                        CircleAvatar(
-                          backgroundImage: (_chatRoomData != null &&
-                                  _chatRoomData!.avatar != null)
-                              ? Image.memory(_chatRoomData!.avatar!).image
-                              : null,
-                        ),
+                        getCircleAvatar(
+                            _chatRoomData?.avatar, _chatRoomData?.avatarUrl),
                         const SizedBox(width: 8),
                         InkWell(
                           onTap: () {

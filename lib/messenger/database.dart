@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:bluesky/bluesky_chat.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:vup_chat/definitions/s5embed.dart';
 import 'package:http/http.dart' as http;
@@ -19,8 +20,24 @@ class MessageDatabase extends _$MessageDatabase {
 
   MessageDatabase.forTesting(DatabaseConnection super.connection);
 
+  // Database migrations!
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2; // bump because the tables have changed.
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.addColumn(senders, senders.avatarUrl);
+          await m.addColumn(chatRooms, chatRooms.avatarUrl);
+        }
+      },
+    );
+  }
 
   // Searches DB for group names
   Future<List<ChatRoom>> searchChatRooms(String q) async {
@@ -460,14 +477,18 @@ class MessageDatabase extends _$MessageDatabase {
       // Pull sender dids
       final List<String> members = convo.members.map((obj) => obj.did).toList();
 
+      // This section pulls avatar bytes based on platform
       Uint8List? avatarBytes;
-      try {
-        http.Response response = await http.get(
-          Uri.parse(convo.members.last.avatar!),
-        );
-        avatarBytes = response.bodyBytes;
-      } catch (e) {
-        logger.d(e);
+      // Grabs the avatar if not on web
+      if (!kIsWeb) {
+        try {
+          http.Response response = await http.get(
+            Uri.parse(convo.members.last.avatar!),
+          );
+          avatarBytes = response.bodyBytes;
+        } catch (e) {
+          logger.e(e);
+        }
       }
 
       // Serialize lastMessage to JSON
@@ -486,17 +507,6 @@ class MessageDatabase extends _$MessageDatabase {
           // Add other fields as needed
         };
 
-        // final Sender sender = Sender(
-        //   did: convo.members.last.did,
-        //   displayName:
-        //       convo.members.last.displayName ?? convo.members.last.handle,
-        //   avatar: avatarBytes,
-        // );
-
-        // // Check and insert the last message
-        // await checkAndInsertMessageATProto(
-        //     "", lastMessage, convo.id, true, sender, null);
-
         // Insert or update the chat list entry
         if (chatRoomExists == null ||
             chatRoomExists.lastUpdated.isBefore(lastMessage.sentAt)) {
@@ -513,6 +523,7 @@ class MessageDatabase extends _$MessageDatabase {
               unreadCount: Value(convo.unreadCount),
               lastUpdated: lastMessage.sentAt,
               avatar: Value(avatarBytes),
+              avatarUrl: Value(convo.members.last.avatar),
             ),
             mode: InsertMode.insertOrReplace,
           );
@@ -520,17 +531,19 @@ class MessageDatabase extends _$MessageDatabase {
       } else {
         await into(chatRooms).insert(
           ChatRoomsCompanion.insert(
-              id: convo.id,
-              roomName: convo.members.last.displayName ??
-                  convo.members.last
-                      .handle, // TODO: Make this dynamic for group chats
-              rev: convo.rev,
-              members: json.encode(members),
-              lastMessage: chatRoomExists?.lastMessage ?? "",
-              hidden: const Value(false),
-              unreadCount: Value(convo.unreadCount),
-              lastUpdated: chatRoomExists?.lastUpdated ?? DateTime(0),
-              avatar: Value(avatarBytes)),
+            id: convo.id,
+            roomName: convo.members.last.displayName ??
+                convo.members.last
+                    .handle, // TODO: Make this dynamic for group chats
+            rev: convo.rev,
+            members: json.encode(members),
+            lastMessage: chatRoomExists?.lastMessage ?? "",
+            hidden: const Value(false),
+            unreadCount: Value(convo.unreadCount),
+            lastUpdated: chatRoomExists?.lastUpdated ?? DateTime(0),
+            avatar: Value(avatarBytes),
+            avatarUrl: Value(convo.members.last.avatar),
+          ),
           mode: InsertMode.insertOrReplace,
         );
       }

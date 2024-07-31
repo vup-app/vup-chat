@@ -4,6 +4,7 @@ class Senders extends Table {
   TextColumn get did => text()();
   TextColumn get displayName => text()();
   BlobColumn get avatar => blob().nullable()();
+  TextColumn get avatarUrl => text().nullable()();
   TextColumn get description => text().nullable()();
 
   @override
@@ -48,6 +49,7 @@ class ChatRooms extends Table {
   IntColumn get unreadCount => integer().withDefault(const Constant(0))();
   DateTimeColumn get lastUpdated => dateTime()();
   BlobColumn get avatar => blob().nullable()();
+  TextColumn get avatarUrl => text().nullable()();
   BoolColumn get pinned => boolean().withDefault(const Constant(false))();
 
   @override

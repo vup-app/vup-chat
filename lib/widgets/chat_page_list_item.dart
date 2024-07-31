@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:vup_chat/functions/getAvatar.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
@@ -46,11 +48,7 @@ class ChatRoomListItemState extends State<ChatRoomListItem> {
           maxLines: 2,
           softWrap: true,
         ),
-        leading: CircleAvatar(
-          backgroundImage: (widget.chat.avatar == null)
-              ? null
-              : Image.memory(widget.chat.avatar!).image,
-        ),
+        leading: getCircleAvatar(widget.chat.avatar, widget.chat.avatarUrl),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -106,16 +104,24 @@ class ChatRoomSearchMessageItemState extends State<ChatRoomSearchMessageItem> {
   }
 
   void _getIDAndSender() {
-    msg!.getSenderFromDID(widget.message.senderDid).then((val) => setState(() {
+    msg!.getSenderFromDID(widget.message.senderDid).then((val) {
+      if (mounted) {
+        setState(() {
           sender = val;
-        }));
+        });
+      }
+    });
     msg!.getChatIDFromMessageID(widget.message.id).then((val) => setState(() {
           chatID = val;
           if (val != null && val.isNotEmpty) {
-            msg!.getChatRoomFromChatID(val).then((val2) => setState(() {
+            msg!.getChatRoomFromChatID(val).then((val2) {
+              if (mounted) {
+                setState(() {
                   chatRoom = val2;
                   avatarBytesCache = val2?.avatar;
-                }));
+                });
+              }
+            });
           }
         }));
   }
@@ -135,11 +141,7 @@ class ChatRoomSearchMessageItemState extends State<ChatRoomSearchMessageItem> {
         maxLines: 1,
         softWrap: true,
       ),
-      leading: CircleAvatar(
-        backgroundImage: (avatarBytesCache != null)
-            ? Image.memory(avatarBytesCache!).image
-            : null,
-      ),
+      leading: getCircleAvatar(avatarBytesCache, chatRoom?.avatarUrl),
       onTap: () {
         if (chatID != null) {
           vupSplitViewKey.currentState?.pushAndRemoveUntil(
@@ -180,11 +182,8 @@ class ChatRoomSearchGroupItemState extends State<ChatRoomSearchGroupItem> {
         maxLines: 1,
         softWrap: true,
       ),
-      leading: CircleAvatar(
-        backgroundImage: (widget.chatRoom.avatar != null)
-            ? Image.memory(widget.chatRoom.avatar!).image
-            : null,
-      ),
+      leading:
+          getCircleAvatar(widget.chatRoom.avatar, widget.chatRoom.avatarUrl),
       onTap: () {
         vupSplitViewKey.currentState?.pushAndRemoveUntil(
             MaterialPageRoute(
