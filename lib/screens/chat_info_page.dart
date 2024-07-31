@@ -5,6 +5,7 @@ import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/screens/text_input_page.dart';
+import 'package:vup_chat/widgets/smart_width.dart';
 
 class ChatInfoPage extends StatefulWidget {
   final ChatRoom chatRoomData;
@@ -63,210 +64,222 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(),
-        body: Center(
-            child: SizedBox(
-                width: 150.w,
+        body: Center(child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SmartWidth(
                 child: ListView(
-                  children: [
-                    // Displays the circle avatar of room
-                    CircleAvatar(
-                      radius: 80.h,
-                      child: ClipOval(
-                          child: (widget.chatRoomData.avatar == null)
-                              ? null
-                              : Image.memory(
-                                  widget.chatRoomData.avatar!,
-                                )),
-                    ),
+              children: [
+                // Displays the circle avatar of room
+                CircleAvatar(
+                  radius: 80.h,
+                  child: ClipOval(
+                      child: (widget.chatRoomData.avatar == null)
+                          ? null
+                          : Image.memory(
+                              widget.chatRoomData.avatar!,
+                            )),
+                ),
 
-                    // Displays the editable room name
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _chatRoomData.roomName,
-                          style: const TextStyle(fontSize: 30),
-                        ),
-                        IconButton(
-                            onPressed: () {
-                              Navigator.of(context)
-                                  .push(
-                                PageRouteBuilder(
-                                  opaque: false, // set to false
-                                  pageBuilder: (_, __, ___) =>
-                                      (const TextInputPage(
-                                    title: "Change Room Name",
-                                  )),
-                                ),
-                              )
-                                  .then(
-                                (value) {
-                                  if (msg != null &&
-                                      (value as String).isNotEmpty) {
-                                    msg!.setRoomName(
-                                        widget.chatRoomData.id, value);
-                                    msg!
-                                        .getChatRoomFromChatID(_chatRoomData.id)
-                                        .then((val) {
-                                      if (val != null) {
-                                        setState(() {
-                                          _chatRoomData = val;
-                                        });
-                                      }
+                // Displays the editable room name
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _chatRoomData.roomName,
+                      style: const TextStyle(fontSize: 30),
+                    ),
+                    IconButton(
+                        onPressed: () {
+                          Navigator.of(context)
+                              .push(
+                            PageRouteBuilder(
+                              opaque: false, // set to false
+                              pageBuilder: (_, __, ___) => (const TextInputPage(
+                                title: "Change Room Name",
+                              )),
+                            ),
+                          )
+                              .then(
+                            (value) {
+                              if (msg != null && (value as String).isNotEmpty) {
+                                msg!.setRoomName(widget.chatRoomData.id, value);
+                                msg!
+                                    .getChatRoomFromChatID(_chatRoomData.id)
+                                    .then((val) {
+                                  if (val != null) {
+                                    setState(() {
+                                      _chatRoomData = val;
                                     });
                                   }
-                                },
-                              );
+                                });
+                              }
                             },
-                            icon: const Icon(Icons.edit))
-                      ],
-                    ),
-                    // Displays room count
-                    Center(
-                      child: Text("Group with ${_senders?.length} members:"),
-                    ),
+                          );
+                        },
+                        icon: const Icon(Icons.edit))
+                  ],
+                ),
+                // Displays room count
+                Center(
+                  child: Text("Group with ${_senders?.length} members:"),
+                ),
 
-                    // Displays room members below that
-                    Center(
-                      child: SizedBox(
-                        width: 250.h,
-                        child: (_senders == null)
-                            ? null
-                            : ListView.builder(
-                                itemCount: _senders!.length,
-                                shrinkWrap: true,
-                                itemBuilder: (context, index) {
-                                  Sender? sndr = _senders?[index];
-                                  if (sndr != null) {
-                                    return ListTile(
-                                      leading: CircleAvatar(
-                                        backgroundImage: (sndr.avatar != null)
-                                            ? Image.memory(sndr.avatar!).image
-                                            : null,
-                                      ),
-                                      title: Text(
-                                        (sndr.did == did)
-                                            ? "You"
-                                            : sndr.displayName,
+                // Displays room members below that
+                Center(
+                  child: (_senders == null)
+                      ? null
+                      : ListView.builder(
+                          itemCount: _senders!.length,
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            Sender? sndr = _senders?[index];
+                            if (sndr != null) {
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage: (sndr.avatar != null)
+                                      ? Image.memory(sndr.avatar!).image
+                                      : null,
+                                ),
+                                title: Text(
+                                  (sndr.did == did) ? "You" : sndr.displayName,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                                subtitle: (sndr.description != null)
+                                    ? Text(
+                                        sndr.description!,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
-                                      ),
-                                      subtitle: (sndr.description != null)
-                                          ? Text(
-                                              sndr.description!,
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
-                                            )
-                                          : null,
-                                    );
-                                  }
-                                  return null;
-                                }),
+                                      )
+                                    : null,
+                              );
+                            }
+                            return null;
+                          }),
+                ),
+                // Shows the notification toggle
+                const Center(
+                  child: Text("Notifications:"),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.call),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          // Calculate the width for each indicator based on the total width
+                          double totalWidth = constraints.maxWidth;
+                          double indicatorWidth = totalWidth / 3;
+
+                          return AnimatedToggleSwitch.size(
+                            current: _callNotificationSliderState,
+                            iconAnimationType: AnimationType.onHover,
+                            onChanged: (value) {
+                              setState(() {
+                                _callNotificationSliderState = value;
+                              });
+                              _persistNotificationState();
+                            },
+                            values: const [0, 1, 2],
+                            customIconBuilder: (context, local, global) {
+                              return Text(_notificationOptions[local.value]);
+                            },
+                            indicatorSize: Size(
+                                indicatorWidth, 48), // Set the height as needed
+                            style: ToggleStyle(
+                              indicatorColor: Theme.of(context).primaryColor,
+                              borderColor: Colors.transparent,
+                              borderRadius: BorderRadius.circular(10.0),
+                              boxShadow: [
+                                const BoxShadow(
+                                  color: Colors.black26,
+                                  spreadRadius: 1,
+                                  blurRadius: 2,
+                                  offset: Offset(0, 1.5),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    // Shows the notification toggle
-                    const Center(
-                      child: Text("Notifications:"),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.call),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        AnimatedToggleSwitch.size(
-                          current: _callNotificationSliderState,
-                          iconAnimationType: AnimationType.onHover,
-                          onChanged: (value) {
-                            setState(() {
-                              _callNotificationSliderState = value;
-                            });
-                            _persistNotificationState();
-                          },
-                          values: const [0, 1, 2],
-                          customIconBuilder: (context, local, global) {
-                            return Text(_notificationOptions[local.value]);
-                          },
-                          indicatorSize:
-                              Size.fromWidth((60.w > 80.h) ? 80.h : 60.w),
-                          style: ToggleStyle(
-                            indicatorColor: Theme.of(context).primaryColor,
-                            borderColor: Colors.transparent,
-                            borderRadius: BorderRadius.circular(10.0),
-                            boxShadow: [
-                              const BoxShadow(
-                                color: Colors.black26,
-                                spreadRadius: 1,
-                                blurRadius: 2,
-                                offset: Offset(0, 1.5),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.message),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        AnimatedToggleSwitch.size(
-                          current: _textNotificationSliderState,
-                          iconAnimationType: AnimationType.onHover,
-                          onChanged: (value) {
-                            setState(() {
-                              _textNotificationSliderState = value;
-                            });
-                            _persistNotificationState();
-                          },
-                          values: const [0, 1, 2],
-                          customIconBuilder: (context, local, global) {
-                            return Text(_notificationOptions[local.value]);
-                          },
-                          indicatorSize:
-                              Size.fromWidth((69.w > 80.h) ? 80.h : 60.w),
-                          style: ToggleStyle(
-                            indicatorColor: Theme.of(context).primaryColor,
-                            borderColor: Colors.transparent,
-                            borderRadius: BorderRadius.circular(10.0),
-                            boxShadow: [
-                              const BoxShadow(
-                                color: Colors.black26,
-                                spreadRadius: 1,
-                                blurRadius: 2,
-                                offset: Offset(0, 1.5),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-
-                    // Display a button to go to starred messages
-                    ElevatedButton(
-                      onPressed: () {
-                        vupSplitViewKey.currentState?.push(MaterialPageRoute(
-                            builder: (context) => ChatIndividualPage(
-                                id: widget.chatRoomData.id,
-                                starredOnly: true)));
-                      },
-                      child: const ListTile(
-                        title: Text("Starred Messages"),
-                        trailing: Icon(Icons.arrow_forward),
-                      ),
-                    ),
-
-                    // TODO: Display media & Links like whatsapp
                   ],
-                ))));
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.message),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          // Calculate the width for each indicator based on the total width
+                          double totalWidth = constraints.maxWidth;
+                          double indicatorWidth = totalWidth / 3;
+
+                          return AnimatedToggleSwitch.size(
+                            current: _textNotificationSliderState,
+                            iconAnimationType: AnimationType.onHover,
+                            onChanged: (value) {
+                              setState(() {
+                                _textNotificationSliderState = value;
+                              });
+                              _persistNotificationState();
+                            },
+                            values: const [0, 1, 2],
+                            customIconBuilder: (context, local, global) {
+                              return Text(_notificationOptions[local.value]);
+                            },
+                            indicatorSize: Size.fromWidth(indicatorWidth),
+                            style: ToggleStyle(
+                              indicatorColor: Theme.of(context).primaryColor,
+                              borderColor: Colors.transparent,
+                              borderRadius: BorderRadius.circular(10.0),
+                              boxShadow: [
+                                const BoxShadow(
+                                  color: Colors.black26,
+                                  spreadRadius: 1,
+                                  blurRadius: 2,
+                                  offset: Offset(0, 1.5),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+
+                // Display a button to go to starred messages
+                ElevatedButton(
+                  onPressed: () {
+                    vupSplitViewKey.currentState?.push(MaterialPageRoute(
+                        builder: (context) => ChatIndividualPage(
+                            id: widget.chatRoomData.id, starredOnly: true)));
+                  },
+                  child: const ListTile(
+                    title: Text("Starred Messages"),
+                    trailing: Icon(Icons.arrow_forward),
+                  ),
+                ),
+
+                // TODO: Display media & Links like whatsapp
+              ],
+            ));
+          },
+        )));
   }
 }
