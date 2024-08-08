@@ -2,10 +2,9 @@
 
 A cross-platform, ATProto & S5 powered chat client.
 
-<center>
-<img alt="Flathub Version" src="https://img.shields.io/flathub/v/app.vup.VupChat">
-<img alt="Flathub Downloads" src="https://img.shields.io/flathub/downloads/app.vup.VupChat">
-</center>
+![Flathub Version](https://img.shields.io/flathub/v/app.vup.VupChat)
+![Flathub Downloads](https://img.shields.io/flathub/downloads/app.vup.VupChat)
+![GitHub License](https://img.shields.io/github/license/vup-app/vup-chat)
 
 ![](static/UI.png)
 
