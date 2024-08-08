@@ -35,7 +35,11 @@ Future<S5> initS5() async {
 
 Future<void> logInS5(String seed, String nodeURL) async {
   if (s5 != null) {
+    // Checks to make sure it is compliant with the S5 seed spec
     validatePhrase(seed, crypto: s5!.api.crypto);
+    // make sure to persist this for later use
+    await secureStorage.write(key: "seed", value: seed);
+    preferences.setBool("disable-s5", false);
     await s5!.recoverIdentityFromSeedPhrase(seed);
     final nodeOfChoice = nodeURL.isEmpty ? "https://s5.ninja" : nodeURL;
     await s5!.registerOnNewStorageService(
@@ -45,6 +49,7 @@ Future<void> logInS5(String seed, String nodeURL) async {
 }
 
 void logOutS5() async {
+  await secureStorage.delete(key: "seed");
   Directory(await getHiveDBPath()).delete(recursive: true);
 }
 

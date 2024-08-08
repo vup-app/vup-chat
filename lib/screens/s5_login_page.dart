@@ -267,7 +267,10 @@ class S5LoginPageState extends State<S5LoginPage>
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          preferences.setBool("disable-s5", true);
+                          Navigator.pop(context);
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           shape: RoundedRectangleBorder(
@@ -277,7 +280,7 @@ class S5LoginPageState extends State<S5LoginPage>
                           ),
                         ),
                         child: Text(
-                          "Cancel",
+                          "No Thanks",
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                           ),

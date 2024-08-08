@@ -6,8 +6,8 @@ import 'package:vup_chat/main.dart';
 
 Future<Bluesky?> tryLogIn(String? user, String? password) async {
   if (user == null || user.isEmpty || password == null || password.isEmpty) {
-    user = await storage.read(key: 'user');
-    password = await storage.read(key: 'password');
+    user = await secureStorage.read(key: 'user');
+    password = await secureStorage.read(key: 'password');
     if (user == null || user.isEmpty || password == null || password.isEmpty) {
       return null;
     }

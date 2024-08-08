@@ -20,7 +20,7 @@ import 'package:vup_chat/widgets/restart_widget.dart';
 
 // TODO: Move these to providers and stop mucking about with
 // global state
-const FlutterSecureStorage storage = FlutterSecureStorage();
+const FlutterSecureStorage secureStorage = FlutterSecureStorage();
 final Logger logger = Logger();
 late SharedPreferences preferences;
 final vupSplitViewKey = GlobalKey<NavigatorState>();

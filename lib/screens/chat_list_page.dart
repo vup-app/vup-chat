@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/profile_page.dart';
+import 'package:vup_chat/screens/s5_login_page.dart';
 import 'package:vup_chat/screens/search_actor.page.dart';
 import 'package:vup_chat/screens/settings_page.dart';
 import 'package:vup_chat/widgets/chat_page_list_item.dart';
@@ -28,9 +29,10 @@ class ChatListPageState extends State<ChatListPage> {
 
   @override
   void initState() {
-    super.initState();
+    _checkIfS5LoggedIn();
     _subscribeToChatList();
     _textController.addListener(_onSearchChanged);
+    super.initState();
   }
 
   @override
@@ -134,6 +136,17 @@ class ChatListPageState extends State<ChatListPage> {
       setState(() {
         hiddenChatToggle = false;
       });
+    }
+  }
+
+  void _checkIfS5LoggedIn() async {
+    String? seed = await secureStorage.read(key: "seed");
+    bool? s5Disabled = preferences.getBool("disable-s5");
+    if ((s5Disabled == null || s5Disabled == false) && seed == null) {
+      if (!context.mounted) return;
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => const S5LoginPage(),
+      ));
     }
   }
 

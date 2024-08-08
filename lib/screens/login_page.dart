@@ -53,8 +53,8 @@ class LoginPageState extends State<LoginPage>
   }
 
   Future<void> _login() async {
-    await storage.write(key: 'user', value: userController.text);
-    await storage.write(key: 'password', value: passwordController.text);
+    await secureStorage.write(key: 'user', value: userController.text);
+    await secureStorage.write(key: 'password', value: passwordController.text);
     session = await tryLogIn(userController.text, passwordController.text);
     await msg?.requestPerms();
     if (mounted && session != null) {
