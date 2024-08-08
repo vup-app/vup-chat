@@ -2,6 +2,9 @@
 
 A cross-platform, ATProto & S5 powered chat client.
 
+<center>
+<img alt="Flathub Downloads" src="https://img.shields.io/flathub/downloads/app.vup.VupChat">
+</center>
 ![](static/UI.png)
 
 ### What
@@ -12,27 +15,23 @@ Vup Chat is a messaging client build on top of the [AT Protocol](https://atproto
 
 > ⚠️ This app is still in rapid development, so things are likely to change and break. All messages are currently backed up to ATProto. Once E2EE is implemented, the DB will become stable and breaking changes will not be pushed on minor (x.X.x) versions.
 
-| Supported Platforms |     |
-| ------------------- | --- |
-| Android             | ✓   |
-| iOS                 | 🗙   |
-| Macos               | 🗙   |
-| Linux               | ✓   |
-| Windows             | 🗙   |
-| Web                 | ✓   |
+| Supported Platforms |                                                                                                               |
+| ------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Android             | [releases](https://github.com/vup-app/vup-chat/releases)                                                      |
+| iOS                 | 🗙                                                                                                             |
+| Macos               | 🗙                                                                                                             |
+| Linux               | [releases](https://github.com/vup-app/vup-chat/releases), [flathub](https://flathub.org/apps/app.vup.VupChat) |
+| Windows             | 🗙                                                                                                             |
+| Web                 | [releases](https://github.com/vup-app/vup-chat/releases), [dev site](https://vup-chat.jptr.tech)              |
 
->
-
-Download the binary for your platform on the [releases](https://github.com/vup-app/vup-chat/releases) page.
-
-Development site is available [here](https://vup-chat.jptr.tech). Alternatively you can build the app yourself for any supported platform.
+> iOS, MacOS, & Windows are theoretically supported, but have not been tested and are not currently being distributed. PR's welcome :)
 
 ```bash
 # Prerec, install flutter (https://flutter.dev/)
 git clone https://github.com/vup-app/vup-chat.git
 cd vup-chat
 flutter pub get
-flutter build exe --your-params
+flutter build your-platform-command
 ```
 
 ### TODO:
