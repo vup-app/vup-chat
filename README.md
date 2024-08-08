@@ -3,8 +3,10 @@
 A cross-platform, ATProto & S5 powered chat client.
 
 <center>
+<img alt="Flathub Version" src="https://img.shields.io/flathub/v/app.vup.VupChat">
 <img alt="Flathub Downloads" src="https://img.shields.io/flathub/downloads/app.vup.VupChat">
 </center>
+
 ![](static/UI.png)
 
 ### What
