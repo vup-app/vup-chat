@@ -18,14 +18,14 @@ class _S5StatusWidgetState extends State<S5StatusWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (s5!.hasIdentity) {
+    if (s5 != null && s5!.hasIdentity) {
       return Row(
         children: [
           const Text("S5 Status: "),
           const Icon(Icons.check),
           ElevatedButton(
             onPressed: () {
-              logOutS5();
+              logOutS5(context);
             },
             child: const Row(
               children: [Text("Log Out"), Icon(Icons.login)],

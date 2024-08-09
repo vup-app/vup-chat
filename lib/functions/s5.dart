@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:lib5/identity.dart';
 import 'package:path/path.dart';
@@ -8,8 +9,21 @@ import 'package:path_provider/path_provider.dart';
 import 'package:s5/s5.dart';
 import 'package:vup_chat/definitions/logger.dart';
 import 'package:vup_chat/main.dart';
+import 'package:vup_chat/widgets/restart_widget.dart';
 
 Future<S5> initS5() async {
+  // if in a state with a seed but a broken session, should attempt to log in, and if it fails it
+  // should try again without the seed.
+  try {
+    return await _initS5();
+  } catch (e) {
+    logger.e(e);
+    await logOutS5NoRestart();
+    return await _initS5();
+  }
+}
+
+Future<S5> _initS5() async {
   if (!kIsWeb) {
     Hive.init(await getHiveDBPath());
     final nowInMilliseconds = DateTime.now().millisecondsSinceEpoch;
@@ -48,7 +62,14 @@ Future<void> logInS5(String seed, String nodeURL) async {
   }
 }
 
-void logOutS5() async {
+void logOutS5(BuildContext context) async {
+  await secureStorage.delete(key: "seed");
+  Directory(await getHiveDBPath()).delete(recursive: true);
+  if (!context.mounted) return;
+  RestartWidget.restartApp(context);
+}
+
+Future<void> logOutS5NoRestart() async {
   await secureStorage.delete(key: "seed");
   Directory(await getHiveDBPath()).delete(recursive: true);
 }

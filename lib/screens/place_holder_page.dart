@@ -7,27 +7,29 @@ class PlaceHolderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            img.Image.asset(
-              'static/icon.png',
-              width: 150.h,
-            ),
-            SizedBox(
-              height: 10.h,
-            ),
-            Text(
-              "Vup Chat",
-              style: TextStyle(
+    return Scaffold(
+      body: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              img.Image.asset(
+                'static/icon.png',
+                width: 150.h,
+              ),
+              SizedBox(
+                height: 10.h,
+              ),
+              Text(
+                "Vup Chat",
+                style: TextStyle(
                   fontSize: 25.h,
                   decoration: TextDecoration.none,
-                  color: Theme.of(context).textTheme.bodyLarge?.color),
-            ),
-          ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
