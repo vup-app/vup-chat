@@ -30,7 +30,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   void initState() {
     _chatRoomData = widget.chatRoomData;
     _getNotificationLevels();
-    msg!.getSendersFromDIDList(widget.chatRoomData.members).then((val) {
+    msg.getSendersFromDIDList(widget.chatRoomData.members).then((val) {
       setState(() {
         _senders = val;
       });
@@ -54,7 +54,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   }
 
   Future<void> _persistNotificationState() async {
-    await msg?.db.setNotificationLevel(
+    await msg.db.setNotificationLevel(
         widget.chatRoomData.id,
         _notificationOptions[_callNotificationSliderState],
         _notificationOptions[_textNotificationSliderState]);
@@ -101,9 +101,9 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                           )
                               .then(
                             (value) {
-                              if (msg != null && (value as String).isNotEmpty) {
-                                msg!.setRoomName(widget.chatRoomData.id, value);
-                                msg!
+                              if ((value as String).isNotEmpty) {
+                                msg.setRoomName(widget.chatRoomData.id, value);
+                                msg
                                     .getChatRoomFromChatID(_chatRoomData.id)
                                     .then((val) {
                                   if (val != null) {

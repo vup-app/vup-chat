@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:lib5/identity.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:s5/s5.dart';
@@ -44,21 +43,6 @@ Future<S5> _initS5() async {
     Hive.init("db");
     final S5 s5 = await S5.create();
     return s5;
-  }
-}
-
-Future<void> logInS5(String seed, String nodeURL) async {
-  if (s5 != null) {
-    // Checks to make sure it is compliant with the S5 seed spec
-    validatePhrase(seed, crypto: s5!.api.crypto);
-    // make sure to persist this for later use
-    await secureStorage.write(key: "seed", value: seed);
-    preferences.setBool("disable-s5", false);
-    await s5!.recoverIdentityFromSeedPhrase(seed);
-    final nodeOfChoice = nodeURL.isEmpty ? "https://s5.ninja" : nodeURL;
-    await s5!.registerOnNewStorageService(
-      nodeOfChoice,
-    );
   }
 }
 

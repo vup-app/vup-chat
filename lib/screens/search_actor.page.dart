@@ -49,10 +49,10 @@ class SearchActorPageState extends State<SearchActorPage> {
     }
 
     // Replace with your actual session and search method
-    if (session != null) {
+    if (msg.bskySession != null) {
       final List<Actor> actors =
-          (await session!.actor.searchActors(term: term)).data.actors;
-      final List<ActorProfile> profiles = (await session!.actor
+          (await msg.bskySession!.actor.searchActors(term: term)).data.actors;
+      final List<ActorProfile> profiles = (await msg.bskySession!.actor
               .getProfiles(actors: actors.map((actor) => actor.did).toList()))
           .data
           .profiles;

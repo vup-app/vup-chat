@@ -62,14 +62,14 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
 
   void _schedulePeriodicUpdate() {
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      msg!.checkForMessageUpdatesATProto(widget.id);
+      msg.checkForMessageUpdatesATProto(widget.id);
     });
   }
 
   void _subscribeToChat() {
     _subscription?.cancel(); // Cancel any existing subscription
     _subscription =
-        msg!.subscribeChat(widget.id, widget.starredOnly).listen((newMessages) {
+        msg.subscribeChat(widget.id, widget.starredOnly).listen((newMessages) {
       if (_messages != newMessages) {
         setState(() {
           _messages = newMessages;
@@ -79,7 +79,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   }
 
   void _getChatRoomData() async {
-    await msg!.getChatRoomFromChatID(widget.id).then((val) => setState(() {
+    await msg.getChatRoomFromChatID(widget.id).then((val) => setState(() {
           _chatRoomData = val;
           if (_chatRoomData != null && _chatRoomData!.avatar != avatarCache) {
             avatarCache = _chatRoomData!.avatar;
@@ -106,8 +106,8 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   void _sendmsg() async {
     final String tmpText = _messageController.text;
     _messageController.clear();
-    await msg!
-        .sendMessage(tmpText, widget.id, (await msg!.getSenderFromDID(did!)));
+    await msg.sendMessage(
+        tmpText, widget.id, (await msg.getSenderFromDID(did!)));
     _scrollToBottom();
   }
 
@@ -173,7 +173,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     setState(() {
       _selectedMessages.clear();
     });
-    await msg?.toggleChatStar(tmpSelectedMessages);
+    await msg.toggleChatStar(tmpSelectedMessages);
   }
 
   @override

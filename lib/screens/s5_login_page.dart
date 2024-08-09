@@ -7,7 +7,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:vup_chat/functions/s5.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/widgets/smart_width.dart';
 
@@ -35,7 +34,7 @@ class S5LoginPageState extends State<S5LoginPage>
     super.initState();
 
     setState(() {
-      _seed = s5!.generateSeedPhrase();
+      _seed = msg.s5!.generateSeedPhrase();
     });
 
     _controller = AnimationController(
@@ -66,7 +65,7 @@ class S5LoginPageState extends State<S5LoginPage>
         node = _nodeController.text;
       }
       try {
-        await logInS5(seed, node);
+        await msg.logInS5(seed, node);
         vupSplitViewKey.currentState?.pop();
       } catch (e) {
         setState(() {

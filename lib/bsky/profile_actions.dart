@@ -42,7 +42,7 @@ Future<PersonalProfileInfo> fetchProfile(bool update) async {
     return PersonalProfileInfo.fromJson(jsonDecode(cachedProfile));
   } else {
     final XRPCResponse<ProfileRecord> response =
-        await session!.actor.getProfileRecord();
+        await msg.bskySession!.actor.getProfileRecord();
 
     String? displayName = response.data.displayName;
     String? description = response.data.description;
@@ -55,14 +55,18 @@ Future<PersonalProfileInfo> fetchProfile(bool update) async {
     if (avatarBlob != null) {
       String cid = BlobRef.fromJson(avatarBlob.toJson()['ref']).link;
       if (did != null) {
-        avatarBytes = (await session!.sync.getBlob(cid: cid, did: did!)).data;
+        avatarBytes =
+            (await msg.bskySession!.atproto.sync.getBlob(cid: cid, did: did!))
+                .data;
       }
     }
 
     if (bannerBlob != null) {
       String cid = BlobRef.fromJson(bannerBlob.toJson()['ref']).link;
       if (did != null) {
-        bannerBytes = (await session!.sync.getBlob(cid: cid, did: did!)).data;
+        bannerBytes =
+            (await msg.bskySession!.atproto.sync.getBlob(cid: cid, did: did!))
+                .data;
       }
     }
 
@@ -76,5 +80,5 @@ Future<PersonalProfileInfo> fetchProfile(bool update) async {
 }
 
 Future<void> followUser(String did) async {
-  await session!.graph.follow(did: did);
+  await msg.bskySession!.graph.follow(did: did);
 }

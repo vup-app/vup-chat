@@ -1,15 +1,12 @@
 import 'dart:async';
 
 import 'package:based_splash_page/based_splash_page.dart';
-import 'package:bluesky/bluesky.dart';
-import 'package:bluesky/bluesky_chat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:s5/s5.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_io/io.dart';
 import 'package:vup_chat/messenger/core.dart';
@@ -25,10 +22,7 @@ final Logger logger = Logger();
 late SharedPreferences preferences;
 final vupSplitViewKey = GlobalKey<NavigatorState>();
 final leftKey = GlobalKey();
-MsgCore? msg;
-Bluesky? session;
-BlueskyChat? chatSession;
-S5? s5;
+MsgCore msg = MsgCore();
 String? did;
 bool inBackground = false;
 String currentChatID = "";

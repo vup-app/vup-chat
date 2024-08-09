@@ -59,7 +59,7 @@ class SettingsPageState extends State<SettingsPage> {
                   onPressed: () {
                     Navigator.of(context).push(MaterialPageRoute(
                         // I know multiple DB opens is bad, but it's read only so it's fine
-                        builder: (context) => DriftDbViewer(msg!.getDB())));
+                        builder: (context) => DriftDbViewer(msg.getDB())));
                   },
                   child: const Text("View DB")),
               Padding(

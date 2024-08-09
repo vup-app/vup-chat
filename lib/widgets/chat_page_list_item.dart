@@ -104,17 +104,17 @@ class ChatRoomSearchMessageItemState extends State<ChatRoomSearchMessageItem> {
   }
 
   void _getIDAndSender() {
-    msg!.getSenderFromDID(widget.message.senderDid).then((val) {
+    msg.getSenderFromDID(widget.message.senderDid).then((val) {
       if (mounted) {
         setState(() {
           sender = val;
         });
       }
     });
-    msg!.getChatIDFromMessageID(widget.message.id).then((val) => setState(() {
+    msg.getChatIDFromMessageID(widget.message.id).then((val) => setState(() {
           chatID = val;
           if (val != null && val.isNotEmpty) {
-            msg!.getChatRoomFromChatID(val).then((val2) {
+            msg.getChatRoomFromChatID(val).then((val2) {
               if (mounted) {
                 setState(() {
                   chatRoom = val2;

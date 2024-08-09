@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:bluesky/bluesky.dart';
 import 'package:bluesky/bluesky_chat.dart';
+import 'package:bluesky/core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
@@ -11,12 +12,15 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     as n;
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:lib5/identity.dart';
 import 'package:s5/s5.dart' as s5lib;
-import 'package:universal_io/io.dart';
+import 'package:universal_io/io.dart' as io;
 import 'package:vup_chat/bsky/chat_actions.dart';
+import 'package:vup_chat/bsky/log_out.dart';
 import 'package:vup_chat/bsky/try_log_in.dart';
 import 'package:vup_chat/definitions/notificationPayload.dart';
 import 'package:vup_chat/definitions/s5embed.dart';
+import 'package:vup_chat/functions/s5.dart';
 import 'package:vup_chat/functions/thumbhash.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
@@ -25,11 +29,11 @@ import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/widgets/init_router.dart';
 
 class MsgCore {
-  final s5lib.S5? s5;
   final MessageDatabase db;
-  final Bluesky? bskySession;
-  final BlueskyChat? bskyChatSessoion;
   final Lock _lock = Lock();
+  s5lib.S5? s5;
+  Bluesky? bskySession;
+  BlueskyChat? bskyChatSession;
   bool _firstSync =
       false; // disabled for now, TODO: find better way to not spam users on first sync
   // handles notificaitons
@@ -43,22 +47,21 @@ class MsgCore {
     this.s5,
     required this.db,
     this.bskySession,
-    this.bskyChatSessoion,
+    this.bskyChatSession,
   });
 
   // Unnamed constructor that initializes the database internally
-  MsgCore({
-    s5lib.S5? s5,
-    Bluesky? bskySession,
-    BlueskyChat? bskyChatSession,
-  }) : this.custom(
-          s5: s5,
+  MsgCore()
+      : this.custom(
           db: MessageDatabase(), // Initialize the database internally
-          bskySession: bskySession,
-          bskyChatSessoion: bskyChatSession,
         );
 
+  // -------- INIT FUNCTIONS --------
+
   void init() async {
+    s5 = await initS5();
+    await attemptLogin(null, null);
+
     _startBackgroundTask();
     if (!kIsWeb) {
       _initNotifications();
@@ -75,10 +78,16 @@ class MsgCore {
       await _fetchAllChats();
       // also make sure the sessions are logged in
       await Future.delayed(const Duration(seconds: 5));
-      if (session == null ||
-          session!.session == null ||
-          session!.session!.active == false) {
-        session = await tryLogIn(null, null);
+      if (bskySession == null ||
+          bskySession!.session == null ||
+          bskySession!.session!.active == false) {
+        final Session? session = await tryLogIn(null, null);
+        if (session != null) {
+          bskySession = Bluesky.fromSession(
+            session,
+          );
+          bskyChatSession = BlueskyChat.fromSession(session);
+        }
       }
     }
   }
@@ -98,6 +107,23 @@ class MsgCore {
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
   }
 
+  Future<void> attemptLogin(String? user, String? password) async {
+    Session? session;
+    if (user != null && password != null) {
+      session = await tryLogIn(user, password);
+    } else {
+      session = await tryLogIn(null, null);
+    }
+    if (session != null) {
+      bskySession = Bluesky.fromSession(
+        session,
+      );
+      bskyChatSession = BlueskyChat.fromSession(session);
+    }
+  }
+
+  // -------- STREAM SUBSCRIPTIONS --------
+
   Stream<List<ChatRoom>> subscribeChatRoom() {
     return db.watchChatRooms();
   }
@@ -114,7 +140,7 @@ class MsgCore {
     final possibleSender = await db.getSenderByDID(did);
     if (possibleSender == null) {
       final ActorProfile profile =
-          (await session!.actor.getProfile(actor: did)).data;
+          (await bskySession!.actor.getProfile(actor: did)).data;
       Uint8List? avatarBytes;
       try {
         http.Response response = await http.get(
@@ -139,10 +165,12 @@ class MsgCore {
     List<dynamic> memberDIDs = jsonDecode(didList);
     List<Sender> sndrs = [];
     for (String o in memberDIDs) {
-      sndrs.add(await msg!.getSenderFromDID(o));
+      sndrs.add(await msg.getSenderFromDID(o));
     }
     return sndrs;
   }
+
+  // -------- DATABASE GETTERS --------
 
   Future<String?> getChatIDFromMessageID(String mID) async {
     return db.getChatRoomsIdFromMessageId(mID);
@@ -150,9 +178,9 @@ class MsgCore {
 
   Future<ChatRoom?> getChatRoomFromChatID(String chatID) async {
     ChatRoom? crd = await db.getChatRoomFromChatID(chatID);
-    if (crd == null && bskyChatSessoion != null) {
+    if (crd == null && bskyChatSession != null) {
       final GetConvoOutput convoInfo =
-          (await bskyChatSessoion!.convo.getConvo(convoId: chatID)).data;
+          (await bskyChatSession!.convo.getConvo(convoId: chatID)).data;
       await db.checkAndInsertChatRoom(convoInfo.convo);
     }
     return await db.getChatRoomFromChatID(chatID);
@@ -168,11 +196,13 @@ class MsgCore {
     return await db.searchChatRooms(query);
   }
 
+  // -------- DATABASE ACTIONS --------
+
   // TODO create own local message ID's to associate with BSKY ID to speed up sending
   Future<void> sendMessage(String text, String chatID, Sender sender) async {
     // TODO: persist to DB BEFORE sneding to atproto to make things snappier
-    if (chatSession != null && text.isNotEmpty) {
-      final MessageView message = (await chatSession!.convo
+    if (bskyChatSession != null && text.isNotEmpty) {
+      final MessageView message = (await bskyChatSession!.convo
               .sendMessage(convoId: chatID, message: MessageInput(text: text)))
           .data;
       // Ignore this return because shouldn't notify for own message obv
@@ -193,7 +223,7 @@ class MsgCore {
     // But right now I have to pregenerate everything before sending the
     // message because ID's are controlled by BSKY, must fix this to snap
     // everything up
-    if (chatSession != null && s5 != null) {
+    if (bskyChatSession != null && s5 != null) {
       String? hash = await getThumbhashFromXFile(file);
       final s5lib.CID cid = await s5!.api.uploadBlob(await file.readAsBytes());
       final S5Embed imageEmbed = S5Embed(
@@ -201,7 +231,7 @@ class MsgCore {
           caption: caption,
           thumbhash: hash.toString(),
           $type: "app.vup.chat.embed.image");
-      final MessageView message = (await chatSession!.convo.sendMessage(
+      final MessageView message = (await bskyChatSession!.convo.sendMessage(
               convoId: chatID,
               message: MessageInput(
                   embed: UConvoMessageEmbedUnknown(data: imageEmbed.toJson()),
@@ -226,11 +256,11 @@ class MsgCore {
         // invert this because we're toggling and flipping
         if (currMuted == true) {
           // if null just assume it's not muted to not mess up remote state
-          await chatSession!.convo.unmuteConvo(convoId: chatID);
+          await bskyChatSession!.convo.unmuteConvo(convoId: chatID);
           await db.setNotificationLevel(chatID, "normal", "normal");
         } else {
           // should cover all cases
-          await chatSession!.convo.muteConvo(convoId: chatID);
+          await bskyChatSession!.convo.muteConvo(convoId: chatID);
           await db.setNotificationLevel(chatID, "disable", "disable");
         }
       } else {
@@ -260,6 +290,62 @@ class MsgCore {
       await db.msgStarHelper(chatID, "toggle-star");
 
       // bsky doesn't impl starred chats so this is purely local
+    }
+  }
+
+  Future<void> setRoomName(String chatID, String newRoomName) async {
+    db.changeRoomName(chatID, newRoomName);
+  }
+
+  Future<void> onDidReceiveNotificationResponse(
+      n.NotificationResponse resp) async {
+    // Check for payload
+    if (resp.payload != null && resp.payload!.isNotEmpty) {
+      try {
+        NotificationPayload payload =
+            NotificationPayload.fromJson(jsonDecode(resp.payload!));
+
+        // If there is an action and an attached message, send that as a message
+        if (resp.notificationResponseType ==
+                n.NotificationResponseType.selectedNotificationAction &&
+            resp.input != null &&
+            resp.input!.isNotEmpty) {
+          final Sender snd = await msg.getSenderFromDID(payload.did!);
+          sendMessage(
+            resp.input!,
+            payload.chatID,
+            snd,
+          );
+        }
+        // If the notification is simply clicked on, go to the chat channel
+        // TODO: Figure out why pushing from this context creates dirty build state
+        else if (resp.notificationResponseType ==
+            n.NotificationResponseType.selectedNotification) {
+          vupSplitViewKey.currentState?.pushAndRemoveUntil(
+            MaterialPageRoute(
+                builder: (context) => ChatIndividualPage(
+                      id: payload.chatID,
+                      starredOnly: false,
+                    )),
+            (Route<dynamic> route) => route.isFirst,
+          );
+        } else {
+          vupSplitViewKey.currentState?.pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const InitRouter()),
+              (Route<dynamic> route) => route.isFirst);
+        }
+      } catch (e) {
+        logger.e("Failed to fetch payload: $e");
+      }
+    }
+  }
+
+  Future<void> requestPerms() async {
+    if (io.Platform.isAndroid) {
+      notifier
+          ?.resolvePlatformSpecificImplementation<
+              n.AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
     }
   }
 
@@ -293,9 +379,9 @@ class MsgCore {
     // different threads
     await _lock.acquire();
     try {
-      if (chatSession != null) {
+      if (bskyChatSession != null) {
         final GetMessagesOutput ref =
-            (await chatSession!.convo.getMessages(convoId: chatID)).data;
+            (await bskyChatSession!.convo.getMessages(convoId: chatID)).data;
         final List<MessageView> messages = convertToMessageViews(ref.messages);
 
         for (var message in messages) {
@@ -395,6 +481,8 @@ class MsgCore {
     }
   }
 
+  // -------- COMMON FUNCTIONS --------
+
   List<MessageView> convertToMessageViews(
       List<UConvoMessageView> uConvoMessages) {
     return uConvoMessages
@@ -405,65 +493,28 @@ class MsgCore {
         .toList();
   }
 
+  Future<void> logInS5(String seed, String nodeURL) async {
+    if (s5 != null) {
+      // Checks to make sure it is compliant with the S5 seed spec
+      validatePhrase(seed, crypto: s5!.api.crypto);
+      // make sure to persist this for later use
+      await secureStorage.write(key: "seed", value: seed);
+      preferences.setBool("disable-s5", false);
+      await s5!.recoverIdentityFromSeedPhrase(seed);
+      final nodeOfChoice = nodeURL.isEmpty ? "https://s5.ninja" : nodeURL;
+      await s5!.registerOnNewStorageService(
+        nodeOfChoice,
+      );
+    }
+  }
+
+  Future<void> logOutBsky() async {
+    bskySession = await tryLogOut();
+  }
+
+  // -------- OBJECT GETTERS --------
+
   MessageDatabase getDB() {
     return db;
-  }
-
-  Future<void> setRoomName(String chatID, String newRoomName) async {
-    db.changeRoomName(chatID, newRoomName);
-  }
-
-  Future<void> onDidReceiveNotificationResponse(
-      n.NotificationResponse resp) async {
-    // Check for payload
-    if (resp.payload != null && resp.payload!.isNotEmpty) {
-      try {
-        NotificationPayload payload =
-            NotificationPayload.fromJson(jsonDecode(resp.payload!));
-
-        // If there is an action and an attached message, send that as a message
-        if (resp.notificationResponseType ==
-                n.NotificationResponseType.selectedNotificationAction &&
-            resp.input != null &&
-            resp.input!.isNotEmpty) {
-          final Sender? snd = await msg?.getSenderFromDID(payload.did!);
-          if (snd != null) {
-            sendMessage(
-              resp.input!,
-              payload.chatID,
-              snd,
-            );
-          }
-        }
-        // If the notification is simply clicked on, go to the chat channel
-        // TODO: Figure out why pushing from this context creates dirty build state
-        else if (resp.notificationResponseType ==
-            n.NotificationResponseType.selectedNotification) {
-          vupSplitViewKey.currentState?.pushAndRemoveUntil(
-            MaterialPageRoute(
-                builder: (context) => ChatIndividualPage(
-                      id: payload.chatID,
-                      starredOnly: false,
-                    )),
-            (Route<dynamic> route) => route.isFirst,
-          );
-        } else {
-          vupSplitViewKey.currentState?.pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const InitRouter()),
-              (Route<dynamic> route) => route.isFirst);
-        }
-      } catch (e) {
-        logger.e("Failed to fetch payload: $e");
-      }
-    }
-  }
-
-  Future<void> requestPerms() async {
-    if (Platform.isAndroid) {
-      notifier
-          ?.resolvePlatformSpecificImplementation<
-              n.AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestNotificationsPermission();
-    }
   }
 }

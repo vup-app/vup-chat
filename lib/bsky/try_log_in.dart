@@ -1,10 +1,8 @@
 import 'package:bluesky/atproto.dart';
-import 'package:bluesky/bluesky.dart';
-import 'package:bluesky/bluesky_chat.dart';
 import 'package:bluesky/core.dart';
 import 'package:vup_chat/main.dart';
 
-Future<Bluesky?> tryLogIn(String? user, String? password) async {
+Future<Session?> tryLogIn(String? user, String? password) async {
   if (user == null || user.isEmpty || password == null || password.isEmpty) {
     user = await secureStorage.read(key: 'user');
     password = await secureStorage.read(key: 'password');
@@ -22,14 +20,7 @@ Future<Bluesky?> tryLogIn(String? user, String? password) async {
     return null;
   }
 
-  Bluesky blueskySession = Bluesky.fromSession(
-    session.data,
-  );
-
-  BlueskyChat blueskyChatSession = BlueskyChat.fromSession(session.data);
-
   did = session.data.did;
-  chatSession = blueskyChatSession;
   preferences.setBool("logged-in", true);
-  return blueskySession;
+  return session.data;
 }

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:vup_chat/bsky/try_log_in.dart';
 import 'package:vup_chat/constants.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/screens/chat_list_page.dart';
@@ -44,7 +43,7 @@ class LoginPageState extends State<LoginPage>
 
   Future<void> _checkSession() async {
     // Replace this logic with your actual session check
-    if (session != null && mounted) {
+    if (msg.bskySession != null && mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ChatListPage()),
@@ -55,9 +54,9 @@ class LoginPageState extends State<LoginPage>
   Future<void> _login() async {
     await secureStorage.write(key: 'user', value: userController.text);
     await secureStorage.write(key: 'password', value: passwordController.text);
-    session = await tryLogIn(userController.text, passwordController.text);
-    await msg?.requestPerms();
-    if (mounted && session != null) {
+    await msg.attemptLogin(userController.text, passwordController.text);
+    await msg.requestPerms();
+    if (mounted && msg.bskySession != null) {
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(

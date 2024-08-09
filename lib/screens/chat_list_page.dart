@@ -44,7 +44,7 @@ class ChatListPageState extends State<ChatListPage> {
   }
 
   void _subscribeToChatList() {
-    _subscription = msg!.subscribeChatRoom().listen((newChats) {
+    _subscription = msg.subscribeChatRoom().listen((newChats) {
       if (newChats != _chats) {
         setState(() {
           _chats = newChats;
@@ -58,14 +58,14 @@ class ChatListPageState extends State<ChatListPage> {
   void _onSearchChanged() {
     if (_textController.text.isNotEmpty) {
       // not specifying chat room ID to search all possible rooms
-      msg!.searchMessages(_textController.text, null).then(
+      msg.searchMessages(_textController.text, null).then(
         (msgs) {
           setState(() {
             _searchedMessages = msgs;
           });
         },
       );
-      msg!.searchChatRooms(_textController.text).then((chats) {
+      msg.searchChatRooms(_textController.text).then((chats) {
         setState(() {
           _searchedChats = chats;
         });
@@ -101,7 +101,7 @@ class ChatListPageState extends State<ChatListPage> {
   // Optional ChatID is for when using the 3 button menu
   void _hideSelectedChats(String? optionalChatID) {
     if (optionalChatID != null) _selectedChatIds.add(optionalChatID);
-    msg!.toggleChatHidden(_selectedChatIds.toList());
+    msg.toggleChatHidden(_selectedChatIds.toList());
     setState(() {
       _chats.removeWhere((chat) => _selectedChatIds.contains(chat.id));
       _selectedChatIds.clear();
@@ -111,7 +111,7 @@ class ChatListPageState extends State<ChatListPage> {
   // Optional ChatID is for when using the 3 button menu
   void _muteSelectedChats(String? optionalChatID) {
     if (optionalChatID != null) _selectedChatIds.add(optionalChatID);
-    msg!.toggleChatMutes(_selectedChatIds.toList());
+    msg.toggleChatMutes(_selectedChatIds.toList());
     setState(() {
       _selectedChatIds.clear();
     });
@@ -120,7 +120,7 @@ class ChatListPageState extends State<ChatListPage> {
   // Optional ChatID is for when using the 3 button menu
   void _pinSelectedChats(String? optionalChatID) {
     if (optionalChatID != null) _selectedChatIds.add(optionalChatID);
-    msg!.toggleChatPin(_selectedChatIds.toList());
+    msg.toggleChatPin(_selectedChatIds.toList());
     setState(() {
       _selectedChatIds.clear();
     });

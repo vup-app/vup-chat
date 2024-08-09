@@ -2,10 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:vup_chat/bsky/log_out.dart';
 import 'package:vup_chat/bsky/profile_actions.dart';
-import 'package:vup_chat/main.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
+import 'package:vup_chat/main.dart';
 import 'package:vup_chat/widgets/restart_widget.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -25,8 +24,8 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _logOut() async {
-    session = await tryLogOut();
-    if (mounted && session == null) {
+    await msg.logOutBsky();
+    if (mounted && msg.bskySession == null) {
       RestartWidget.restartApp(context);
     }
   }
