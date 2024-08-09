@@ -59,13 +59,16 @@ class MsgCore {
   // -------- INIT FUNCTIONS --------
 
   void init() async {
-    s5 = await initS5();
     await attemptLogin(null, null);
 
     _startBackgroundTask();
     if (!kIsWeb) {
       _initNotifications();
     }
+  }
+
+  Future<void> msgInitS5() async {
+    s5 = await initS5();
   }
 
   void _startBackgroundTask() async {
@@ -497,14 +500,15 @@ class MsgCore {
     if (s5 != null) {
       // Checks to make sure it is compliant with the S5 seed spec
       validatePhrase(seed, crypto: s5!.api.crypto);
-      // make sure to persist this for later use
-      await secureStorage.write(key: "seed", value: seed);
-      preferences.setBool("disable-s5", false);
       await s5!.recoverIdentityFromSeedPhrase(seed);
       final nodeOfChoice = nodeURL.isEmpty ? "https://s5.ninja" : nodeURL;
+      logger.d("Registering @ $nodeOfChoice");
       await s5!.registerOnNewStorageService(
         nodeOfChoice,
       );
+      // make sure to persist this for later use AFTER sucsess
+      await secureStorage.write(key: "seed", value: seed);
+      preferences.setBool("disable-s5", false);
     }
   }
 

@@ -22,6 +22,7 @@ Future<S5> initS5() async {
   }
 }
 
+// The internal init function
 Future<S5> _initS5() async {
   if (!kIsWeb) {
     Hive.init(await getHiveDBPath());
@@ -36,8 +37,11 @@ Future<S5> _initS5() async {
           'wss://z2DdbxV4xyoqWck5pXXJdVzRnwQC6Gbv6o7xDvyZvzKUfuj@s5.vup.dev/s5/p2p',
           'wss://z2DWuWNZcdSyZLpXFK2uCU3haaWMXrDAgxzv17sDEMHstZb@s5.garden/s5/p2p'
         ],
-        logger: FileLogger(
-            file: join(await getLogPath(), 'log-$lastEightDigits.txt')));
+        logger: kDebugMode
+            // logger: false
+            ? null // If in debug mode I want everything dumped to stdout
+            : FileLogger(
+                file: join(await getLogPath(), 'log-$lastEightDigits.txt')));
     return s5;
   } else {
     Hive.init("db");

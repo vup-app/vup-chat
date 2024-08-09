@@ -30,6 +30,11 @@ String currentChatID = "";
 void main() async {
   // Init preferences here because it's really fast
   preferences = await SharedPreferences.getInstance();
+  try {
+    await msg.msgInitS5(); // Also this doesn't take long and it's better here
+  } catch (e) {
+    logger.e("Failed to init S5: $e");
+  }
   // Go go program!
   runApp(const VupChat());
 }
@@ -84,19 +89,21 @@ class VupChatState extends State<VupChat> {
       // Use builder only if you need to use library outside ScreenUtilInit context
       builder: (_, child) {
         return OverlaySupport.global(
-          child: MaterialApp(
-            title: 'Vup Chat',
-            theme: getLightTheme(),
-            darkTheme: getDarkTheme(),
-            themeMode: _themeMode,
-            debugShowCheckedModeBanner: false,
-            home: BasedSplashPage(
-              rootPage: const RestartWidget(child: InitRouter()),
-              appIcon: img.Image.asset(
-                'static/icon.png',
-                width: 150.h,
+          child: RestartWidget(
+            child: MaterialApp(
+              title: 'Vup Chat',
+              theme: getLightTheme(),
+              darkTheme: getDarkTheme(),
+              themeMode: _themeMode,
+              debugShowCheckedModeBanner: false,
+              home: BasedSplashPage(
+                rootPage: const InitRouter(),
+                appIcon: img.Image.asset(
+                  'static/icon.png',
+                  width: 150.h,
+                ),
+                appName: const Text(''),
               ),
-              appName: const Text(''),
             ),
           ),
         );

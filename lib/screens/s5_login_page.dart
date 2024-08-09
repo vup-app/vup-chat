@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vup_chat/functions/s5.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/widgets/smart_width.dart';
 
@@ -25,17 +26,14 @@ class S5LoginPageState extends State<S5LoginPage>
   bool _currentlyLoggingIn = false;
   late Animation<Offset> _offsetAnimation;
   late AnimationController _controller;
-  String _seed = "";
+  String _seed = "loading...";
   int _toggleState = 0;
   bool _advancedIsExpanded = false;
 
   @override
   void initState() {
     super.initState();
-
-    setState(() {
-      _seed = msg.s5!.generateSeedPhrase();
-    });
+    _getSeed();
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 500),
@@ -48,7 +46,26 @@ class S5LoginPageState extends State<S5LoginPage>
     ).chain(CurveTween(curve: Curves.elasticIn)).animate(_controller);
   }
 
-  void _login() async {
+  void _getSeed() async {
+    // So if S5 is in a weird broken state and fails to initialze because of old junk
+    // this function will clear out the previous failed login and then reinit
+    // once it does that it can get the seed
+    if (msg.s5 != null) {
+      setState(() {
+        _seed = msg.s5!.generateSeedPhrase();
+      });
+    } else {
+      await logOutS5NoRestart();
+      await initS5();
+      if (msg.s5 != null) {
+        setState(() {
+          _seed = msg.s5!.generateSeedPhrase();
+        });
+      }
+    }
+  }
+
+  void _login(BuildContext context) async {
     // flow for on login
     // check if seed is valid, and if it isn't fail
     if (context.mounted) {
@@ -66,7 +83,8 @@ class S5LoginPageState extends State<S5LoginPage>
       }
       try {
         await msg.logInS5(seed, node);
-        vupSplitViewKey.currentState?.pop();
+        if (!context.mounted) return;
+        Navigator.pop(context);
       } catch (e) {
         setState(() {
           _currentlyLoggingIn = false;
@@ -254,7 +272,7 @@ class S5LoginPageState extends State<S5LoginPage>
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: ElevatedButton(
-                      onPressed: _login,
+                      onPressed: () => _login(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shape: RoundedRectangleBorder(
@@ -289,7 +307,7 @@ class S5LoginPageState extends State<S5LoginPage>
                   child: ElevatedButton(
                       onPressed: () {
                         preferences.setBool("disable-s5", true);
-                        Navigator.pop(context);
+                        vupSplitViewKey.currentState?.pop();
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
