@@ -13,6 +13,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart'
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:lib5/identity.dart';
+import 'package:lib5/node.dart';
 import 'package:s5/s5.dart' as s5lib;
 import 'package:universal_io/io.dart' as io;
 import 'package:vup_chat/bsky/chat_actions.dart';
@@ -496,16 +497,28 @@ class MsgCore {
         .toList();
   }
 
-  Future<void> logInS5(String seed, String nodeURL) async {
+  /// Takes seed & nodeURL and does the magic to make sure everything is authenticated
+  Future<void> logInS5(String seed, String? nodeURL) async {
+    if (nodeURL == null || nodeURL.isEmpty) {
+      nodeURL = "https://s5.ninja"; // default to red's node
+    }
     if (s5 != null) {
       // Checks to make sure it is compliant with the S5 seed spec
       validatePhrase(seed, crypto: s5!.api.crypto);
       await s5!.recoverIdentityFromSeedPhrase(seed);
-      final nodeOfChoice = nodeURL.isEmpty ? "https://s5.ninja" : nodeURL;
-      logger.d("Registering @ $nodeOfChoice");
-      await s5!.registerOnNewStorageService(
-        nodeOfChoice,
-      );
+      // now check if already registered on node
+      Map<dynamic, dynamic> data = (s5!.api as S5NodeAPIWithIdentity).accounts;
+      final Map<String, dynamic> accounts =
+          data['accounts'] as Map<String, dynamic>;
+      final List<String> urls =
+          accounts.values.map((account) => account['url'] as String).toList();
+      // And if the nodeURL isn't on the seed already, authenticate on that server
+      if (!urls.contains(nodeURL)) {
+        logger.d("Registering @ $nodeURL");
+        await s5!.registerOnNewStorageService(
+          nodeURL,
+        );
+      }
       // make sure to persist this for later use AFTER sucsess
       await secureStorage.write(key: "seed", value: seed);
       preferences.setBool("disable-s5", false);

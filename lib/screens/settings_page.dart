@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vup_chat/constants.dart';
+import 'package:vup_chat/functions/s5.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/widgets/s5_status_widget.dart';
 import 'package:vup_chat/widgets/smart_width.dart';
@@ -55,6 +56,10 @@ class SettingsPageState extends State<SettingsPage> {
               // S5 Login space
               const S5StatusWidget(),
               const Spacer(),
+              // Call a backup
+              const ElevatedButton(
+                  onPressed: backupSQLiteToS5, child: Text("Backup")),
+
               ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).push(MaterialPageRoute(
