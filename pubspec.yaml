@@ -49,6 +49,7 @@ dependencies:
   flutter_local_notifications: ^17.2.1+2
   flutter_fgbg: ^0.3.0
   universal_io: ^2.2.2
+  neat_periodic_task: ^2.0.1
 
 dev_dependencies:
   flutter_test:

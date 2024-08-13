@@ -14,6 +14,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:lib5/identity.dart';
 import 'package:lib5/node.dart';
+import 'package:neat_periodic_task/neat_periodic_task.dart';
 import 'package:s5/s5.dart' as s5lib;
 import 'package:universal_io/io.dart' as io;
 import 'package:vup_chat/bsky/chat_actions.dart';
@@ -41,7 +42,11 @@ class MsgCore {
   n.FlutterLocalNotificationsPlugin? notifier;
   // Keeps track of notification channels
   Map<String, int> messageNotifChannels = {};
+  // Keeps track if app is in foreground or background
   StreamSubscription<FGBGType>? subscription;
+  // Allows canceling and starting of background tasks
+  NeatPeriodicTaskScheduler? backgroundChatFetchScheduler;
+  NeatPeriodicTaskScheduler? dbBackupScheduler;
 
   // Named constructor
   MsgCore.custom({
@@ -62,7 +67,29 @@ class MsgCore {
   void init() async {
     await attemptLogin(null, null);
 
-    _startBackgroundTask();
+    backgroundChatFetchScheduler = NeatPeriodicTaskScheduler(
+      interval: const Duration(seconds: 5),
+      name: 'background-chat-fetch-task',
+      timeout: const Duration(seconds: 30),
+      task: () async {
+        await _populateListViewDBATProto();
+        await Future.delayed(const Duration(seconds: 5));
+        await _fetchAllChats();
+      },
+      minCycle: const Duration(seconds: 1),
+    );
+
+    dbBackupScheduler = NeatPeriodicTaskScheduler(
+      interval: const Duration(hours: 2),
+      name: 'db-backup-task',
+      timeout: const Duration(hours: 1),
+      task: backupSQLiteToS5,
+      minCycle: const Duration(hours: 1),
+    );
+
+    backgroundChatFetchScheduler?.start();
+    dbBackupScheduler?.start();
+
     if (!kIsWeb) {
       _initNotifications();
     }
@@ -70,30 +97,6 @@ class MsgCore {
 
   Future<void> msgInitS5() async {
     s5 = await initS5();
-  }
-
-  void _startBackgroundTask() async {
-    while (true) {
-      // grab message lsit
-      await _populateListViewDBATProto();
-      await Future.delayed(const Duration(seconds: 5));
-      // grab all chats, add lock to make sure to only insert from here when
-      // background task is running
-      await _fetchAllChats();
-      // also make sure the sessions are logged in
-      await Future.delayed(const Duration(seconds: 5));
-      if (bskySession == null ||
-          bskySession!.session == null ||
-          bskySession!.session!.active == false) {
-        final Session? session = await tryLogIn(null, null);
-        if (session != null) {
-          bskySession = Bluesky.fromSession(
-            session,
-          );
-          bskyChatSession = BlueskyChat.fromSession(session);
-        }
-      }
-    }
   }
 
   void _initNotifications() async {

@@ -47,7 +47,7 @@ Future<S5> _initS5() async {
         ],
         logger: kDebugMode
             // logger: false
-            ? DebugLogger(
+            ? FileLogger(
                 file: join(await getLogPath(),
                     'log-$lastEightDigits.txt')) // If in debug mode I want everything dumped to stdout
             : FileLogger(
