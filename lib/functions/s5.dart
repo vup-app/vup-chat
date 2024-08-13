@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:lib5/constants.dart';
 import 'package:lib5/identity.dart';
-import 'package:lib5/node.dart';
 import 'package:lib5/registry.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -48,7 +47,9 @@ Future<S5> _initS5() async {
         ],
         logger: kDebugMode
             // logger: false
-            ? null // If in debug mode I want everything dumped to stdout
+            ? DebugLogger(
+                file: join(await getLogPath(),
+                    'log-$lastEightDigits.txt')) // If in debug mode I want everything dumped to stdout
             : FileLogger(
                 file: join(await getLogPath(), 'log-$lastEightDigits.txt')));
     return s5;

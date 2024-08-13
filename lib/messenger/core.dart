@@ -507,13 +507,18 @@ class MsgCore {
       validatePhrase(seed, crypto: s5!.api.crypto);
       await s5!.recoverIdentityFromSeedPhrase(seed);
       // now check if already registered on node
-      Map<dynamic, dynamic> data = (s5!.api as S5NodeAPIWithIdentity).accounts;
-      final Map<String, dynamic> accounts =
-          data['accounts'] as Map<String, dynamic>;
-      final List<String> urls =
-          accounts.values.map((account) => account['url'] as String).toList();
-      // And if the nodeURL isn't on the seed already, authenticate on that server
-      if (!urls.contains(nodeURL)) {
+      List<String>? urls;
+      // then check if already registered
+      if ((s5!.api as S5NodeAPIWithIdentity).accounts.isEmpty) {
+        Map<dynamic, dynamic> data =
+            (s5!.api as S5NodeAPIWithIdentity).accounts;
+        final Map<String, dynamic> accounts =
+            data['accounts'] as Map<String, dynamic>;
+        urls =
+            accounts.values.map((account) => account['url'] as String).toList();
+        // And if the nodeURL isn't on the seed already, authenticate on that server
+      }
+      if (urls == null || !urls.contains(nodeURL)) {
         logger.d("Registering @ $nodeURL");
         await s5!.registerOnNewStorageService(
           nodeURL,
