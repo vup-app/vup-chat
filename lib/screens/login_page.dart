@@ -98,179 +98,175 @@ class LoginPageState extends State<LoginPage>
           constraints: const BoxConstraints(maxWidth: 600),
           child: SizedBox(
             width: 300.w,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(),
-
-                img.Image.asset(
-                  'static/icon.png',
-                  width: 150.h,
-                ),
-                SizedBox(
-                  height: 20.h,
-                ),
-                Text(
-                  "Vup Chat",
-                  style: TextStyle(
-                      fontSize: 25.h,
-                      decoration: TextDecoration.none,
-                      color: Theme.of(context).textTheme.bodyLarge?.color),
-                ),
-                const Spacer(),
-                Container(
-                    height: 40, // This should match the height of the SizedBox
-                    alignment: Alignment.bottomRight,
-                    child: Padding(
-                      padding: const EdgeInsets.all(5),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white, // Change outline color
-                                  width: 2.0, // Change outline thickness
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  img.Image.asset(
+                    'static/icon.png',
+                    width: 150.h,
+                  ),
+                  Text(
+                    "Vup Chat",
+                    style: TextStyle(
+                        fontSize: 25.h,
+                        decoration: TextDecoration.none,
+                        color: Theme.of(context).textTheme.bodyLarge?.color),
+                  ),
+                  Container(
+                      height:
+                          40, // This should match the height of the SizedBox
+                      alignment: Alignment.bottomRight,
+                      child: Padding(
+                        padding: const EdgeInsets.all(5),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white, // Change outline color
+                                    width: 2.0, // Change outline thickness
+                                  ),
                                 ),
-                              ),
-                              width: 30, // Adjust size
-                              height: 30,
-                              child: Tooltip(
-                                message:
-                                    "What's this? Click question mark to learn about app passwords.",
-                                child: InkWell(
-                                  onTap: () => launchUrl(Uri.parse(
-                                      "https://blueskyfeeds.com/en/faq-app-password")),
-                                  child: const Center(
-                                    child: Icon(Icons.question_mark,
-                                        size: 25), // Adjust icon size if needed
+                                width: 30, // Adjust size
+                                height: 30,
+                                child: Tooltip(
+                                  message:
+                                      "What's this? Click question mark to learn about app passwords.",
+                                  child: InkWell(
+                                    onTap: () => launchUrl(Uri.parse(
+                                        "https://blueskyfeeds.com/en/faq-app-password")),
+                                    child: const Center(
+                                      child: Icon(Icons.question_mark,
+                                          size:
+                                              25), // Adjust icon size if needed
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    )),
-
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: TextField(
-                    textAlign: TextAlign.center,
-                    autofillHints: const [AutofillHints.username],
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      hintText: 'foo@bar.com',
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          width: 1.h,
+                          ],
                         ),
-                      ),
+                      )),
+
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    controller: userController,
-                  ),
-                ),
-                SizedBox(height: 5.h), // Vertical spacing
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: TextField(
+                    child: TextField(
                       textAlign: TextAlign.center,
-                      autofillHints: const [AutofillHints.password],
+                      autofillHints: const [AutofillHints.username],
                       decoration: InputDecoration(
-                        labelText: 'App Password',
-                        hintText: 'ndsl-kdiw-ndba-nadk',
+                        labelText: 'Email',
+                        hintText: 'foo@bar.com',
                         border: OutlineInputBorder(
                           borderSide: BorderSide(
                             width: 1.h,
                           ),
                         ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            obscureText
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              obscureText = !obscureText;
-                            });
-                          },
-                        ),
                       ),
-                      controller: passwordController,
-                      obscureText: obscureText,
-                      textInputAction: TextInputAction.go,
-                      onSubmitted: (_) {
-                        _login();
-                      }),
-                ),
-                SizedBox(height: 5.h), // Vertical spacing
-                SlideTransition(
-                  position: _offsetAnimation,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
+                      controller: userController,
+                    ),
+                  ),
+                  SizedBox(height: 5.h), // Vertical spacing
+                  Container(
                     width: double.infinity,
-                    height: 40.h,
                     decoration: BoxDecoration(
-                      color: _isLoginFailed
-                          ? Colors.red
-                          : Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    child: ElevatedButton(
-                        onPressed: _login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            side: BorderSide(
-                              color: _isLoginFailed
-                                  ? Colors.red
-                                  : Theme.of(context).colorScheme.primary,
+                    child: TextField(
+                        textAlign: TextAlign.center,
+                        autofillHints: const [AutofillHints.password],
+                        decoration: InputDecoration(
+                          labelText: 'App Password',
+                          hintText: 'ndsl-kdiw-ndba-nadk',
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              width: 1.h,
                             ),
                           ),
-                        ),
-                        child: Text(
-                          "Login",
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              obscureText
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                obscureText = !obscureText;
+                              });
+                            },
                           ),
-                        )),
+                        ),
+                        controller: passwordController,
+                        obscureText: obscureText,
+                        textInputAction: TextInputAction.go,
+                        onSubmitted: (_) {
+                          _login();
+                        }),
                   ),
-                ),
-                Linkify(
-                  onOpen: (link) async {
-                    if (!await launchUrl(Uri.parse(link.url))) {
-                      throw Exception('Could not launch ${link.url}');
-                    }
-                  },
-                  text: "Development funded by https://sia.tech",
-                  style: const TextStyle(color: Colors.grey),
-                  linkStyle:
-                      TextStyle(color: Theme.of(context).colorScheme.primary),
-                ),
-                TextButton(
-                  onPressed: () => launchUrl(
-                      Uri.parse("https://github.com/vup-app/vup-chat/")),
-                  child: const Text(
-                    version,
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                    textAlign: TextAlign.center,
+                  SizedBox(height: 5.h), // Vertical spacing
+                  SlideTransition(
+                    position: _offsetAnimation,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      width: double.infinity,
+                      height: 40.h,
+                      decoration: BoxDecoration(
+                        color: _isLoginFailed
+                            ? Colors.red
+                            : Theme.of(context).colorScheme.primary,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: ElevatedButton(
+                          onPressed: _login,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              side: BorderSide(
+                                color: _isLoginFailed
+                                    ? Colors.red
+                                    : Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            "Login",
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          )),
+                    ),
                   ),
-                ),
-
-                const Spacer()
-              ],
+                  Linkify(
+                    onOpen: (link) async {
+                      if (!await launchUrl(Uri.parse(link.url))) {
+                        throw Exception('Could not launch ${link.url}');
+                      }
+                    },
+                    text: "Development funded by https://sia.tech",
+                    style: const TextStyle(color: Colors.grey),
+                    linkStyle:
+                        TextStyle(color: Theme.of(context).colorScheme.primary),
+                  ),
+                  TextButton(
+                    onPressed: () => launchUrl(
+                        Uri.parse("https://github.com/vup-app/vup-chat/")),
+                    child: const Text(
+                      version,
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

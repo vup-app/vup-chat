@@ -29,6 +29,7 @@ String currentChatID = "";
 
 void main() async {
   // Init preferences here because it's really fast
+  WidgetsFlutterBinding.ensureInitialized();
   preferences = await SharedPreferences.getInstance();
   try {
     await msg.msgInitS5(); // Also this doesn't take long and it's better here

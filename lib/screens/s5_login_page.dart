@@ -108,12 +108,12 @@ class S5LoginPageState extends State<S5LoginPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SmartWidth(
+        body: Center(
+      child: SmartWidth(
+        child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Spacer(),
               SizedBox(
                 height: 80.h,
               ),
@@ -364,11 +364,10 @@ class S5LoginPageState extends State<S5LoginPage>
               SizedBox(
                 height: 50.h,
               ),
-              const Spacer()
             ],
           ),
         ),
       ),
-    );
+    ));
   }
 }

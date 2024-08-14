@@ -455,9 +455,11 @@ class MsgCore {
           priority: n.Priority.high,
           ticker: 'ticker',
           category: n.AndroidNotificationCategory.message,
+          groupKey: chatRoom.id,
+          setAsGroupSummary: false,
           actions: <n.AndroidNotificationAction>[
             const n.AndroidNotificationAction(
-              'text_id_1',
+              'text_reply_action',
               'Reply',
               showsUserInterface: true,
               inputs: <n.AndroidNotificationActionInput>[
@@ -468,6 +470,16 @@ class MsgCore {
             ),
           ],
         );
+        // n.AndroidNotificationDetails groupSummaryNotificationDetails =
+        //     n.AndroidNotificationDetails(
+        //   chatRoom.id,
+        //   chatRoom.roomName,
+        //   priority: n.Priority.high,
+        //   groupKey: chatRoom.id, // Same group key as above
+        //   setAsGroupSummary: true, // Set this notification as the group summary
+        //   onlyAlertOnce:
+        //       true, // Ensure the summary notification doesn't cause repeated alerts
+        // );
         n.NotificationDetails details = n.NotificationDetails(
             linux: linuxDetails, android: androidNotificationDetails);
         // checks if notif channel exists, if it doesn't create it
