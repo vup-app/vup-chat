@@ -404,6 +404,11 @@ class MsgCore {
           shouldNotify ? notifyUserOfMessage(localMessageID, chatID) : null;
         }
       }
+    } catch (e) {
+      // Yes I know this is a crude way of getting the error code, I'll fix it later
+      if (e.toString().contains("400")) {
+        attemptLogin(null, null);
+      }
     } finally {
       _lock.release();
       _firstSync = false;
