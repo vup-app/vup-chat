@@ -137,16 +137,25 @@ Future<void> backupSQLiteToS5() async {
             s5User.publicKey,
           ),
         ));
-    BackupEntries entries;
+    BackupEntries? entries;
     // check to see if there currently is an entry saved
     // if not, create an empty list
     try {
-      Uint8List backupEntriesOld =
-          await s5.api.downloadRawFile(resolverCID.hash);
-      entries = BackupEntries.fromUint8List(backupEntriesOld);
-    } catch (_) {
-      entries = BackupEntries(backupEntries: []);
+      SignedRegistryEntry? signedRegistryEntry =
+          await s5.api.registryGet(resolverCID.toRegistryEntry());
+      if (signedRegistryEntry != null) {
+        Uint8List backupEntriesOld = await s5.api
+            .downloadRawFile(CID.fromBytes(signedRegistryEntry.data).hash);
+        entries = BackupEntries.fromUint8List(backupEntriesOld);
+        logger.d(entries);
+      } else {
+        logger.d("Registry emtpy");
+      }
+    } catch (e) {
+      logger.e(e);
     }
+
+    entries ??= BackupEntries(backupEntries: []);
 
     entries.addEntry(BackupEntry(
         dateTime: DateTime.now(), dataCID: backedUpDBCID.toBase58()));
@@ -166,10 +175,13 @@ Future<void> backupSQLiteToS5() async {
     // debug zone
     if (kDebugMode) {
       try {
-        Uint8List backupEntriesOld =
-            await s5.api.downloadRawFile(resolverCID.hash);
-        BackupEntries entries = BackupEntries.fromUint8List(backupEntriesOld);
-        logger.d(entries.toJson().toString());
+        SignedRegistryEntry? sre = await s5.api.registryGet(s5User.publicKey);
+        if (sre != null) {
+          Uint8List backupEntriesOld =
+              await s5.api.downloadRawFile(CID.fromBytes(sre.data).hash);
+          BackupEntries entries = BackupEntries.fromUint8List(backupEntriesOld);
+          logger.d(entries.toJson().toString());
+        }
       } catch (e) {
         logger.e(e);
       }
