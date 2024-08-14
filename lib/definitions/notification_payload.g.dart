@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'notificationPayload.dart';
+part of 'notification_payload.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

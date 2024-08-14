@@ -4,7 +4,7 @@ import 'package:bluesky/bluesky_chat.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
-import 'package:vup_chat/definitions/s5embed.dart';
+import 'package:vup_chat/definitions/s5_embed.dart';
 import 'package:http/http.dart' as http;
 import 'package:vup_chat/main.dart';
 

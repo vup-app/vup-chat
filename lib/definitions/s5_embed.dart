@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 's5embed.g.dart';
+part 's5_embed.g.dart';
 
 @JsonSerializable()
 class S5Embed {

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 's5embed.dart';
+part of 's5_embed.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator

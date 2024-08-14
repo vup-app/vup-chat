@@ -10,6 +10,7 @@ import 'package:lib5/registry.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:s5/s5.dart';
+import 'package:vup_chat/definitions/backup_entries.dart';
 import 'package:vup_chat/definitions/logger.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/connections/native.dart';
@@ -101,7 +102,7 @@ Future<void> backupSQLiteToS5() async {
     S5 s5 = msg.s5!;
     // First we gotta upload the DB
     File db = await databaseFile;
-    CID staticCID = await s5.api.uploadBlob(db.readAsBytesSync());
+    CID backedUpDBCID = await s5.api.uploadBlob(db.readAsBytesSync());
 
     // Then we get get an set the resolver
     final resolverSeed = s5.api.crypto.hashBlake3Sync(
@@ -113,8 +114,8 @@ Future<void> backupSQLiteToS5() async {
 
     final s5User = await s5.api.crypto.newKeyPairEd25519(seed: resolverSeed);
 
+    // This checks the revision of the current resolver link
     SignedRegistryEntry? existing;
-
     try {
       final res = await s5.api.registryGet(s5User.publicKey);
       existing = res;
@@ -127,15 +128,8 @@ Future<void> backupSQLiteToS5() async {
       logger.d('Revision 1');
     }
 
-    final sre = await signRegistryEntry(
-      kp: s5User,
-      data: staticCID.toRegistryEntry(),
-      revision: (existing?.revision ?? -1) + 1,
-      crypto: s5.api.crypto,
-    );
-
-    await s5.api.registrySet(sre);
-
+    // And now that we have the CID and the resolver seed we can download the
+    // previous backup object, insert the new backup in, and move on
     final resolverCID = CID(
         cidTypeResolver,
         Multihash(
@@ -143,6 +137,42 @@ Future<void> backupSQLiteToS5() async {
             s5User.publicKey,
           ),
         ));
+    BackupEntries entries;
+    // check to see if there currently is an entry saved
+    // if not, create an empty list
+    try {
+      Uint8List backupEntriesOld =
+          await s5.api.downloadRawFile(resolverCID.hash);
+      entries = BackupEntries.fromUint8List(backupEntriesOld);
+    } catch (_) {
+      entries = BackupEntries(backupEntries: []);
+    }
+
+    entries.addEntry(BackupEntry(
+        dateTime: DateTime.now(), dataCID: backedUpDBCID.toBase58()));
+    Uint8List backupObjectNew = entries.toUint8List();
+    CID backupEntriesCID = await s5.api.uploadBlob(backupObjectNew);
+
+    final SignedRegistryEntry sre = await signRegistryEntry(
+      kp: s5User,
+      data: backupEntriesCID.toRegistryEntry(),
+      revision: (existing?.revision ?? -1) + 1,
+      crypto: s5.api.crypto,
+    );
+
+    await s5.api.registrySet(sre);
+
     logger.d(resolverCID);
+    // debug zone
+    if (kDebugMode) {
+      try {
+        Uint8List backupEntriesOld =
+            await s5.api.downloadRawFile(resolverCID.hash);
+        BackupEntries entries = BackupEntries.fromUint8List(backupEntriesOld);
+        logger.d(entries.toJson().toString());
+      } catch (e) {
+        logger.e(e);
+      }
+    }
   }
 }
