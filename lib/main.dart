@@ -10,6 +10,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_io/io.dart';
 import 'package:vup_chat/messenger/core.dart';
+import 'package:vup_chat/mls5/mls5.dart';
 import 'package:vup_chat/theme.dart';
 import 'package:vup_chat/widgets/init_router.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
@@ -30,17 +31,19 @@ String? did;
 bool inBackground = false;
 String currentChatID = "";
 
+final mls5 = MLS5();
+
 void main() async {
   // Init preferences here because it's really fast
   WidgetsFlutterBinding.ensureInitialized();
   preferences = await SharedPreferences.getInstance();
+  await RustLib.init();
   try {
     await msg.msgInitS5(); // Also this doesn't take long and it's better here
+    await mls5.init();
   } catch (e) {
     logger.e("Failed to init S5: $e");
   }
-
-  await RustLib.init();
 
   // Go go program!
   runApp(const VupChat());

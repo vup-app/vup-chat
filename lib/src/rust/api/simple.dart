@@ -6,16 +6,11 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These types are ignored because they are not used by any `pub` functions: `MyMemoryKeyStoreError`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `crypto`, `delete`, `eq`, `fmt`, `fmt`, `key_store`, `rand`, `read`, `store`
-
-Future<OpenMlsConfig> openmlsInitConfig(
-        {required Map<Uint8List, Uint8List> keystoreValues}) =>
+Future<OpenMlsConfig> openmlsInitConfig({required List<int> keystoreDump}) =>
     RustLib.instance.api
-        .crateApiSimpleOpenmlsInitConfig(keystoreValues: keystoreValues);
+        .crateApiSimpleOpenmlsInitConfig(keystoreDump: keystoreDump);
 
-Future<Map<Uint8List, Uint8List>> openmlsKeystoreDump(
-        {required OpenMlsConfig config}) =>
+Future<Uint8List> openmlsKeystoreDump({required OpenMlsConfig config}) =>
     RustLib.instance.api.crateApiSimpleOpenmlsKeystoreDump(config: config);
 
 Future<MlsCredential> openmlsGenerateCredentialWithKey(
@@ -89,9 +84,6 @@ Future<MlsGroup> openmlsGroupLoad(
 Future<List<GroupMember>> openmlsGroupListMembers({required MlsGroup group}) =>
     RustLib.instance.api.crateApiSimpleOpenmlsGroupListMembers(group: group);
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < RwLock < HashMap < Vec < u8 > , Vec < u8 > > > >>>
-abstract class ArcHashMapVecU8VecU8 implements RustOpaqueInterface {}
-
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Ciphersuite>>
 abstract class Ciphersuite implements RustOpaqueInterface {}
 
@@ -112,18 +104,20 @@ abstract class MlsCredential implements RustOpaqueInterface {
   set signer(SignatureKeyPair signer);
 }
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MlsGroupConfig>>
-abstract class MlsGroupConfig implements RustOpaqueInterface {}
-
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MyMemoryKeyStore>>
-abstract class MyMemoryKeyStore implements RustOpaqueInterface {
-  ArcHashMapVecU8VecU8 get values;
-
-  set values(ArcHashMapVecU8VecU8 values);
-}
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MlsGroupCreateConfig>>
+abstract class MlsGroupCreateConfig implements RustOpaqueInterface {}
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MyOpenMlsRustCrypto>>
-abstract class MyOpenMlsRustCrypto implements RustOpaqueInterface {}
+abstract class MyOpenMlsRustCrypto implements RustOpaqueInterface {
+  Future<void> crypto();
+
+  static Future<MyOpenMlsRustCrypto> default_() =>
+      RustLib.instance.api.crateApiSimpleMyOpenMlsRustCryptoDefault();
+
+  Future<void> rand();
+
+  Future<void> storage();
+}
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>>
 abstract class OpenMlsConfig implements RustOpaqueInterface {
@@ -133,7 +127,7 @@ abstract class OpenMlsConfig implements RustOpaqueInterface {
 
   CredentialType get credentialType;
 
-  MlsGroupConfig get mlsGroupConfig;
+  MlsGroupCreateConfig get mlsGroupCreateConfig;
 
   SignatureScheme get signatureAlgorithm;
 
@@ -143,7 +137,7 @@ abstract class OpenMlsConfig implements RustOpaqueInterface {
 
   set credentialType(CredentialType credentialType);
 
-  set mlsGroupConfig(MlsGroupConfig mlsGroupConfig);
+  set mlsGroupCreateConfig(MlsGroupCreateConfig mlsGroupCreateConfig);
 
   set signatureAlgorithm(SignatureScheme signatureAlgorithm);
 }

@@ -9,6 +9,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "67.0.0"
+  adaptive_dialog:
+    dependency: "direct main"
+    description:
+      name: adaptive_dialog
+      sha256: "817ff9b4bb441434d1fcb39a8d4492e50be456cd3507e4f19c5c7455c9e279e0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   analyzer:
     dependency: transitive
     description:
@@ -41,6 +49,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.8.2"
+  animations:
+    dependency: transitive
+    description:
+      name: animations
+      sha256: d3d6dcfb218225bbe68e87ccf6378bbb2e32a94900722c5f81611dad089911cb
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.11"
+  appkit_ui_element_colors:
+    dependency: transitive
+    description:
+      name: appkit_ui_element_colors
+      sha256: c3e50f900aae314d339de489535736238627071457c4a4a2dbbb1545b4f04f22
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   archive:
     dependency: transitive
     description:
@@ -401,6 +425,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.19.1"
+  dynamic_color:
+    dependency: transitive
+    description:
+      name: dynamic_color
+      sha256: eae98052fa6e2826bdac3dd2e921c6ce2903be15c6b7f8b6d8a5d49b5086298d
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.7.0"
+  equatable:
+    dependency: transitive
+    description:
+      name: equatable
+      sha256: c2b87cb7756efdf69892005af546c56c0b5037f54d2a88269b4f347a505e3ca2
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.5"
   fake_async:
     dependency: transitive
     description:
@@ -658,6 +698,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.2"
+  gradient_borders:
+    dependency: transitive
+    description:
+      name: gradient_borders
+      sha256: b1cd969552c83f458ff755aa68e13a0327d09f06c3f42f471b423b01427f21f8
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   graphs:
     dependency: transitive
     description:
@@ -791,6 +839,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  intersperse:
+    dependency: transitive
+    description:
+      name: intersperse
+      sha256: "2f8a905c96f6cbba978644a3d5b31b8d86ddc44917662df7d27a61f3df66a576"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   intl:
     dependency: "direct main"
     description:
@@ -903,6 +959,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  macos_ui:
+    dependency: transitive
+    description:
+      name: macos_ui
+      sha256: "5238460b083411af1c6f2f6cb4771a7af82a3ecf5249b35ad7ac0013bcc93cef"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.8"
+  macos_window_utils:
+    dependency: transitive
+    description:
+      name: macos_window_utils
+      sha256: "230be594d26f6dee92c5a1544f4242d25138a5bfb9f185b27f14de3949ef0be8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.0"
   matcher:
     dependency: transitive
     description:
@@ -967,6 +1039,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.1"
+  ntp:
+    dependency: "direct main"
+    description:
+      name: ntp
+      sha256: "198db73e5059b334b50dbe8c626011c26576778ee9fc53f4c55c1d89d08ed2d2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   octo_image:
     dependency: transitive
     description:

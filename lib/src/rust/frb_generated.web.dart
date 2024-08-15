@@ -21,10 +21,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   });
 
   CrossPlatformFinalizerArg
-      get rust_arc_decrement_strong_count_ArcHashMapVecU8VecU8Ptr => wire
-          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8;
-
-  CrossPlatformFinalizerArg
       get rust_arc_decrement_strong_count_CiphersuitePtr => wire
           .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCiphersuite;
 
@@ -41,12 +37,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMLSCredential;
 
   CrossPlatformFinalizerArg
-      get rust_arc_decrement_strong_count_MlsGroupConfigPtr => wire
-          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig;
-
-  CrossPlatformFinalizerArg
-      get rust_arc_decrement_strong_count_MyMemoryKeyStorePtr => wire
-          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore;
+      get rust_arc_decrement_strong_count_MlsGroupCreateConfigPtr => wire
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig;
 
   CrossPlatformFinalizerArg
       get rust_arc_decrement_strong_count_MyOpenMlsRustCryptoPtr => wire
@@ -66,11 +58,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   CrossPlatformFinalizerArg
       get rust_arc_decrement_strong_count_SignatureSchemePtr => wire
           .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureScheme;
-
-  @protected
-  ArcHashMapVecU8VecU8
-      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
-          dynamic raw);
 
   @protected
   Ciphersuite
@@ -93,13 +80,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           dynamic raw);
 
   @protected
-  MlsGroupConfig
-      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
-          dynamic raw);
-
-  @protected
-  MyMemoryKeyStore
-      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
+  MlsGroupCreateConfig
+      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
           dynamic raw);
 
   @protected
@@ -133,11 +115,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           dynamic raw);
 
   @protected
-  MyMemoryKeyStore
-      dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
-          dynamic raw);
-
-  @protected
   OpenMlsConfig
       dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfig(
           dynamic raw);
@@ -153,8 +130,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           dynamic raw);
 
   @protected
-  MyMemoryKeyStore
-      dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
+  MyOpenMlsRustCrypto
+      dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyOpenMlsRustCrypto(
           dynamic raw);
 
   @protected
@@ -170,15 +147,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   SignatureKeyPair
       dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
-          dynamic raw);
-
-  @protected
-  Map<Uint8List, Uint8List>
-      dco_decode_Map_list_prim_u_8_strict_list_prim_u_8_strict(dynamic raw);
-
-  @protected
-  ArcHashMapVecU8VecU8
-      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
           dynamic raw);
 
   @protected
@@ -202,13 +170,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           dynamic raw);
 
   @protected
-  MlsGroupConfig
-      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
-          dynamic raw);
-
-  @protected
-  MyMemoryKeyStore
-      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
+  MlsGroupCreateConfig
+      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
           dynamic raw);
 
   @protected
@@ -252,21 +215,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
-  List<(Uint8List, Uint8List)>
-      dco_decode_list_record_list_prim_u_8_strict_list_prim_u_8_strict(
-          dynamic raw);
-
-  @protected
   MLSGroupAddMembersResponse dco_decode_mls_group_add_members_response(
       dynamic raw);
 
   @protected
   ProcessIncomingMessageResponse dco_decode_process_incoming_message_response(
       dynamic raw);
-
-  @protected
-  (Uint8List, Uint8List)
-      dco_decode_record_list_prim_u_8_strict_list_prim_u_8_strict(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -282,11 +236,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   BigInt dco_decode_usize(dynamic raw);
-
-  @protected
-  ArcHashMapVecU8VecU8
-      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
-          SseDeserializer deserializer);
 
   @protected
   Ciphersuite
@@ -309,13 +258,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           SseDeserializer deserializer);
 
   @protected
-  MlsGroupConfig
-      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
-          SseDeserializer deserializer);
-
-  @protected
-  MyMemoryKeyStore
-      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
+  MlsGroupCreateConfig
+      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
           SseDeserializer deserializer);
 
   @protected
@@ -349,11 +293,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           SseDeserializer deserializer);
 
   @protected
-  MyMemoryKeyStore
-      sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
-          SseDeserializer deserializer);
-
-  @protected
   OpenMlsConfig
       sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfig(
           SseDeserializer deserializer);
@@ -369,8 +308,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           SseDeserializer deserializer);
 
   @protected
-  MyMemoryKeyStore
-      sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
+  MyOpenMlsRustCrypto
+      sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyOpenMlsRustCrypto(
           SseDeserializer deserializer);
 
   @protected
@@ -386,16 +325,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   SignatureKeyPair
       sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
-          SseDeserializer deserializer);
-
-  @protected
-  Map<Uint8List, Uint8List>
-      sse_decode_Map_list_prim_u_8_strict_list_prim_u_8_strict(
-          SseDeserializer deserializer);
-
-  @protected
-  ArcHashMapVecU8VecU8
-      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
           SseDeserializer deserializer);
 
   @protected
@@ -419,13 +348,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
           SseDeserializer deserializer);
 
   @protected
-  MlsGroupConfig
-      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
-          SseDeserializer deserializer);
-
-  @protected
-  MyMemoryKeyStore
-      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
+  MlsGroupCreateConfig
+      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
           SseDeserializer deserializer);
 
   @protected
@@ -469,22 +393,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
-  List<(Uint8List, Uint8List)>
-      sse_decode_list_record_list_prim_u_8_strict_list_prim_u_8_strict(
-          SseDeserializer deserializer);
-
-  @protected
   MLSGroupAddMembersResponse sse_decode_mls_group_add_members_response(
       SseDeserializer deserializer);
 
   @protected
   ProcessIncomingMessageResponse sse_decode_process_incoming_message_response(
       SseDeserializer deserializer);
-
-  @protected
-  (Uint8List, Uint8List)
-      sse_decode_record_list_prim_u_8_strict_list_prim_u_8_strict(
-          SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -503,11 +417,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
-
-  @protected
-  void
-      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
-          ArcHashMapVecU8VecU8 self, SseSerializer serializer);
 
   @protected
   void
@@ -531,13 +440,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
-      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
-          MlsGroupConfig self, SseSerializer serializer);
-
-  @protected
-  void
-      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
-          MyMemoryKeyStore self, SseSerializer serializer);
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
+          MlsGroupCreateConfig self, SseSerializer serializer);
 
   @protected
   void
@@ -571,11 +475,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
-      sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
-          MyMemoryKeyStore self, SseSerializer serializer);
-
-  @protected
-  void
       sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfig(
           OpenMlsConfig self, SseSerializer serializer);
 
@@ -591,8 +490,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
-      sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
-          MyMemoryKeyStore self, SseSerializer serializer);
+      sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyOpenMlsRustCrypto(
+          MyOpenMlsRustCrypto self, SseSerializer serializer);
 
   @protected
   void
@@ -608,15 +507,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void
       sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
           SignatureKeyPair self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_Map_list_prim_u_8_strict_list_prim_u_8_strict(
-      Map<Uint8List, Uint8List> self, SseSerializer serializer);
-
-  @protected
-  void
-      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
-          ArcHashMapVecU8VecU8 self, SseSerializer serializer);
 
   @protected
   void
@@ -640,13 +530,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void
-      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
-          MlsGroupConfig self, SseSerializer serializer);
-
-  @protected
-  void
-      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
-          MyMemoryKeyStore self, SseSerializer serializer);
+      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
+          MlsGroupCreateConfig self, SseSerializer serializer);
 
   @protected
   void
@@ -691,20 +576,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
       Uint8List self, SseSerializer serializer);
 
   @protected
-  void sse_encode_list_record_list_prim_u_8_strict_list_prim_u_8_strict(
-      List<(Uint8List, Uint8List)> self, SseSerializer serializer);
-
-  @protected
   void sse_encode_mls_group_add_members_response(
       MLSGroupAddMembersResponse self, SseSerializer serializer);
 
   @protected
   void sse_encode_process_incoming_message_response(
       ProcessIncomingMessageResponse self, SseSerializer serializer);
-
-  @protected
-  void sse_encode_record_list_prim_u_8_strict_list_prim_u_8_strict(
-      (Uint8List, Uint8List) self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
@@ -729,18 +606,6 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
 class RustLibWire implements BaseWire {
   RustLibWire.fromExternalLibrary(ExternalLibrary lib);
-
-  void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
-          int ptr) =>
-      wasmModule
-          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
-              ptr);
-
-  void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
-          int ptr) =>
-      wasmModule
-          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
-              ptr);
 
   void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCiphersuite(
           int ptr) =>
@@ -790,28 +655,16 @@ class RustLibWire implements BaseWire {
           .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMLSCredential(
               ptr);
 
-  void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
+  void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
           int ptr) =>
       wasmModule
-          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
+          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
               ptr);
 
-  void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
+  void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
           int ptr) =>
       wasmModule
-          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
-              ptr);
-
-  void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
-          int ptr) =>
-      wasmModule
-          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
-              ptr);
-
-  void rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
-          int ptr) =>
-      wasmModule
-          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
               ptr);
 
   void rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyOpenMlsRustCrypto(
@@ -882,14 +735,6 @@ external RustLibWasmModule get wasmModule;
 @anonymous
 extension type RustLibWasmModule._(JSObject _) implements JSObject {
   external void
-      rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
-          int ptr);
-
-  external void
-      rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
-          int ptr);
-
-  external void
       rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCiphersuite(
           int ptr);
 
@@ -922,19 +767,11 @@ extension type RustLibWasmModule._(JSObject _) implements JSObject {
           int ptr);
 
   external void
-      rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
+      rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
           int ptr);
 
   external void
-      rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupConfig(
-          int ptr);
-
-  external void
-      rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
-          int ptr);
-
-  external void
-      rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
+      rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMlsGroupCreateConfig(
           int ptr);
 
   external void

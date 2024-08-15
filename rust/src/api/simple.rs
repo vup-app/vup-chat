@@ -1,12 +1,12 @@
 use flutter_rust_bridge::frb;
+use openmls::prelude::tls_codec::{Deserialize, Serialize};
 pub use openmls::prelude::*;
 pub use openmls_basic_credential::SignatureKeyPair;
+use openmls_memory_storage::MemoryStorage;
 use openmls_rust_crypto::RustCrypto;
-use openmls_traits::key_store::MlsEntity;
 pub use std::borrow::Borrow;
-use std::sync::Arc;
+use std::io::Cursor;
 pub use std::sync::RwLock;
-use std::collections::HashMap;
 
 #[flutter_rust_bridge::frb(init)]
 pub fn init_app() {
@@ -27,53 +27,100 @@ pub struct OpenMLSConfig {
     pub backend: MyOpenMlsRustCrypto,
     pub credential_type: CredentialType,
     pub signature_algorithm: SignatureScheme,
-    pub mls_group_config: MlsGroupConfig,
+    pub mls_group_create_config: MlsGroupCreateConfig,
 }
 
-pub fn openmls_init_config(keystore_values: HashMap<Vec<u8>, Vec<u8>>) -> OpenMLSConfig {
+pub fn openmls_init_config(keystore_dump: Vec<u8>) -> OpenMLSConfig {
     // TODO Maybe use MLS_128_DHKEMX25519_CHACHA20POLY1305_SHA256_Ed25519
     let ciphersuite = Ciphersuite::MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519;
 
     // TODO Tweak these settings
-    let mls_group_config = MlsGroupConfig::builder()
+    let mls_group_create_config = MlsGroupCreateConfig::builder()
         // .padding_size(100)
         .sender_ratchet_configuration(SenderRatchetConfiguration::new(
-            5,   // out_of_order_tolerance
-            100, // maximum_forward_distance
+            50,   // out_of_order_tolerance
+            1000, // maximum_forward_distance
         ))
         .use_ratchet_tree_extension(true)
+        .max_past_epochs(5)
+        // TODO wire_format_policy
         .build();
+
+    /*     let mls_group_create_config = MlsGroupCreateConfig::builder()
+    // .padding_size(100)
+    .sender_ratchet_configuration(SenderRatchetConfiguration::new(
+        50,   // out_of_order_tolerance
+        1000, // maximum_forward_distance
+    ))
+    .use_ratchet_tree_extension(true)
+    .max_past_epochs(5)
+    .build(); */
+
+    let backend = if !keystore_dump.is_empty() {
+        println!("[keystore] load existing");
+        let mut cursor = Cursor::new(keystore_dump);
+        MyOpenMlsRustCrypto {
+            crypto: RustCrypto::default(),
+            key_store: MemoryStorage::deserialize(&mut cursor).unwrap(),
+        }
+    } else {
+        println!("[keystore] init empty");
+        MyOpenMlsRustCrypto::default()
+    };
 
     OpenMLSConfig {
         ciphersuite: ciphersuite,
-        backend: MyOpenMlsRustCrypto {
-            crypto: RustCrypto::default(),
-            key_store: MyMemoryKeyStore {
-                values: Arc::new(RwLock::new(keystore_values)),
-            },
-        },
+        backend: backend,
         credential_type: CredentialType::Basic,
         signature_algorithm: ciphersuite.signature_algorithm(),
-        mls_group_config: mls_group_config,
+        mls_group_create_config: mls_group_create_config,
     }
 }
 
-pub fn openmls_keystore_dump(config: &OpenMLSConfig) -> HashMap<Vec<u8>, Vec<u8>> {
-    config.backend.key_store.values.read().unwrap().clone()
+#[derive(Default)]
+#[frb(opaque)]
+pub struct MyOpenMlsRustCrypto {
+    crypto: RustCrypto,
+    key_store: MemoryStorage,
+}
+
+#[frb(opaque)]
+impl OpenMlsProvider for MyOpenMlsRustCrypto {
+    type CryptoProvider = RustCrypto;
+    type RandProvider = RustCrypto;
+    type StorageProvider = MemoryStorage;
+
+    fn storage(&self) -> &Self::StorageProvider {
+        &self.key_store
+    }
+
+    fn crypto(&self) -> &Self::CryptoProvider {
+        &self.crypto
+    }
+
+    fn rand(&self) -> &Self::RandProvider {
+        &self.crypto
+    }
+}
+
+pub fn openmls_keystore_dump(config: &OpenMLSConfig) -> Vec<u8> {
+    let mut bytes = vec![];
+    config.backend.storage().serialize(&mut bytes);
+    bytes
 }
 
 pub fn openmls_generate_credential_with_key(
     identity: Vec<u8>,
     config: &OpenMLSConfig,
 ) -> MLSCredential {
-    let credential = Credential::new(identity, config.credential_type).unwrap();
+    let credential = Credential::new(config.credential_type, identity);
     let signature_keys = SignatureKeyPair::new(config.signature_algorithm)
         .expect("Error generating a signature key pair.");
 
     // Store the signature key into the key store so OpenMLS has access
     // to it.
     signature_keys
-        .store(config.backend.key_store())
+        .store(config.backend.storage())
         .expect("Error storing signature keys in key store.");
 
     MLSCredential {
@@ -94,10 +141,10 @@ pub fn openmls_recover_credential_with_key(
     public_key: Vec<u8>,
     config: &OpenMLSConfig,
 ) -> MLSCredential {
-    let credential = Credential::new(identity, config.credential_type).unwrap();
+    let credential = Credential::new(config.credential_type, identity);
 
     let signature_keys = SignatureKeyPair::read(
-        config.backend.key_store(),
+        config.backend.storage(),
         &public_key,
         config.signature_algorithm,
     )
@@ -121,10 +168,7 @@ pub fn openmls_generate_key_package(
     // Create the key package
     let key_package = KeyPackage::builder()
         .build(
-            CryptoConfig {
-                ciphersuite: config.ciphersuite,
-                version: ProtocolVersion::default(),
-            },
+            config.ciphersuite,
             &config.backend,
             &*signer,
             (*credential_with_key).clone(),
@@ -132,6 +176,7 @@ pub fn openmls_generate_key_package(
         .unwrap();
 
     key_package
+        .key_package()
         .tls_serialize_detached()
         .expect("Error serializing key_package")
 }
@@ -144,7 +189,7 @@ pub fn openmls_group_create(
     let group = MlsGroup::new(
         &config.backend,
         &*signer,
-        &config.mls_group_config,
+        &config.mls_group_create_config,
         (*credential_with_key).clone(),
     )
     .expect("An unexpected error occurred.");
@@ -168,7 +213,7 @@ pub fn openmls_group_add_member(
         Err(poisoned) => poisoned.into_inner(),
     };
 
-    let kp = KeyPackageIn::tls_deserialize(&mut key_package.as_slice())
+    let kp = KeyPackageIn::tls_deserialize_exact(&mut key_package.as_slice())
         .expect("Could not deserialize KeyPackage")
         .validate(config.backend.crypto(), ProtocolVersion::Mls10)
         .expect("Invalid KeyPackage");
@@ -225,27 +270,37 @@ pub fn openmls_group_join(
     config: &OpenMLSConfig,
 ) -> RwLock<MlsGroup> {
     // de-serialize the message as an [`MlsMessageIn`] ...
-    let mls_message_in = MlsMessageIn::tls_deserialize(&mut welcome_in.as_slice())
+    let mls_message_in = MlsMessageIn::tls_deserialize_exact(&mut welcome_in.as_slice())
         .expect("An unexpected error occurred.");
 
     // inspect the message.
     let welcome = match mls_message_in.extract() {
-        MlsMessageInBody::Welcome(welcome) => welcome,
+        MlsMessageBodyIn::Welcome(welcome) => welcome,
         // We know it's a welcome message, so we ignore all other cases.
         _ => unreachable!("Unexpected message type."),
     };
 
-    // join the group.
+    let group = StagedWelcome::new_from_welcome(
+        &config.backend,
+        &config.mls_group_create_config.join_config(),
+        welcome,
+        None,
+    )
+    .expect("Failed to create staged join")
+    .into_group(&config.backend)
+    .expect("Failed to create MlsGroup");
+
+    /*   // join the group.
     let group = MlsGroup::new_from_welcome(
         &config.backend,
-        &config.mls_group_config,
+        &config.mls_group_create_config.join_config(),
         welcome,
         // The public tree is usually needed and transferred out of band.
         // But we are currently using the [`RatchetTreeExtension`], so not needed
         None,
         //Some(group.export_ratchet_tree().into()),
     )
-    .expect("Error joining group from Welcome");
+    .expect("Error joining group from Welcome"); */
     RwLock::new(group)
 }
 
@@ -262,7 +317,7 @@ pub fn openmls_group_process_incoming_message(
     mls_message_in: Vec<u8>,
     config: &OpenMLSConfig,
 ) -> ProcessIncomingMessageResponse {
-    let message_in = MlsMessageIn::tls_deserialize(&mut mls_message_in.as_slice())
+    let message_in = MlsMessageIn::tls_deserialize_exact(&mut mls_message_in.as_slice())
         .expect("Could not deserialize message.");
 
     let mut group_rw = match group.write() {
@@ -271,8 +326,8 @@ pub fn openmls_group_process_incoming_message(
     };
 
     let protocol_message: ProtocolMessage = match message_in.extract() {
-        MlsMessageInBody::PrivateMessage(m) => m.into(),
-        MlsMessageInBody::PublicMessage(m) => m.into(),
+        MlsMessageBodyIn::PrivateMessage(m) => m.into(),
+        MlsMessageBodyIn::PublicMessage(m) => m.into(),
         _ => panic!("This is not an MLS message."),
     };
     let processed_message = group_rw
@@ -285,11 +340,6 @@ pub fn openmls_group_process_incoming_message(
         .expect("failed to serialize sender");
     let processed_message_epoch: u64 = processed_message.epoch().as_u64();
 
-    if group_rw.state_changed() == InnerState::Changed {
-        group_rw
-            .save(&config.backend)
-            .expect("Error saving group state");
-    }
 
     match processed_message.into_content() {
         ProcessedMessageContent::ApplicationMessage(application_message) => {
@@ -320,7 +370,7 @@ pub fn openmls_group_process_incoming_message(
             return ProcessIncomingMessageResponse {
                 is_application_message: true,
                 application_message: application_message.into_bytes(),
-                identity: processed_message_credential.identity().to_vec(),
+                identity: processed_message_credential.serialized_content().to_vec(),
                 sender: processed_message_sender,
                 epoch: processed_message_epoch,
             };
@@ -346,11 +396,12 @@ pub fn openmls_group_process_incoming_message(
             // TODO some things missing here */
         }
     }
-    if group_rw.state_changed() == InnerState::Changed {
-        group_rw
-            .save(&config.backend)
-            .expect("Error saving group state");
-    }
+    // TODO Only save when needed
+    //if group_rw.state_changed() == InnerState::Changed {
+    /*     group_rw
+    .save(&config.backend)
+    .expect("Error saving group state"); */
+    // }
     return ProcessIncomingMessageResponse {
         is_application_message: false,
         application_message: vec![],
@@ -382,15 +433,18 @@ pub fn openmls_group_save(group: &RwLock<MlsGroup>, config: &OpenMLSConfig) -> V
         Err(poisoned) => poisoned.into_inner(),
     };
 
-    group_rw
-        .save(&config.backend)
-        .expect("Error saving group state");
+    // TODO Save state!
+    /*   group_rw
+    .save(&config.backend)
+    .expect("Error saving group state"); */
 
     group_rw.group_id().as_slice().to_vec()
 }
 
 pub fn openmls_group_load(id: Vec<u8>, config: &OpenMLSConfig) -> RwLock<MlsGroup> {
-    let group = MlsGroup::load(&GroupId::from_slice(&id), &config.backend).unwrap();
+    let group = MlsGroup::load(config.backend.storage(), &GroupId::from_slice(&id))
+        .unwrap()
+        .unwrap();
 
     RwLock::new(group)
 }
@@ -410,7 +464,7 @@ pub fn openmls_group_list_members(group: &RwLock<MlsGroup>) -> Vec<GroupMember> 
     let mut members = vec![];
     for member in group_ro.members() {
         members.push(GroupMember {
-            identity: member.credential.identity().to_vec(),
+            identity: member.credential.serialized_content().to_vec(),
             index: member.index.u32(),
             signature_key: member.signature_key,
         });
@@ -462,7 +516,7 @@ pub fn openmls_group_list_members(group: &RwLock<MlsGroup>) -> Vec<GroupMember> 
 
 
 // Custom struct for the KeyStore to have more control over it (export/restore)
-
+/*
 #[derive(Clone)]
 
 #[frb(opaque)]
@@ -549,3 +603,4 @@ impl OpenMlsCryptoProvider for MyOpenMlsRustCrypto {
         &self.key_store
     }
 }
+ */

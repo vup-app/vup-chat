@@ -53,6 +53,8 @@ dependencies:
   rust_lib_vup_chat:
     path: rust_builder
   flutter_rust_bridge: 2.2.0
+  ntp: ^2.0.0
+  adaptive_dialog: ^2.1.0
 
 dev_dependencies:
   flutter_test:

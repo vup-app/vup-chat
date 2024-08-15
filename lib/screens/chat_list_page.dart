@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
+import 'package:vup_chat/mls5/view/demo_main_view.dart';
 import 'package:vup_chat/screens/profile_page.dart';
 import 'package:vup_chat/screens/s5_login_page.dart';
 import 'package:vup_chat/screens/search_actor.page.dart';
@@ -205,6 +206,22 @@ class ChatListPageState extends State<ChatListPage> {
             body: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: FilledButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => MLS5DemoAppView(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'This is a TEMPORARY DEV button to launch the very simple demo view for MLS over S5!',
+                    ),
+                  ),
+                ),
+
                 // This is a complicated search bar
                 chatsSearchBar(_textController, _navToSettings, _navToProfile),
                 // Shows bar to show hidden chats if selected

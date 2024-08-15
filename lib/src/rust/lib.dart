@@ -6,5 +6,8 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RwLock < HashMap < Vec < u8 > , Vec < u8 > > >>>
-abstract class HashMapVecU8VecU8 implements RustOpaqueInterface {}
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < MemoryStorage >>>
+abstract class ArcMemoryStorage implements RustOpaqueInterface {}
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RustCrypto>>
+abstract class RustCrypto implements RustOpaqueInterface {}
