@@ -1,0 +1,18 @@
+[package]
+name = "rust_lib_vup_chat"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+anyhow = "1.0.86"
+flutter_rust_bridge = "=2.2.0"
+getrandom = { version = "0.2.15", features = ["js"] }
+openmls = "0.5.0"
+openmls_basic_credential = "0.2.0"
+openmls_rust_crypto = "0.2.0"
+openmls_traits = "0.2.0"
+serde_json = "1.0.125"
+thiserror = "1.0.63"

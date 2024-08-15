@@ -15,6 +15,9 @@ import 'package:vup_chat/widgets/init_router.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
 import 'package:vup_chat/widgets/restart_widget.dart';
 
+import 'package:vup_chat/src/rust/api/simple.dart';
+import 'package:vup_chat/src/rust/frb_generated.dart';
+
 // TODO: Move these to providers and stop mucking about with
 // global state
 const FlutterSecureStorage secureStorage = FlutterSecureStorage();
@@ -36,6 +39,9 @@ void main() async {
   } catch (e) {
     logger.e("Failed to init S5: $e");
   }
+
+  await RustLib.init();
+
   // Go go program!
   runApp(const VupChat());
 }

@@ -50,6 +50,9 @@ dependencies:
   flutter_fgbg: ^0.3.0
   universal_io: ^2.2.2
   neat_periodic_task: ^2.0.1
+  rust_lib_vup_chat:
+    path: rust_builder
+  flutter_rust_bridge: 2.2.0
 
 dev_dependencies:
   flutter_test:
@@ -60,6 +63,8 @@ dev_dependencies:
   drift_dev: ^2.18.0
   build_runner: ^2.4.11
   json_serializable: ^6.8.0
+  integration_test:
+    sdk: flutter
 
 flutter:
   uses-material-design: true
