@@ -1,10 +1,12 @@
+use flutter_rust_bridge::frb;
 pub use openmls::prelude::*;
 pub use openmls_basic_credential::SignatureKeyPair;
 use openmls_rust_crypto::RustCrypto;
 use openmls_traits::key_store::MlsEntity;
 pub use std::borrow::Borrow;
+use std::sync::Arc;
 pub use std::sync::RwLock;
-use std::{collections::HashMap, sync::Arc};
+use std::collections::HashMap;
 
 #[flutter_rust_bridge::frb(init)]
 pub fn init_app() {
@@ -13,11 +15,13 @@ pub fn init_app() {
 
 // TODO Replace unwrap() with expect() everywhere
 
+#[frb(opaque)]
 pub struct MLSCredential {
     pub credential_with_key: CredentialWithKey,
     pub signer: SignatureKeyPair,
 }
 
+#[frb(opaque)]
 pub struct OpenMLSConfig {
     pub ciphersuite: Ciphersuite,
     pub backend: MyOpenMlsRustCrypto,
@@ -45,7 +49,7 @@ pub fn openmls_init_config(keystore_values: HashMap<Vec<u8>, Vec<u8>>) -> OpenML
         backend: MyOpenMlsRustCrypto {
             crypto: RustCrypto::default(),
             key_store: MyMemoryKeyStore {
-                values: RwLock::new(keystore_values),
+                values: Arc::new(RwLock::new(keystore_values)),
             },
         },
         credential_type: CredentialType::Basic,
@@ -81,7 +85,7 @@ pub fn openmls_generate_credential_with_key(
     }
 }
 
-pub fn openmls_signer_get_public_key(signer: SignatureKeyPair) -> Vec<u8> {
+pub fn openmls_signer_get_public_key(signer: &SignatureKeyPair) -> Vec<u8> {
     signer.to_public_vec()
 }
 
@@ -110,8 +114,8 @@ pub fn openmls_recover_credential_with_key(
 
 // A helper to create key package bundles.
 pub fn openmls_generate_key_package(
-    signer: Arc<SignatureKeyPair>,
-    credential_with_key: Arc<CredentialWithKey>,
+    signer: &SignatureKeyPair,
+    credential_with_key: &CredentialWithKey,
     config: &OpenMLSConfig,
 ) -> Vec<u8> {
     // Create the key package
@@ -133,8 +137,8 @@ pub fn openmls_generate_key_package(
 }
 
 pub fn openmls_group_create(
-    signer: Arc<SignatureKeyPair>,
-    credential_with_key: Arc<CredentialWithKey>,
+    signer: &SignatureKeyPair,
+    credential_with_key: &CredentialWithKey,
     config: &OpenMLSConfig,
 ) -> RwLock<MlsGroup> {
     let group = MlsGroup::new(
@@ -155,7 +159,7 @@ pub struct MLSGroupAddMembersResponse {
 
 pub fn openmls_group_add_member(
     group: &RwLock<MlsGroup>,
-    signer: Arc<SignatureKeyPair>,
+    signer: &SignatureKeyPair,
     key_package: Vec<u8>,
     config: &OpenMLSConfig,
 ) -> MLSGroupAddMembersResponse {
@@ -197,7 +201,7 @@ pub fn openmls_group_add_member(
 
 pub fn openmls_group_create_message(
     group: &RwLock<MlsGroup>,
-    signer: Arc<SignatureKeyPair>,
+    signer: &SignatureKeyPair,
     message: Vec<u8>,
     config: &OpenMLSConfig,
 ) -> Vec<u8> {
@@ -330,8 +334,8 @@ pub fn openmls_group_process_incoming_message(
         ProcessedMessageContent::ExternalJoinProposalMessage(_external_proposal_ptr) => {
             // intentionally left blank.
         }
-        ProcessedMessageContent::StagedCommitMessage(commit_ptr) => {
-            let mut remove_proposal: bool = false;
+        ProcessedMessageContent::StagedCommitMessage(_) => {
+          /* commit_ptr   let mut remove_proposal: bool = false;
             if commit_ptr.self_removed() {
                 remove_proposal = true;
             }
@@ -339,7 +343,7 @@ pub fn openmls_group_process_incoming_message(
                 .merge_staged_commit(&config.backend, *commit_ptr)
                 .expect("failed to merge_staged_commit");
 
-            // TODO some things missing here
+            // TODO some things missing here */
         }
     }
     if group_rw.state_changed() == InnerState::Changed {
@@ -459,9 +463,11 @@ pub fn openmls_group_list_members(group: &RwLock<MlsGroup>) -> Vec<GroupMember> 
 
 // Custom struct for the KeyStore to have more control over it (export/restore)
 
-#[derive(Debug)]
+#[derive(Clone)]
+
+#[frb(opaque)]
 pub struct MyMemoryKeyStore {
-    pub values: RwLock<HashMap<Vec<u8>, Vec<u8>>>,
+    pub values: Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
 }
 
 impl OpenMlsKeyStore for MyMemoryKeyStore {
@@ -520,7 +526,7 @@ pub enum MyMemoryKeyStoreError {
     SerializationError,
 }
 
-#[derive(Debug)]
+#[frb(opaque)]
 pub struct MyOpenMlsRustCrypto {
     crypto: RustCrypto,
     key_store: MyMemoryKeyStore,

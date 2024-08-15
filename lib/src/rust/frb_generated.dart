@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'frb_generated.dart';
 import 'frb_generated.io.dart'
     if (dart.library.js_interop) 'frb_generated.web.dart';
-import 'lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 /// Main entrypoint of the Rust API
@@ -83,11 +82,11 @@ abstract class RustLibApi extends BaseApi {
   void crateApiSimpleMlsCredentialAutoAccessorSetSigner(
       {required MlsCredential that, required SignatureKeyPair signer});
 
-  HashMapVecU8VecU8 crateApiSimpleMyMemoryKeyStoreAutoAccessorGetValues(
+  ArcHashMapVecU8VecU8 crateApiSimpleMyMemoryKeyStoreAutoAccessorGetValues(
       {required MyMemoryKeyStore that});
 
   void crateApiSimpleMyMemoryKeyStoreAutoAccessorSetValues(
-      {required MyMemoryKeyStore that, required HashMapVecU8VecU8 values});
+      {required MyMemoryKeyStore that, required ArcHashMapVecU8VecU8 values});
 
   MyOpenMlsRustCrypto crateApiSimpleOpenMlsConfigAutoAccessorGetBackend(
       {required OpenMlsConfig that});
@@ -126,24 +125,24 @@ abstract class RustLibApi extends BaseApi {
       {required List<int> identity, required OpenMlsConfig config});
 
   Future<Uint8List> crateApiSimpleOpenmlsGenerateKeyPackage(
-      {required ArcSignatureKeyPair signer,
-      required ArcCredentialWithKey credentialWithKey,
+      {required SignatureKeyPair signer,
+      required CredentialWithKey credentialWithKey,
       required OpenMlsConfig config});
 
   Future<MLSGroupAddMembersResponse> crateApiSimpleOpenmlsGroupAddMember(
       {required MlsGroup group,
-      required ArcSignatureKeyPair signer,
+      required SignatureKeyPair signer,
       required List<int> keyPackage,
       required OpenMlsConfig config});
 
   Future<MlsGroup> crateApiSimpleOpenmlsGroupCreate(
-      {required ArcSignatureKeyPair signer,
-      required ArcCredentialWithKey credentialWithKey,
+      {required SignatureKeyPair signer,
+      required CredentialWithKey credentialWithKey,
       required OpenMlsConfig config});
 
   Future<Uint8List> crateApiSimpleOpenmlsGroupCreateMessage(
       {required MlsGroup group,
-      required ArcSignatureKeyPair signer,
+      required SignatureKeyPair signer,
       required List<int> message,
       required OpenMlsConfig config});
 
@@ -180,22 +179,13 @@ abstract class RustLibApi extends BaseApi {
       {required SignatureKeyPair signer});
 
   RustArcIncrementStrongCountFnType
-      get rust_arc_increment_strong_count_ArcCredentialWithKey;
+      get rust_arc_increment_strong_count_ArcHashMapVecU8VecU8;
 
   RustArcDecrementStrongCountFnType
-      get rust_arc_decrement_strong_count_ArcCredentialWithKey;
+      get rust_arc_decrement_strong_count_ArcHashMapVecU8VecU8;
 
   CrossPlatformFinalizerArg
-      get rust_arc_decrement_strong_count_ArcCredentialWithKeyPtr;
-
-  RustArcIncrementStrongCountFnType
-      get rust_arc_increment_strong_count_ArcSignatureKeyPair;
-
-  RustArcDecrementStrongCountFnType
-      get rust_arc_decrement_strong_count_ArcSignatureKeyPair;
-
-  CrossPlatformFinalizerArg
-      get rust_arc_decrement_strong_count_ArcSignatureKeyPairPtr;
+      get rust_arc_decrement_strong_count_ArcHashMapVecU8VecU8Ptr;
 
   RustArcIncrementStrongCountFnType
       get rust_arc_increment_strong_count_Ciphersuite;
@@ -267,15 +257,6 @@ abstract class RustLibApi extends BaseApi {
 
   CrossPlatformFinalizerArg
       get rust_arc_decrement_strong_count_OpenMlsConfigPtr;
-
-  RustArcIncrementStrongCountFnType
-      get rust_arc_increment_strong_count_HashMapVecU8VecU8;
-
-  RustArcDecrementStrongCountFnType
-      get rust_arc_decrement_strong_count_HashMapVecU8VecU8;
-
-  CrossPlatformFinalizerArg
-      get rust_arc_decrement_strong_count_HashMapVecU8VecU8Ptr;
 
   RustArcIncrementStrongCountFnType
       get rust_arc_increment_strong_count_MlsGroup;
@@ -430,7 +411,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
 
   @override
-  HashMapVecU8VecU8 crateApiSimpleMyMemoryKeyStoreAutoAccessorGetValues(
+  ArcHashMapVecU8VecU8 crateApiSimpleMyMemoryKeyStoreAutoAccessorGetValues(
       {required MyMemoryKeyStore that}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
@@ -441,7 +422,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       },
       codec: SseCodec(
         decodeSuccessData:
-            sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8,
+            sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8,
         decodeErrorData: null,
       ),
       constMeta: kCrateApiSimpleMyMemoryKeyStoreAutoAccessorGetValuesConstMeta,
@@ -459,13 +440,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   void crateApiSimpleMyMemoryKeyStoreAutoAccessorSetValues(
-      {required MyMemoryKeyStore that, required HashMapVecU8VecU8 values}) {
+      {required MyMemoryKeyStore that, required ArcHashMapVecU8VecU8 values}) {
     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMyMemoryKeyStore(
             that, serializer);
-        sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
+        sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
             values, serializer);
         return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
       },
@@ -489,7 +470,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   MyOpenMlsRustCrypto crateApiSimpleOpenMlsConfigAutoAccessorGetBackend(
       {required OpenMlsConfig that}) {
-    return handler.executeSync(SyncTask(
+    throw UnimplementedError();
+/*     return handler.executeSync(SyncTask(
       callFfi: () {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfig(
@@ -504,7 +486,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       constMeta: kCrateApiSimpleOpenMlsConfigAutoAccessorGetBackendConstMeta,
       argValues: [that],
       apiImpl: this,
-    ));
+    )); */
   }
 
   TaskConstMeta
@@ -834,15 +816,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<Uint8List> crateApiSimpleOpenmlsGenerateKeyPackage(
-      {required ArcSignatureKeyPair signer,
-      required ArcCredentialWithKey credentialWithKey,
+      {required SignatureKeyPair signer,
+      required CredentialWithKey credentialWithKey,
       required OpenMlsConfig config}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
             signer, serializer);
-        sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCredentialWithKey(
             credentialWithKey, serializer);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfig(
             config, serializer);
@@ -868,7 +850,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<MLSGroupAddMembersResponse> crateApiSimpleOpenmlsGroupAddMember(
       {required MlsGroup group,
-      required ArcSignatureKeyPair signer,
+      required SignatureKeyPair signer,
       required List<int> keyPackage,
       required OpenMlsConfig config}) {
     return handler.executeNormal(NormalTask(
@@ -876,7 +858,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockMlsGroup(
             group, serializer);
-        sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
             signer, serializer);
         sse_encode_list_prim_u_8_loose(keyPackage, serializer);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfig(
@@ -902,15 +884,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<MlsGroup> crateApiSimpleOpenmlsGroupCreate(
-      {required ArcSignatureKeyPair signer,
-      required ArcCredentialWithKey credentialWithKey,
+      {required SignatureKeyPair signer,
+      required CredentialWithKey credentialWithKey,
       required OpenMlsConfig config}) {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
             signer, serializer);
-        sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCredentialWithKey(
             credentialWithKey, serializer);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfig(
             config, serializer);
@@ -937,7 +919,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @override
   Future<Uint8List> crateApiSimpleOpenmlsGroupCreateMessage(
       {required MlsGroup group,
-      required ArcSignatureKeyPair signer,
+      required SignatureKeyPair signer,
       required List<int> message,
       required OpenMlsConfig config}) {
     return handler.executeNormal(NormalTask(
@@ -945,7 +927,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
         final serializer = SseSerializer(generalizedFrbRustBinding);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockMlsGroup(
             group, serializer);
-        sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
             signer, serializer);
         sse_encode_list_prim_u_8_loose(message, serializer);
         sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfig(
@@ -1211,7 +1193,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return handler.executeNormal(NormalTask(
       callFfi: (port_) {
         final serializer = SseSerializer(generalizedFrbRustBinding);
-        sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
+        sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
             signer, serializer);
         pdeCallFfi(generalizedFrbRustBinding, serializer,
             funcId: 31, port: port_);
@@ -1233,20 +1215,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   RustArcIncrementStrongCountFnType
-      get rust_arc_increment_strong_count_ArcCredentialWithKey => wire
-          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey;
+      get rust_arc_increment_strong_count_ArcHashMapVecU8VecU8 => wire
+          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8;
 
   RustArcDecrementStrongCountFnType
-      get rust_arc_decrement_strong_count_ArcCredentialWithKey => wire
-          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey;
-
-  RustArcIncrementStrongCountFnType
-      get rust_arc_increment_strong_count_ArcSignatureKeyPair => wire
-          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair;
-
-  RustArcDecrementStrongCountFnType
-      get rust_arc_decrement_strong_count_ArcSignatureKeyPair => wire
-          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair;
+      get rust_arc_decrement_strong_count_ArcHashMapVecU8VecU8 => wire
+          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8;
 
   RustArcIncrementStrongCountFnType
       get rust_arc_increment_strong_count_Ciphersuite => wire
@@ -1313,14 +1287,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOpenMLSConfig;
 
   RustArcIncrementStrongCountFnType
-      get rust_arc_increment_strong_count_HashMapVecU8VecU8 => wire
-          .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8;
-
-  RustArcDecrementStrongCountFnType
-      get rust_arc_decrement_strong_count_HashMapVecU8VecU8 => wire
-          .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8;
-
-  RustArcIncrementStrongCountFnType
       get rust_arc_increment_strong_count_MlsGroup => wire
           .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockMlsGroup;
 
@@ -1345,19 +1311,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureScheme;
 
   @protected
-  ArcCredentialWithKey
-      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
+  ArcHashMapVecU8VecU8
+      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
           dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ArcCredentialWithKeyImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  ArcSignatureKeyPair
-      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
-          dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ArcSignatureKeyPairImpl.frbInternalDcoDecode(raw as List<dynamic>);
+    return ArcHashMapVecU8VecU8Impl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -1425,14 +1383,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  HashMapVecU8VecU8
-      dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
-          dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return HashMapVecU8VecU8Impl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   MlsGroup
       dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockMlsGroup(
           dynamic raw) {
@@ -1481,6 +1431,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CredentialWithKey
+      dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCredentialWithKey(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return CredentialWithKeyImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   MlsCredential
       dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMLSCredential(
           dynamic raw) {
@@ -1513,6 +1471,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  SignatureKeyPair
+      dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
+          dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return SignatureKeyPairImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
   Map<Uint8List, Uint8List>
       dco_decode_Map_list_prim_u_8_strict_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
@@ -1522,19 +1488,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ArcCredentialWithKey
-      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
+  ArcHashMapVecU8VecU8
+      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
           dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ArcCredentialWithKeyImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  ArcSignatureKeyPair
-      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
-          dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ArcSignatureKeyPairImpl.frbInternalDcoDecode(raw as List<dynamic>);
+    return ArcHashMapVecU8VecU8Impl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -1599,14 +1557,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return OpenMlsConfigImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  HashMapVecU8VecU8
-      dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
-          dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return HashMapVecU8VecU8Impl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -1754,20 +1704,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ArcCredentialWithKey
-      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
+  ArcHashMapVecU8VecU8
+      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
           SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return ArcCredentialWithKeyImpl.frbInternalSseDecode(
-        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
-  }
-
-  @protected
-  ArcSignatureKeyPair
-      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
-          SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ArcSignatureKeyPairImpl.frbInternalSseDecode(
+    return ArcHashMapVecU8VecU8Impl.frbInternalSseDecode(
         sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
   }
 
@@ -1844,15 +1785,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  HashMapVecU8VecU8
-      sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
-          SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return HashMapVecU8VecU8Impl.frbInternalSseDecode(
-        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
-  }
-
-  @protected
   MlsGroup
       sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockMlsGroup(
           SseDeserializer deserializer) {
@@ -1907,6 +1839,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  CredentialWithKey
+      sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCredentialWithKey(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return CredentialWithKeyImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
   MlsCredential
       sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMLSCredential(
           SseDeserializer deserializer) {
@@ -1943,6 +1884,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  SignatureKeyPair
+      sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
+          SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return SignatureKeyPairImpl.frbInternalSseDecode(
+        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
+  }
+
+  @protected
   Map<Uint8List, Uint8List>
       sse_decode_Map_list_prim_u_8_strict_list_prim_u_8_strict(
           SseDeserializer deserializer) {
@@ -1954,20 +1904,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ArcCredentialWithKey
-      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
+  ArcHashMapVecU8VecU8
+      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
           SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return ArcCredentialWithKeyImpl.frbInternalSseDecode(
-        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
-  }
-
-  @protected
-  ArcSignatureKeyPair
-      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
-          SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ArcSignatureKeyPairImpl.frbInternalSseDecode(
+    return ArcHashMapVecU8VecU8Impl.frbInternalSseDecode(
         sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
   }
 
@@ -2040,15 +1981,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return OpenMlsConfigImpl.frbInternalSseDecode(
-        sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
-  }
-
-  @protected
-  HashMapVecU8VecU8
-      sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
-          SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return HashMapVecU8VecU8Impl.frbInternalSseDecode(
         sse_decode_usize(deserializer), sse_decode_i_32(deserializer));
   }
 
@@ -2212,21 +2144,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
-      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
-          ArcCredentialWithKey self, SseSerializer serializer) {
+      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
+          ArcHashMapVecU8VecU8 self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
-        (self as ArcCredentialWithKeyImpl).frbInternalSseEncode(move: true),
-        serializer);
-  }
-
-  @protected
-  void
-      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
-          ArcSignatureKeyPair self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-        (self as ArcSignatureKeyPairImpl).frbInternalSseEncode(move: true),
+        (self as ArcHashMapVecU8VecU8Impl).frbInternalSseEncode(move: true),
         serializer);
   }
 
@@ -2311,16 +2233,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
-      sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
-          HashMapVecU8VecU8 self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-        (self as HashMapVecU8VecU8Impl).frbInternalSseEncode(move: true),
-        serializer);
-  }
-
-  @protected
-  void
       sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockMlsGroup(
           MlsGroup self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -2380,6 +2292,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
+      sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCredentialWithKey(
+          CredentialWithKey self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as CredentialWithKeyImpl).frbInternalSseEncode(move: false),
+        serializer);
+  }
+
+  @protected
+  void
       sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerMLSCredential(
           MlsCredential self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -2418,6 +2340,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void
+      sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSignatureKeyPair(
+          SignatureKeyPair self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+        (self as SignatureKeyPairImpl).frbInternalSseEncode(move: false),
+        serializer);
+  }
+
+  @protected
   void sse_encode_Map_list_prim_u_8_strict_list_prim_u_8_strict(
       Map<Uint8List, Uint8List> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -2427,21 +2359,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void
-      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
-          ArcCredentialWithKey self, SseSerializer serializer) {
+      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
+          ArcHashMapVecU8VecU8 self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
-        (self as ArcCredentialWithKeyImpl).frbInternalSseEncode(move: null),
-        serializer);
-  }
-
-  @protected
-  void
-      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
-          ArcSignatureKeyPair self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-        (self as ArcSignatureKeyPairImpl).frbInternalSseEncode(move: null),
+        (self as ArcHashMapVecU8VecU8Impl).frbInternalSseEncode(move: null),
         serializer);
   }
 
@@ -2521,16 +2443,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
         (self as OpenMlsConfigImpl).frbInternalSseEncode(move: null),
-        serializer);
-  }
-
-  @protected
-  void
-      sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
-          HashMapVecU8VecU8 self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-        (self as HashMapVecU8VecU8Impl).frbInternalSseEncode(move: null),
         serializer);
   }
 
@@ -2679,46 +2591,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 }
 
 @sealed
-class ArcCredentialWithKeyImpl extends RustOpaque
-    implements ArcCredentialWithKey {
+class ArcHashMapVecU8VecU8Impl extends RustOpaque
+    implements ArcHashMapVecU8VecU8 {
   // Not to be used by end users
-  ArcCredentialWithKeyImpl.frbInternalDcoDecode(List<dynamic> wire)
+  ArcHashMapVecU8VecU8Impl.frbInternalDcoDecode(List<dynamic> wire)
       : super.frbInternalDcoDecode(wire, _kStaticData);
 
   // Not to be used by end users
-  ArcCredentialWithKeyImpl.frbInternalSseDecode(
+  ArcHashMapVecU8VecU8Impl.frbInternalSseDecode(
       BigInt ptr, int externalSizeOnNative)
       : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
 
   static final _kStaticData = RustArcStaticData(
     rustArcIncrementStrongCount: RustLib
-        .instance.api.rust_arc_increment_strong_count_ArcCredentialWithKey,
+        .instance.api.rust_arc_increment_strong_count_ArcHashMapVecU8VecU8,
     rustArcDecrementStrongCount: RustLib
-        .instance.api.rust_arc_decrement_strong_count_ArcCredentialWithKey,
+        .instance.api.rust_arc_decrement_strong_count_ArcHashMapVecU8VecU8,
     rustArcDecrementStrongCountPtr: RustLib
-        .instance.api.rust_arc_decrement_strong_count_ArcCredentialWithKeyPtr,
-  );
-}
-
-@sealed
-class ArcSignatureKeyPairImpl extends RustOpaque
-    implements ArcSignatureKeyPair {
-  // Not to be used by end users
-  ArcSignatureKeyPairImpl.frbInternalDcoDecode(List<dynamic> wire)
-      : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  ArcSignatureKeyPairImpl.frbInternalSseDecode(
-      BigInt ptr, int externalSizeOnNative)
-      : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustLib
-        .instance.api.rust_arc_increment_strong_count_ArcSignatureKeyPair,
-    rustArcDecrementStrongCount: RustLib
-        .instance.api.rust_arc_decrement_strong_count_ArcSignatureKeyPair,
-    rustArcDecrementStrongCountPtr: RustLib
-        .instance.api.rust_arc_decrement_strong_count_ArcSignatureKeyPairPtr,
+        .instance.api.rust_arc_decrement_strong_count_ArcHashMapVecU8VecU8Ptr,
   );
 }
 
@@ -2780,27 +2670,6 @@ class CredentialWithKeyImpl extends RustOpaque implements CredentialWithKey {
         RustLib.instance.api.rust_arc_decrement_strong_count_CredentialWithKey,
     rustArcDecrementStrongCountPtr: RustLib
         .instance.api.rust_arc_decrement_strong_count_CredentialWithKeyPtr,
-  );
-}
-
-@sealed
-class HashMapVecU8VecU8Impl extends RustOpaque implements HashMapVecU8VecU8 {
-  // Not to be used by end users
-  HashMapVecU8VecU8Impl.frbInternalDcoDecode(List<dynamic> wire)
-      : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  HashMapVecU8VecU8Impl.frbInternalSseDecode(
-      BigInt ptr, int externalSizeOnNative)
-      : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_HashMapVecU8VecU8,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_HashMapVecU8VecU8,
-    rustArcDecrementStrongCountPtr: RustLib
-        .instance.api.rust_arc_decrement_strong_count_HashMapVecU8VecU8Ptr,
   );
 }
 
@@ -2903,12 +2772,12 @@ class MyMemoryKeyStoreImpl extends RustOpaque implements MyMemoryKeyStore {
         .instance.api.rust_arc_decrement_strong_count_MyMemoryKeyStorePtr,
   );
 
-  HashMapVecU8VecU8 get values =>
+  ArcHashMapVecU8VecU8 get values =>
       RustLib.instance.api.crateApiSimpleMyMemoryKeyStoreAutoAccessorGetValues(
         that: this,
       );
 
-  set values(HashMapVecU8VecU8 values) =>
+  set values(ArcHashMapVecU8VecU8 values) =>
       RustLib.instance.api.crateApiSimpleMyMemoryKeyStoreAutoAccessorSetValues(
           that: this, values: values);
 }

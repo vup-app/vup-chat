@@ -26,7 +26,6 @@
 // Section: imports
 
 use crate::api::simple::*;
-use crate::*;
 use flutter_rust_bridge::for_generated::byteorder::{NativeEndian, ReadBytesExt, WriteBytesExt};
 use flutter_rust_bridge::for_generated::{transform_result_dco, Lifetimeable, Lockable};
 use flutter_rust_bridge::{Handler, IntoIntoDart};
@@ -311,7 +310,8 @@ fn wire__crate__api__simple__MyMemoryKeyStore_auto_accessor_set_values_impl(
             let api_that = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MyMemoryKeyStore>,
             >>::sse_decode(&mut deserializer);
-            let api_values = <RwLock<HashMap<Vec<u8>, Vec<u8>>>>::sse_decode(&mut deserializer);
+            let api_values =
+                <Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>>::sse_decode(&mut deserializer);
             deserializer.end();
             transform_result_sse::<_, ()>((move || {
                 let mut api_that_guard = None;
@@ -338,7 +338,7 @@ fn wire__crate__api__simple__MyMemoryKeyStore_auto_accessor_set_values_impl(
         },
     )
 }
-fn wire__crate__api__simple__OpenMlsConfig_auto_accessor_get_backend_impl(
+/* fn wire__crate__api__simple__OpenMlsConfig_auto_accessor_get_backend_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
     data_len_: i32,
@@ -383,7 +383,7 @@ fn wire__crate__api__simple__OpenMlsConfig_auto_accessor_get_backend_impl(
             })())
         },
     )
-}
+} */
 fn wire__crate__api__simple__OpenMlsConfig_auto_accessor_get_ciphersuite_impl(
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
     rust_vec_len_: i32,
@@ -936,34 +936,57 @@ fn wire__crate__api__simple__openmls_generate_key_package_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_signer = <Arc<SignatureKeyPair>>::sse_decode(&mut deserializer);
-            let api_credential_with_key = <Arc<CredentialWithKey>>::sse_decode(&mut deserializer);
+            let api_signer = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SignatureKeyPair>,
+            >>::sse_decode(&mut deserializer);
+            let api_credential_with_key = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CredentialWithKey>,
+            >>::sse_decode(&mut deserializer);
             let api_config = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
+                    let mut api_signer_guard = None;
+                    let mut api_credential_with_key_guard = None;
                     let mut api_config_guard = None;
                     let decode_indices_ =
                         flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
                             flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                &api_config,
+                                &api_signer,
                                 0,
+                                false,
+                            ),
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_credential_with_key,
+                                1,
+                                false,
+                            ),
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_config,
+                                2,
                                 false,
                             ),
                         ]);
                     for i in decode_indices_ {
                         match i {
-                            0 => api_config_guard = Some(api_config.lockable_decode_sync_ref()),
+                            0 => api_signer_guard = Some(api_signer.lockable_decode_sync_ref()),
+                            1 => {
+                                api_credential_with_key_guard =
+                                    Some(api_credential_with_key.lockable_decode_sync_ref())
+                            }
+                            2 => api_config_guard = Some(api_config.lockable_decode_sync_ref()),
                             _ => unreachable!(),
                         }
                     }
+                    let api_signer_guard = api_signer_guard.unwrap();
+                    let api_credential_with_key_guard = api_credential_with_key_guard.unwrap();
                     let api_config_guard = api_config_guard.unwrap();
                     let output_ok =
                         Result::<_, ()>::Ok(crate::api::simple::openmls_generate_key_package(
-                            api_signer,
-                            api_credential_with_key,
+                            &*api_signer_guard,
+                            &*api_credential_with_key_guard,
                             &*api_config_guard,
                         ))?;
                     Ok(output_ok)
@@ -997,7 +1020,9 @@ fn wire__crate__api__simple__openmls_group_add_member_impl(
             let api_group = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RwLock<MlsGroup>>,
             >>::sse_decode(&mut deserializer);
-            let api_signer = <Arc<SignatureKeyPair>>::sse_decode(&mut deserializer);
+            let api_signer = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SignatureKeyPair>,
+            >>::sse_decode(&mut deserializer);
             let api_key_package = <Vec<u8>>::sse_decode(&mut deserializer);
             let api_config = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>,
@@ -1006,6 +1031,7 @@ fn wire__crate__api__simple__openmls_group_add_member_impl(
             move |context| {
                 transform_result_sse::<_, ()>((move || {
                     let mut api_group_guard = None;
+                    let mut api_signer_guard = None;
                     let mut api_config_guard = None;
                     let decode_indices_ =
                         flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
@@ -1013,24 +1039,31 @@ fn wire__crate__api__simple__openmls_group_add_member_impl(
                                 &api_group, 0, false,
                             ),
                             flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                &api_config,
+                                &api_signer,
                                 1,
+                                false,
+                            ),
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_config,
+                                2,
                                 false,
                             ),
                         ]);
                     for i in decode_indices_ {
                         match i {
                             0 => api_group_guard = Some(api_group.lockable_decode_sync_ref()),
-                            1 => api_config_guard = Some(api_config.lockable_decode_sync_ref()),
+                            1 => api_signer_guard = Some(api_signer.lockable_decode_sync_ref()),
+                            2 => api_config_guard = Some(api_config.lockable_decode_sync_ref()),
                             _ => unreachable!(),
                         }
                     }
                     let api_group_guard = api_group_guard.unwrap();
+                    let api_signer_guard = api_signer_guard.unwrap();
                     let api_config_guard = api_config_guard.unwrap();
                     let output_ok =
                         Result::<_, ()>::Ok(crate::api::simple::openmls_group_add_member(
                             &*api_group_guard,
-                            api_signer,
+                            &*api_signer_guard,
                             api_key_package,
                             &*api_config_guard,
                         ))?;
@@ -1062,33 +1095,56 @@ fn wire__crate__api__simple__openmls_group_create_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_signer = <Arc<SignatureKeyPair>>::sse_decode(&mut deserializer);
-            let api_credential_with_key = <Arc<CredentialWithKey>>::sse_decode(&mut deserializer);
+            let api_signer = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SignatureKeyPair>,
+            >>::sse_decode(&mut deserializer);
+            let api_credential_with_key = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<CredentialWithKey>,
+            >>::sse_decode(&mut deserializer);
             let api_config = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>,
             >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
+                    let mut api_signer_guard = None;
+                    let mut api_credential_with_key_guard = None;
                     let mut api_config_guard = None;
                     let decode_indices_ =
                         flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
                             flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                &api_config,
+                                &api_signer,
                                 0,
+                                false,
+                            ),
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_credential_with_key,
+                                1,
+                                false,
+                            ),
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_config,
+                                2,
                                 false,
                             ),
                         ]);
                     for i in decode_indices_ {
                         match i {
-                            0 => api_config_guard = Some(api_config.lockable_decode_sync_ref()),
+                            0 => api_signer_guard = Some(api_signer.lockable_decode_sync_ref()),
+                            1 => {
+                                api_credential_with_key_guard =
+                                    Some(api_credential_with_key.lockable_decode_sync_ref())
+                            }
+                            2 => api_config_guard = Some(api_config.lockable_decode_sync_ref()),
                             _ => unreachable!(),
                         }
                     }
+                    let api_signer_guard = api_signer_guard.unwrap();
+                    let api_credential_with_key_guard = api_credential_with_key_guard.unwrap();
                     let api_config_guard = api_config_guard.unwrap();
                     let output_ok = Result::<_, ()>::Ok(crate::api::simple::openmls_group_create(
-                        api_signer,
-                        api_credential_with_key,
+                        &*api_signer_guard,
+                        &*api_credential_with_key_guard,
                         &*api_config_guard,
                     ))?;
                     Ok(output_ok)
@@ -1122,7 +1178,9 @@ fn wire__crate__api__simple__openmls_group_create_message_impl(
             let api_group = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RwLock<MlsGroup>>,
             >>::sse_decode(&mut deserializer);
-            let api_signer = <Arc<SignatureKeyPair>>::sse_decode(&mut deserializer);
+            let api_signer = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SignatureKeyPair>,
+            >>::sse_decode(&mut deserializer);
             let api_message = <Vec<u8>>::sse_decode(&mut deserializer);
             let api_config = <RustOpaqueMoi<
                 flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>,
@@ -1131,6 +1189,7 @@ fn wire__crate__api__simple__openmls_group_create_message_impl(
             move |context| {
                 transform_result_sse::<_, ()>((move || {
                     let mut api_group_guard = None;
+                    let mut api_signer_guard = None;
                     let mut api_config_guard = None;
                     let decode_indices_ =
                         flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
@@ -1138,24 +1197,31 @@ fn wire__crate__api__simple__openmls_group_create_message_impl(
                                 &api_group, 0, false,
                             ),
                             flutter_rust_bridge::for_generated::LockableOrderInfo::new(
-                                &api_config,
+                                &api_signer,
                                 1,
+                                false,
+                            ),
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_config,
+                                2,
                                 false,
                             ),
                         ]);
                     for i in decode_indices_ {
                         match i {
                             0 => api_group_guard = Some(api_group.lockable_decode_sync_ref()),
-                            1 => api_config_guard = Some(api_config.lockable_decode_sync_ref()),
+                            1 => api_signer_guard = Some(api_signer.lockable_decode_sync_ref()),
+                            2 => api_config_guard = Some(api_config.lockable_decode_sync_ref()),
                             _ => unreachable!(),
                         }
                     }
                     let api_group_guard = api_group_guard.unwrap();
+                    let api_signer_guard = api_signer_guard.unwrap();
                     let api_config_guard = api_config_guard.unwrap();
                     let output_ok =
                         Result::<_, ()>::Ok(crate::api::simple::openmls_group_create_message(
                             &*api_group_guard,
-                            api_signer,
+                            &*api_signer_guard,
                             api_message,
                             &*api_config_guard,
                         ))?;
@@ -1626,12 +1692,30 @@ fn wire__crate__api__simple__openmls_signer_get_public_key_impl(
             };
             let mut deserializer =
                 flutter_rust_bridge::for_generated::SseDeserializer::new(message);
-            let api_signer = <SignatureKeyPair>::sse_decode(&mut deserializer);
+            let api_signer = <RustOpaqueMoi<
+                flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SignatureKeyPair>,
+            >>::sse_decode(&mut deserializer);
             deserializer.end();
             move |context| {
                 transform_result_sse::<_, ()>((move || {
+                    let mut api_signer_guard = None;
+                    let decode_indices_ =
+                        flutter_rust_bridge::for_generated::lockable_compute_decode_order(vec![
+                            flutter_rust_bridge::for_generated::LockableOrderInfo::new(
+                                &api_signer,
+                                0,
+                                false,
+                            ),
+                        ]);
+                    for i in decode_indices_ {
+                        match i {
+                            0 => api_signer_guard = Some(api_signer.lockable_decode_sync_ref()),
+                            _ => unreachable!(),
+                        }
+                    }
+                    let api_signer_guard = api_signer_guard.unwrap();
                     let output_ok = Result::<_, ()>::Ok(
-                        crate::api::simple::openmls_signer_get_public_key(api_signer),
+                        crate::api::simple::openmls_signer_get_public_key(&*api_signer_guard),
                     )?;
                     Ok(output_ok)
                 })())
@@ -1643,10 +1727,7 @@ fn wire__crate__api__simple__openmls_signer_get_public_key_impl(
 // Section: related_funcs
 
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
-    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<CredentialWithKey>>
-);
-flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
-    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<SignatureKeyPair>>
+    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Ciphersuite>
@@ -1673,9 +1754,6 @@ flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
-    flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RwLock<HashMap<Vec<u8>, Vec<u8>>>>
-);
-flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
     flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RwLock<MlsGroup>>
 );
 flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
@@ -1687,21 +1765,13 @@ flutter_rust_bridge::frb_generated_moi_arc_impl_value!(
 
 // Section: dart2rust
 
-impl SseDecode for Arc<CredentialWithKey> {
+impl SseDecode for Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut inner = <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<CredentialWithKey>>,
-        >>::sse_decode(deserializer);
-        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
-    }
-}
-
-impl SseDecode for Arc<SignatureKeyPair> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<SignatureKeyPair>>,
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
+            >,
         >>::sse_decode(deserializer);
         return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
     }
@@ -1787,18 +1857,6 @@ impl SseDecode for OpenMLSConfig {
     }
 }
 
-impl SseDecode for RwLock<HashMap<Vec<u8>, Vec<u8>>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
-                RwLock<HashMap<Vec<u8>, Vec<u8>>>,
-            >,
-        >>::sse_decode(deserializer);
-        return flutter_rust_bridge::for_generated::rust_auto_opaque_decode_owned(inner);
-    }
-}
-
 impl SseDecode for RwLock<MlsGroup> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1839,19 +1897,9 @@ impl SseDecode for std::collections::HashMap<Vec<u8>, Vec<u8>> {
 
 impl SseDecode
     for RustOpaqueMoi<
-        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<CredentialWithKey>>,
-    >
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <usize>::sse_decode(deserializer);
-        return decode_rust_opaque_moi(inner);
-    }
-}
-
-impl SseDecode
-    for RustOpaqueMoi<
-        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<SignatureKeyPair>>,
+        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+            Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
+        >,
     >
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -1933,18 +1981,6 @@ impl SseDecode
 
 impl SseDecode
     for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>>
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut inner = <usize>::sse_decode(deserializer);
-        return decode_rust_opaque_moi(inner);
-    }
-}
-
-impl SseDecode
-    for RustOpaqueMoi<
-        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
-    >
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2229,11 +2265,11 @@ fn pde_ffi_dispatcher_sync_impl(
             rust_vec_len,
             data_len,
         ),
-        7 => wire__crate__api__simple__OpenMlsConfig_auto_accessor_get_backend_impl(
+     /*    7 => wire__crate__api__simple__OpenMlsConfig_auto_accessor_get_backend_impl(
             ptr,
             rust_vec_len,
             data_len,
-        ),
+        ), */
         8 => wire__crate__api__simple__OpenMlsConfig_auto_accessor_get_ciphersuite_impl(
             ptr,
             rust_vec_len,
@@ -2286,41 +2322,21 @@ fn pde_ffi_dispatcher_sync_impl(
 // Section: rust2dart
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<Arc<CredentialWithKey>> {
+impl flutter_rust_bridge::IntoDart for FrbWrapper<Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
             .into_dart()
     }
 }
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<Arc<CredentialWithKey>>
+    for FrbWrapper<Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>>
 {
 }
 
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<Arc<CredentialWithKey>>>
-    for Arc<CredentialWithKey>
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>>>
+    for Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>
 {
-    fn into_into_dart(self) -> FrbWrapper<Arc<CredentialWithKey>> {
-        self.into()
-    }
-}
-
-// Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<Arc<SignatureKeyPair>> {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
-            .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<Arc<SignatureKeyPair>>
-{
-}
-
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<Arc<SignatureKeyPair>>>
-    for Arc<SignatureKeyPair>
-{
-    fn into_into_dart(self) -> FrbWrapper<Arc<SignatureKeyPair>> {
+    fn into_into_dart(self) -> FrbWrapper<Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>> {
         self.into()
     }
 }
@@ -2449,26 +2465,6 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<OpenMLSConfig>> for OpenMLSCon
 }
 
 // Codec=Dco (DartCObject based), see doc to use other codecs
-impl flutter_rust_bridge::IntoDart for FrbWrapper<RwLock<HashMap<Vec<u8>, Vec<u8>>>> {
-    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
-        flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
-            .into_dart()
-    }
-}
-impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
-    for FrbWrapper<RwLock<HashMap<Vec<u8>, Vec<u8>>>>
-{
-}
-
-impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<RwLock<HashMap<Vec<u8>, Vec<u8>>>>>
-    for RwLock<HashMap<Vec<u8>, Vec<u8>>>
-{
-    fn into_into_dart(self) -> FrbWrapper<RwLock<HashMap<Vec<u8>, Vec<u8>>>> {
-        self.into()
-    }
-}
-
-// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for FrbWrapper<RwLock<MlsGroup>> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self.0)
@@ -2581,23 +2577,13 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::simple::ProcessIncomingMessag
     }
 }
 
-impl SseEncode for Arc<CredentialWithKey> {
+impl SseEncode for Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<CredentialWithKey>>,
-        >>::sse_encode(
-            flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self),
-            serializer,
-        );
-    }
-}
-
-impl SseEncode for Arc<SignatureKeyPair> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<SignatureKeyPair>>,
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
+            >,
         >>::sse_encode(
             flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self),
             serializer,
@@ -2661,20 +2647,6 @@ impl SseEncode for OpenMLSConfig {
     }
 }
 
-impl SseEncode for RwLock<HashMap<Vec<u8>, Vec<u8>>> {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <RustOpaqueMoi<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
-                RwLock<HashMap<Vec<u8>, Vec<u8>>>,
-            >,
-        >>::sse_encode(
-            flutter_rust_bridge::for_generated::rust_auto_opaque_encode::<_, MoiArc<_>>(self),
-            serializer,
-        );
-    }
-}
-
 impl SseEncode for RwLock<MlsGroup> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2705,20 +2677,9 @@ impl SseEncode for std::collections::HashMap<Vec<u8>, Vec<u8>> {
 
 impl SseEncode
     for RustOpaqueMoi<
-        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<CredentialWithKey>>,
-    >
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        let (ptr, size) = self.sse_encode_raw();
-        <usize>::sse_encode(ptr, serializer);
-        <i32>::sse_encode(size, serializer);
-    }
-}
-
-impl SseEncode
-    for RustOpaqueMoi<
-        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc<SignatureKeyPair>>,
+        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+            Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
+        >,
     >
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
@@ -2808,19 +2769,6 @@ impl SseEncode
 
 impl SseEncode
     for RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>>
-{
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        let (ptr, size) = self.sse_encode_raw();
-        <usize>::sse_encode(ptr, serializer);
-        <i32>::sse_encode(size, serializer);
-    }
-}
-
-impl SseEncode
-    for RustOpaqueMoi<
-        flutter_rust_bridge::for_generated::RustAutoOpaqueInner<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
-    >
 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2988,7 +2936,6 @@ mod io {
 
     use super::*;
     use crate::api::simple::*;
-    use crate::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
     };
@@ -3000,31 +2947,25 @@ mod io {
     flutter_rust_bridge::frb_generated_boilerplate_io!();
 
     #[no_mangle]
-    pub extern "C" fn frbgen_vup_chat_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
+    pub extern "C" fn frbgen_vup_chat_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
         ptr: *const std::ffi::c_void,
     ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < CredentialWithKey >>>::increment_strong_count(ptr as _);
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
+            >,
+        >::increment_strong_count(ptr as _);
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_vup_chat_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
+    pub extern "C" fn frbgen_vup_chat_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
         ptr: *const std::ffi::c_void,
     ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < CredentialWithKey >>>::decrement_strong_count(ptr as _);
-    }
-
-    #[no_mangle]
-    pub extern "C" fn frbgen_vup_chat_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < SignatureKeyPair >>>::increment_strong_count(ptr as _);
-    }
-
-    #[no_mangle]
-    pub extern "C" fn frbgen_vup_chat_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < SignatureKeyPair >>>::decrement_strong_count(ptr as _);
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
+            >,
+        >::decrement_strong_count(ptr as _);
     }
 
     #[no_mangle]
@@ -3140,28 +3081,6 @@ mod io {
     }
 
     #[no_mangle]
-    pub extern "C" fn frbgen_vup_chat_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
-                RwLock<HashMap<Vec<u8>, Vec<u8>>>,
-            >,
-        >::increment_strong_count(ptr as _);
-    }
-
-    #[no_mangle]
-    pub extern "C" fn frbgen_vup_chat_rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
-                RwLock<HashMap<Vec<u8>, Vec<u8>>>,
-            >,
-        >::decrement_strong_count(ptr as _);
-    }
-
-    #[no_mangle]
     pub extern "C" fn frbgen_vup_chat_rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockMlsGroup(
         ptr: *const std::ffi::c_void,
     ) {
@@ -3216,7 +3135,6 @@ mod web {
 
     use super::*;
     use crate::api::simple::*;
-    use crate::*;
     use flutter_rust_bridge::for_generated::byteorder::{
         NativeEndian, ReadBytesExt, WriteBytesExt,
     };
@@ -3230,31 +3148,25 @@ mod web {
     flutter_rust_bridge::frb_generated_boilerplate_web!();
 
     #[wasm_bindgen]
-    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
+    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
         ptr: *const std::ffi::c_void,
     ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < CredentialWithKey >>>::increment_strong_count(ptr as _);
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
+            >,
+        >::increment_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]
-    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcCredentialWithKey(
+    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcRwLockHashMapVecu8Vecu8(
         ptr: *const std::ffi::c_void,
     ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < CredentialWithKey >>>::decrement_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < SignatureKeyPair >>>::increment_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcSignatureKeyPair(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < SignatureKeyPair >>>::decrement_strong_count(ptr as _);
+        MoiArc::<
+            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
+                Arc<RwLock<HashMap<Vec<u8>, Vec<u8>>>>,
+            >,
+        >::decrement_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]
@@ -3367,28 +3279,6 @@ mod web {
         ptr: *const std::ffi::c_void,
     ) {
         MoiArc::<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<OpenMLSConfig>>::decrement_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
-                RwLock<HashMap<Vec<u8>, Vec<u8>>>,
-            >,
-        >::increment_strong_count(ptr as _);
-    }
-
-    #[wasm_bindgen]
-    pub fn rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRwLockHashMapVecu8Vecu8(
-        ptr: *const std::ffi::c_void,
-    ) {
-        MoiArc::<
-            flutter_rust_bridge::for_generated::RustAutoOpaqueInner<
-                RwLock<HashMap<Vec<u8>, Vec<u8>>>,
-            >,
-        >::decrement_strong_count(ptr as _);
     }
 
     #[wasm_bindgen]

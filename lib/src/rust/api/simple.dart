@@ -4,11 +4,10 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import '../lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These types are ignored because they are not used by any `pub` functions: `MyMemoryKeyStoreError`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `crypto`, `delete`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `key_store`, `rand`, `read`, `store`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `clone`, `crypto`, `delete`, `eq`, `fmt`, `fmt`, `key_store`, `rand`, `read`, `store`
 
 Future<OpenMlsConfig> openmlsInitConfig(
         {required Map<Uint8List, Uint8List> keystoreValues}) =>
@@ -37,22 +36,22 @@ Future<MlsCredential> openmlsRecoverCredentialWithKey(
         identity: identity, publicKey: publicKey, config: config);
 
 Future<Uint8List> openmlsGenerateKeyPackage(
-        {required ArcSignatureKeyPair signer,
-        required ArcCredentialWithKey credentialWithKey,
+        {required SignatureKeyPair signer,
+        required CredentialWithKey credentialWithKey,
         required OpenMlsConfig config}) =>
     RustLib.instance.api.crateApiSimpleOpenmlsGenerateKeyPackage(
         signer: signer, credentialWithKey: credentialWithKey, config: config);
 
 Future<MlsGroup> openmlsGroupCreate(
-        {required ArcSignatureKeyPair signer,
-        required ArcCredentialWithKey credentialWithKey,
+        {required SignatureKeyPair signer,
+        required CredentialWithKey credentialWithKey,
         required OpenMlsConfig config}) =>
     RustLib.instance.api.crateApiSimpleOpenmlsGroupCreate(
         signer: signer, credentialWithKey: credentialWithKey, config: config);
 
 Future<MLSGroupAddMembersResponse> openmlsGroupAddMember(
         {required MlsGroup group,
-        required ArcSignatureKeyPair signer,
+        required SignatureKeyPair signer,
         required List<int> keyPackage,
         required OpenMlsConfig config}) =>
     RustLib.instance.api.crateApiSimpleOpenmlsGroupAddMember(
@@ -60,7 +59,7 @@ Future<MLSGroupAddMembersResponse> openmlsGroupAddMember(
 
 Future<Uint8List> openmlsGroupCreateMessage(
         {required MlsGroup group,
-        required ArcSignatureKeyPair signer,
+        required SignatureKeyPair signer,
         required List<int> message,
         required OpenMlsConfig config}) =>
     RustLib.instance.api.crateApiSimpleOpenmlsGroupCreateMessage(
@@ -90,11 +89,8 @@ Future<MlsGroup> openmlsGroupLoad(
 Future<List<GroupMember>> openmlsGroupListMembers({required MlsGroup group}) =>
     RustLib.instance.api.crateApiSimpleOpenmlsGroupListMembers(group: group);
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < CredentialWithKey >>>
-abstract class ArcCredentialWithKey implements RustOpaqueInterface {}
-
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < SignatureKeyPair >>>
-abstract class ArcSignatureKeyPair implements RustOpaqueInterface {}
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Arc < RwLock < HashMap < Vec < u8 > , Vec < u8 > > > >>>
+abstract class ArcHashMapVecU8VecU8 implements RustOpaqueInterface {}
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<Ciphersuite>>
 abstract class Ciphersuite implements RustOpaqueInterface {}
@@ -121,9 +117,9 @@ abstract class MlsGroupConfig implements RustOpaqueInterface {}
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MyMemoryKeyStore>>
 abstract class MyMemoryKeyStore implements RustOpaqueInterface {
-  HashMapVecU8VecU8 get values;
+  ArcHashMapVecU8VecU8 get values;
 
-  set values(HashMapVecU8VecU8 values);
+  set values(ArcHashMapVecU8VecU8 values);
 }
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<MyOpenMlsRustCrypto>>
