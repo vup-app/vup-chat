@@ -529,7 +529,7 @@ class MsgCore {
       // now check if already registered on node
       List<String>? urls;
       // then check if already registered
-      if ((s5!.api as S5NodeAPIWithIdentity).accounts.isEmpty) {
+      if ((s5!.api as S5NodeAPIWithIdentity).accounts.isNotEmpty) {
         Map<dynamic, dynamic> data =
             (s5!.api as S5NodeAPIWithIdentity).accounts;
         final Map<String, dynamic> accounts =

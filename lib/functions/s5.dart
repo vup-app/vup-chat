@@ -142,7 +142,7 @@ Future<void> backupSQLiteToS5() async {
     // if not, create an empty list
     try {
       SignedRegistryEntry? signedRegistryEntry =
-          await s5.api.registryGet(resolverCID.toRegistryEntry());
+          await s5.api.registryGet(resolverCID.hash.fullBytes);
       if (signedRegistryEntry != null) {
         Uint8List backupEntriesOld = await s5.api
             .downloadRawFile(CID.fromBytes(signedRegistryEntry.data).hash);
@@ -175,7 +175,8 @@ Future<void> backupSQLiteToS5() async {
     // debug zone
     if (kDebugMode) {
       try {
-        SignedRegistryEntry? sre = await s5.api.registryGet(s5User.publicKey);
+        SignedRegistryEntry? sre =
+            await s5.api.registryGet(resolverCID.hash.fullBytes);
         if (sre != null) {
           Uint8List backupEntriesOld =
               await s5.api.downloadRawFile(CID.fromBytes(sre.data).hash);
