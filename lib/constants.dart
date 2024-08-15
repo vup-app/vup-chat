@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const String version = "v0.7.1";
+const String version = "v0.8.0";
 
 const defaultAccentColor = Color(0xFF1ED660);
 const lightBackgroundColor = Color(0xfffafafa);
