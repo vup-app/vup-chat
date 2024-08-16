@@ -22,17 +22,16 @@ class MessageItem extends StatefulWidget {
 }
 
 class MessageItemState extends State<MessageItem> {
-  late bool isMe;
   Widget bubbleContents = Container();
 
   @override
   void initState() {
-    isMe = widget.message.senderDid == did;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    bool isMe = (widget.message.senderDid == did);
     return SizeTransition(
       sizeFactor: widget.animation,
       child: Align(
