@@ -62,31 +62,11 @@ class MessageItemState extends State<MessageItem> {
                       : Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Theme(
-                  data: ThemeData(
-                      textSelectionTheme: TextSelectionThemeData(
-                    selectionColor: Theme.of(context).primaryColor,
-                  )),
-                  // This swaps between the selectable text and normal text when selection mode is
-                  // on to make selection easier
-                  child: (widget.selectedMessages.isNotEmpty)
-                      ? Text(
-                          widget.message.message,
-                          style: TextStyle(
-                            color: isMe
-                                ? Theme.of(context).cardColor
-                                : Colors.black,
-                          ),
-                        )
-                      : SelectableText(
-                          widget.message.message,
-                          style: TextStyle(
-                            color: isMe
-                                ? Theme.of(context).cardColor
-                                : Colors.black,
-                          ),
-                          selectionControls: MaterialTextSelectionControls(),
-                        ),
+                child: Text(
+                  widget.message.message,
+                  style: TextStyle(
+                    color: isMe ? Theme.of(context).cardColor : Colors.black,
+                  ),
                 ),
               ),
               Positioned(

@@ -234,7 +234,11 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                   children: [
                     // The message view
                     _messages.isNotEmpty
-                        ? ScrollablePositionedList.builder(
+                        ?
+                        // This swaps between the selectable text and normal text when selection mode is
+                        // on to make selection easier
+                        SelectionArea(
+                            child: ScrollablePositionedList.builder(
                             itemCount: _messages.length,
                             itemScrollController: _scrollController,
                             scrollOffsetListener: _scrollOffsetListener,
@@ -258,7 +262,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                                 return Container();
                               }
                             },
-                          )
+                          ))
                         : Container(),
                     // Scroll to bottom icon
                     _showScrollToBottom
