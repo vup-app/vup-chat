@@ -13,7 +13,6 @@ import 'package:s5/s5.dart';
 import 'package:vup_chat/definitions/backup_entries.dart';
 import 'package:vup_chat/definitions/logger.dart';
 import 'package:vup_chat/main.dart';
-import 'package:vup_chat/messenger/connections/native.dart';
 import 'package:vup_chat/widgets/restart_widget.dart';
 
 Future<S5> initS5() async {
@@ -101,7 +100,9 @@ Future<void> backupSQLiteToS5() async {
   if (msg.s5 != null && msg.s5!.hasIdentity && seed != null && !kIsWeb) {
     S5 s5 = msg.s5!;
     // First we gotta upload the DB
-    File db = await databaseFile;
+    final appDir = await getApplicationSupportDirectory();
+    final dbPath = join(appDir.path, 'db.sqlite');
+    File db = File(dbPath);
     CID backedUpDBCID = await s5.api.uploadBlob(db.readAsBytesSync());
 
     // Then we get get an set the resolver
@@ -142,7 +143,7 @@ Future<void> backupSQLiteToS5() async {
     // if not, create an empty list
     try {
       SignedRegistryEntry? signedRegistryEntry =
-          await s5.api.registryGet(resolverCID.toRegistryEntry());
+          await s5.api.registryGet(resolverCID.hash.fullBytes);
       if (signedRegistryEntry != null) {
         Uint8List backupEntriesOld = await s5.api
             .downloadRawFile(CID.fromBytes(signedRegistryEntry.data).hash);
@@ -175,7 +176,8 @@ Future<void> backupSQLiteToS5() async {
     // debug zone
     if (kDebugMode) {
       try {
-        SignedRegistryEntry? sre = await s5.api.registryGet(s5User.publicKey);
+        SignedRegistryEntry? sre =
+            await s5.api.registryGet(resolverCID.hash.fullBytes);
         if (sre != null) {
           Uint8List backupEntriesOld =
               await s5.api.downloadRawFile(CID.fromBytes(sre.data).hash);
