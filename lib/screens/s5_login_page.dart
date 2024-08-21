@@ -90,6 +90,7 @@ class S5LoginPageState extends State<S5LoginPage>
           _currentlyLoggingIn = false;
           _isLoginFailed = true;
         });
+        logger.e(e);
         SnackBar snackBar = SnackBar(content: Text("$e"));
         if (vupSplitViewKey.currentContext != null) {
           ScaffoldMessenger.of(vupSplitViewKey.currentContext!)
@@ -236,8 +237,9 @@ class S5LoginPageState extends State<S5LoginPage>
                                     ),
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.copy,
-                                        color: Colors.white),
+                                    icon: const Icon(
+                                      Icons.copy,
+                                    ),
                                     onPressed: () {
                                       Clipboard.setData(
                                               ClipboardData(text: _seed))
@@ -307,7 +309,7 @@ class S5LoginPageState extends State<S5LoginPage>
                   child: ElevatedButton(
                       onPressed: () {
                         preferences.setBool("disable-s5", true);
-                        vupSplitViewKey.currentState?.pop();
+                        Navigator.pop(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,

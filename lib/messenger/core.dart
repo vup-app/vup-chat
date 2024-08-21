@@ -15,6 +15,8 @@ import 'package:http/http.dart' as http;
 import 'package:lib5/identity.dart';
 import 'package:lib5/node.dart';
 import 'package:neat_periodic_task/neat_periodic_task.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:s5/s5.dart' as s5lib;
 import 'package:universal_io/io.dart' as io;
 import 'package:vup_chat/bsky/chat_actions.dart';
@@ -29,6 +31,7 @@ import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/messenger/lock.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/widgets/init_router.dart';
+import 'package:universal_io/io.dart';
 
 class MsgCore {
   final MessageDatabase db;
@@ -64,7 +67,7 @@ class MsgCore {
 
   // -------- INIT FUNCTIONS --------
 
-  void init() async {
+  Future<void> init() async {
     await attemptLogin(null, null);
 
     backgroundChatFetchScheduler = NeatPeriodicTaskScheduler(
@@ -159,9 +162,10 @@ class MsgCore {
       }
       final Sender snd = Sender(
           did: profile.did,
-          displayName: profile.displayName ?? "",
+          displayName: profile.displayName ?? "null",
+          handle: profile.handle,
           avatar: avatarBytes);
-      await db.checkAndInsertSenderATProto(snd);
+      await db.insertOrUpdateSender(snd);
       return snd;
     } else {
       return possibleSender;
@@ -205,9 +209,8 @@ class MsgCore {
 
   // -------- DATABASE ACTIONS --------
 
-  // TODO create own local message ID's to associate with BSKY ID to speed up sending
-  Future<void> sendMessage(String text, String chatID, Sender sender) async {
-    // TODO: persist to DB BEFORE sneding to atproto to make things snappier
+  Future<void> sendMessage(
+      String text, String chatID, Sender sender, bool? sendNoEncrytiion) async {
     if (bskyChatSession != null && text.isNotEmpty) {
       final MessageView message = (await bskyChatSession!.convo
               .sendMessage(convoId: chatID, message: MessageInput(text: text)))
@@ -318,11 +321,7 @@ class MsgCore {
             resp.input != null &&
             resp.input!.isNotEmpty) {
           final Sender snd = await msg.getSenderFromDID(payload.did!);
-          sendMessage(
-            resp.input!,
-            payload.chatID,
-            snd,
-          );
+          sendMessage(resp.input!, payload.chatID, snd, null);
         }
         // If the notification is simply clicked on, go to the chat channel
         // TODO: Figure out why pushing from this context creates dirty build state
@@ -356,9 +355,19 @@ class MsgCore {
     }
   }
 
-  // TODO: Impl deleting chats
-  Future<void> deleteChats(List<String> chatIDs) async {
-    for (String _ in chatIDs) {}
+  Future<void> deleteMessages(List<Message> msgs, String chatID) async {
+    for (Message msg in msgs) {
+      if (msg.bskyID != null) {
+        try {
+          logger.d("deleting ${msg.bskyID}");
+          await bskyChatSession?.convo
+              .deleteMessageForSelf(convoId: chatID, messageId: msg.bskyID!);
+          await db.deleteLocalMessage(msg.id);
+        } catch (e) {
+          logger.e(e);
+        }
+      }
+    }
   }
 
   Future<void> _populateListViewDBATProto() async {
@@ -505,6 +514,19 @@ class MsgCore {
     }
   }
 
+  // WARNING: This is not a safe function to call as it deletes the local DB
+  Future<void> nukeDB() async {
+    // TODO: Make this work on web
+    if (!kIsWeb) {
+      // We use `path_provider` to find a suitable path to store our data in.
+      final appDir = await getApplicationSupportDirectory();
+      final dbPath = join(appDir.path, 'db.sqlite');
+      await File(dbPath).delete();
+      // Also kill shared preferences for good luck
+      await preferences.clear();
+    }
+  }
+
   // -------- COMMON FUNCTIONS --------
 
   List<MessageView> convertToMessageViews(
@@ -532,8 +554,9 @@ class MsgCore {
       if ((s5!.api as S5NodeAPIWithIdentity).accounts.isNotEmpty) {
         Map<dynamic, dynamic> data =
             (s5!.api as S5NodeAPIWithIdentity).accounts;
-        final Map<String, dynamic> accounts =
-            data['accounts'] as Map<String, dynamic>;
+        final Map<String, dynamic> accounts = (data['accounts'] as Map).map(
+          (key, value) => MapEntry(key as String, value),
+        );
         urls =
             accounts.values.map((account) => account['url'] as String).toList();
         // And if the nodeURL isn't on the seed already, authenticate on that server
@@ -552,11 +575,5 @@ class MsgCore {
 
   Future<void> logOutBsky() async {
     bskySession = await tryLogOut();
-  }
-
-  // -------- OBJECT GETTERS --------
-
-  MessageDatabase getDB() {
-    return db;
   }
 }

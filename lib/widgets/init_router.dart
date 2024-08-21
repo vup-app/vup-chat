@@ -22,6 +22,8 @@ class _InitRouterState extends State<InitRouter> {
   }
 
   Future<void> _initBackend() async {
+    // this should refresh state when init is done to allow drawing of things that
+    // need did, etc
     msg.init();
   }
 

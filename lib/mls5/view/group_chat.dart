@@ -4,6 +4,7 @@ import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lib5/util.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/mls5/mls5.dart';
@@ -41,7 +42,7 @@ class _GroupChatViewState extends State<GroupChatView> {
                     itemBuilder: (context, index) {
                       if (index == group.messagesMemory.length) {
                         group.loadMoreMessages();
-                        return Center(
+                        return const Center(
                           child: CircularProgressIndicator(),
                         );
                       }
@@ -60,7 +61,8 @@ class _GroupChatViewState extends State<GroupChatView> {
                               msg.identity.isEmpty
                                   ? 'You'
                                   : utf8.decode(msg.identity),
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(width: 8),
                             Flexible(
@@ -82,7 +84,7 @@ class _GroupChatViewState extends State<GroupChatView> {
                 focusNode: textCtrlFocusNode,
                 controller: textCtrl,
                 autofocus: true,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Your message',
                 ),
@@ -96,7 +98,7 @@ class _GroupChatViewState extends State<GroupChatView> {
           ],
         )),
         SizedBox(
-          width: 256,
+          width: 100.w,
           child: Column(
             children: [
               Padding(
@@ -108,7 +110,7 @@ class _GroupChatViewState extends State<GroupChatView> {
                         final res = await showTextInputDialog(
                           context: context,
                           textFields: [
-                            DialogTextField(hintText: 'mls5-key-package:')
+                            const DialogTextField(hintText: 'mls5-key-package:')
                           ],
                         );
                         if (res == null) return;
@@ -134,7 +136,7 @@ class _GroupChatViewState extends State<GroupChatView> {
 
                         */
                       },
-                      child: Text(
+                      child: const Text(
                         'Invite User',
                       ),
                     ),

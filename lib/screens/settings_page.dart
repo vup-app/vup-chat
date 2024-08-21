@@ -26,6 +26,13 @@ class SettingsPageState extends State<SettingsPage> {
     });
   }
 
+  Future<void> _logOutAll() async {
+    await msg.logOutBsky();
+    await msg.nukeDB();
+    if (vupSplitViewKey.currentContext == null) return;
+    logOutS5(vupSplitViewKey.currentContext!);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,12 +66,16 @@ class SettingsPageState extends State<SettingsPage> {
               // Call a backup
               const ElevatedButton(
                   onPressed: backupSQLiteToS5, child: Text("Backup")),
+              // Log out a backup
+              ElevatedButton(
+                  onPressed: _logOutAll,
+                  child: const Text("Log Out (ATProto & S5)")),
 
               ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).push(MaterialPageRoute(
                         // I know multiple DB opens is bad, but it's read only so it's fine
-                        builder: (context) => DriftDbViewer(msg.getDB())));
+                        builder: (context) => DriftDbViewer(msg.db)));
                   },
                   child: const Text("View DB")),
               Padding(

@@ -68,7 +68,7 @@ class MLS5 {
     await setupIdentity();
 
     // TODO This is to ensure enough s5 peers are connected (can be removed in the future)
-    Future.delayed(Duration(seconds: 1)).then((value) async {
+    Future.delayed(const Duration(seconds: 1)).then((value) async {
       await recoverGroups();
       mainWindowState.update();
     });
@@ -136,7 +136,7 @@ class MLS5 {
 
   GroupState group(String id) => groups[id]!;
 
-  Future<void> createNewGroup() async {
+  Future<String> createNewGroup() async {
     final group = await openmlsGroupCreate(
       signer: identity.signer,
       credentialWithKey: identity.credentialWithKey,
@@ -161,6 +161,8 @@ class MLS5 {
         'name': 'Group #${groupsBox.length + 1}',
       },
     );
+
+    return groupId;
   }
 
   Future<KeyPairEd25519> deriveCommunicationChannelKeyPair(String groupId) {
@@ -405,7 +407,7 @@ class GroupState {
     await mls.saveKeyStore();
 
 /*     return 'mls5-group-invite:${base64UrlNoPaddingEncode(groupChannels[groupId]!.publicKey)}/$ts/${base64UrlNoPaddingEncode(res.welcomeOut)}'; */
-    return 'mls5-group-invite:${base64UrlNoPaddingEncode(res.welcomeOut)}';
+    return base64UrlNoPaddingEncode(res.welcomeOut);
   }
 
   Future<void> sendMessage(String text) async {

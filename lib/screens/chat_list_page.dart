@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:bluesky/core.dart';
 import 'package:flutter/material.dart';
+import 'package:vup_chat/functions/mls.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/mls5/view/demo_main_view.dart';
@@ -27,10 +29,12 @@ class ChatListPageState extends State<ChatListPage> {
   List<ChatRoom>? _searchedChats;
   int? numHiddenChats;
   bool hiddenChatToggle = false;
+  bool _shouldNagForMLS = false;
 
   @override
   void initState() {
     _checkIfS5LoggedIn();
+    _checkIfShouldNagToAnnounceMLS();
     _subscribeToChatList();
     _textController.addListener(_onSearchChanged);
     super.initState();
@@ -151,6 +155,41 @@ class ChatListPageState extends State<ChatListPage> {
     }
   }
 
+  // Checks criteria to see if it should nag the user to enable MLS
+  // (encrypted messages)
+  void _checkIfShouldNagToAnnounceMLS() async {
+    // wait for DID to not be null
+    while (did == null) {
+      await Future.delayed(Durations.long2);
+    }
+    // Conditions to nag
+    // IF:
+    // - S5 is enabled
+    // - The user has not disabled MLS
+    // - MLS keypair & pubkey are not yet announced to ATProto
+    bool? mlsDisabled = preferences.getBool("disable-mls");
+    // Check criteria 1-2 to not make unecesary network calls
+    if (msg.s5 != null &&
+        msg.s5!.hasIdentity &&
+        (mlsDisabled == null || mlsDisabled == false) &&
+        did != null) {
+      try {
+        final record = (await msg.bskySession?.atproto.repo.getRecord(
+            uri: AtUri.parse("at://$did/app.vup.chat.mlsKeys/default")));
+        // if this sucseeds, then no need to nag
+        logger.d(record);
+      } catch (e) {
+        // TODO: this is a bad way of error handling
+        if ((e as InvalidRequestException).response.status.equalsByCode(400)) {
+          setState(() {
+            _shouldNagForMLS = true;
+          });
+          logger.d("activating nag mode");
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -206,22 +245,6 @@ class ChatListPageState extends State<ChatListPage> {
             body: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FilledButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => MLS5DemoAppView(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'This is a TEMPORARY DEV button to launch the very simple demo view for MLS over S5!',
-                    ),
-                  ),
-                ),
-
                 // This is a complicated search bar
                 chatsSearchBar(_textController, _navToSettings, _navToProfile),
                 // Shows bar to show hidden chats if selected
@@ -245,7 +268,30 @@ class ChatListPageState extends State<ChatListPage> {
                         ),
                       )
                     : Container(),
+                // Here is the banner that nags the user to enable encryped chats
                 // This section swaps views if search is happening or not
+                (_shouldNagForMLS)
+                    ? MaterialBanner(
+                        content: const Text("Enable encrypted messages"),
+                        backgroundColor: Theme.of(context).secondaryHeaderColor,
+                        actions: [
+                            TextButton(
+                                onPressed: () {
+                                  disableMLS();
+                                  _checkIfShouldNagToAnnounceMLS();
+                                },
+                                child: const Text("Disable")),
+                            TextButton(
+                                onPressed: () async {
+                                  setState(() {
+                                    _shouldNagForMLS = false;
+                                  });
+                                  await enableMLS();
+                                  _checkIfShouldNagToAnnounceMLS();
+                                },
+                                child: const Text("Enable")),
+                          ])
+                    : Container(),
                 (_textController.text.isNotEmpty &&
                         _searchedMessages != null &&
                         _searchedChats != null)

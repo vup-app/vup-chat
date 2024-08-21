@@ -26,7 +26,7 @@ class _GroupListViewState extends State<GroupListView> {
               final res = await showTextInputDialog(
                 context: context,
                 textFields: [
-                  DialogTextField(hintText: 'Edit Group Name (local)'),
+                  const DialogTextField(hintText: 'Edit Group Name (local)'),
                 ],
               );
               if (res == null) return;
@@ -47,7 +47,7 @@ class _GroupListViewState extends State<GroupListView> {
                   final res = await showTextInputDialog(
                     context: context,
                     textFields: [
-                      DialogTextField(hintText: 'mls5-group-invite:')
+                      const DialogTextField(hintText: 'mls5-group-invite:')
                     ],
                   );
                   if (res == null) return;
@@ -62,21 +62,21 @@ class _GroupListViewState extends State<GroupListView> {
                   mls5.mainWindowState.groupId = groupId;
                   mls5.mainWindowState.update();
                 },
-                child: Text(
+                child: const Text(
                   'Join Group',
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () async {
                   await mls5.createNewGroup();
                   setState(() {});
                 },
-                child: Text(
+                child: const Text(
                   'Create Group',
                 ),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () async {
                   final kp = await mls5.createKeyPackage();
@@ -87,7 +87,7 @@ class _GroupListViewState extends State<GroupListView> {
                     ),
                   );
                 },
-                child: Text(
+                child: const Text(
                   'Copy KeyPackage',
                 ),
               ),

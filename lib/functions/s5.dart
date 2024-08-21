@@ -120,13 +120,13 @@ Future<void> backupSQLiteToS5() async {
     try {
       final res = await s5.api.registryGet(s5User.publicKey);
       existing = res;
-      logger.d(
+      logger.i(
         'Revision ${existing!.revision} -> ${existing.revision + 1}',
       );
     } catch (e) {
       existing = null;
 
-      logger.d('Revision 1');
+      logger.i('Revision 1');
     }
 
     // And now that we have the CID and the resolver seed we can download the
@@ -148,9 +148,9 @@ Future<void> backupSQLiteToS5() async {
         Uint8List backupEntriesOld = await s5.api
             .downloadRawFile(CID.fromBytes(signedRegistryEntry.data).hash);
         entries = BackupEntries.fromUint8List(backupEntriesOld);
-        logger.d(entries);
+        logger.i(entries);
       } else {
-        logger.d("Registry emtpy");
+        logger.i("Registry emtpy");
       }
     } catch (e) {
       logger.e(e);
@@ -172,7 +172,7 @@ Future<void> backupSQLiteToS5() async {
 
     await s5.api.registrySet(sre);
 
-    logger.d(resolverCID);
+    logger.i(resolverCID);
     // debug zone
     if (kDebugMode) {
       try {

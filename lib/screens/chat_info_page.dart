@@ -1,4 +1,6 @@
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
+import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vup_chat/main.dart';
@@ -58,6 +60,12 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
         widget.chatRoomData.id,
         _notificationOptions[_callNotificationSliderState],
         _notificationOptions[_textNotificationSliderState]);
+  }
+
+  // This is for debug only
+  void _removeMLSID() async {
+    _chatRoomData = _chatRoomData.copyWith(mlsChatID: const Value(null));
+    await msg.db.updateChatRoom(_chatRoomData);
   }
 
   @override
@@ -277,6 +285,13 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                 ),
 
                 // TODO: Display media & Links like whatsapp
+
+                // DEBUG:
+                (kDebugMode)
+                    ? ElevatedButton(
+                        onPressed: _removeMLSID,
+                        child: const Text("Clear MLS ID"))
+                    : Container(),
               ],
             ));
           },

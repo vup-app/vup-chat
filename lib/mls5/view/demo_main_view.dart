@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vup_chat/main.dart';
 
 import 'group_chat.dart';
@@ -21,11 +22,11 @@ class MLS5DemoAppView extends StatelessWidget {
               return Row(
                 children: [
                   SizedBox(
-                    width: 256,
-                    child: GroupListView(),
+                    width: 100.w,
+                    child: const GroupListView(),
                   ),
                   if (mls5.mainWindowState.groupId != null) ...[
-                    VerticalDivider(
+                    const VerticalDivider(
                       width: 1,
                     ),
                     Expanded(

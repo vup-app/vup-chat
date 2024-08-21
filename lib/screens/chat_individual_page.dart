@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:vup_chat/functions/getAvatar.dart';
+import 'package:vup_chat/functions/mls.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/screens/chat_info_page.dart';
@@ -39,6 +40,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   Uint8List? avatarCache;
   final Set<Message> _selectedMessages = {};
   bool doesSelectedMessagesContainStar = false;
+  bool encryptedEnabled = false;
 
   @override
   void initState() {
@@ -78,13 +80,28 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     });
   }
 
+  // Update the chatRoomData but guard against not being mounted
   void _getChatRoomData() async {
-    await msg.getChatRoomFromChatID(widget.id).then((val) => setState(() {
-          _chatRoomData = val;
-          if (_chatRoomData != null && _chatRoomData!.avatar != avatarCache) {
-            avatarCache = _chatRoomData!.avatar;
-          }
-        }));
+    await msg.getChatRoomFromChatID(widget.id).then((val) {
+      (mounted)
+          ? setState(() {
+              _chatRoomData = val;
+              if (_chatRoomData != null &&
+                  _chatRoomData!.avatar != avatarCache) {
+                avatarCache = _chatRoomData!.avatar;
+              }
+            })
+          : null;
+      (val != null)
+          ? ensureMLSEnabled(val).then(
+              (isEnabled) => (mounted)
+                  ? setState(() {
+                      encryptedEnabled = isEnabled;
+                    })
+                  : null,
+            )
+          : null;
+    });
   }
 
   void _scrollToBottom() {
@@ -107,7 +124,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     final String tmpText = _messageController.text;
     _messageController.clear();
     await msg.sendMessage(
-        tmpText, widget.id, (await msg.getSenderFromDID(did!)));
+        tmpText, widget.id, (await msg.getSenderFromDID(did!)), null);
     _scrollToBottom();
   }
 
@@ -176,6 +193,17 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     await msg.toggleChatStar(tmpSelectedMessages);
   }
 
+  void _deleteHelper(Message? optionalMsg) async {
+    if (optionalMsg != null) {
+      _selectedMessages.add(optionalMsg);
+    }
+    final List<Message> tmpSelectedMessages = _selectedMessages.toList();
+    setState(() {
+      _selectedMessages.clear();
+    });
+    await msg.deleteMessages(tmpSelectedMessages, widget.id);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -206,6 +234,24 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                           },
                           child: Text(_chatRoomData?.roomName ?? "Erm"),
                         ),
+                        (_chatRoomData!.mlsChatID != null)
+                            ? Row(
+                                children: [
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  Icon((encryptedEnabled)
+                                      ? Icons.lock_outline
+                                      : Icons.lock_open_outlined),
+                                  Switch(
+                                    value: encryptedEnabled,
+                                    onChanged: (val) => setState(() {
+                                      encryptedEnabled = !encryptedEnabled;
+                                    }),
+                                  ),
+                                ],
+                              )
+                            : Container(),
                       ],
                     ),
               backgroundColor: Theme.of(context).cardColor,
@@ -223,6 +269,9 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                     icon: (doesSelectedMessagesContainStar)
                         ? const Icon(Icons.star)
                         : const Icon(Icons.star_outline)),
+                IconButton(
+                    onPressed: () => _deleteHelper(null),
+                    icon: const Icon(Icons.delete)),
               ],
             ),
       body: Center(

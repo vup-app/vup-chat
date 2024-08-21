@@ -22,7 +22,7 @@ class MessageDatabase extends _$MessageDatabase {
 
   // Database migrations!
   @override
-  int get schemaVersion => 2; // bump because the tables have changed.
+  int get schemaVersion => 4; // bump because the tables have changed.
 
   @override
   MigrationStrategy get migration {
@@ -34,6 +34,14 @@ class MessageDatabase extends _$MessageDatabase {
         if (from < 2) {
           await m.addColumn(senders, senders.avatarUrl);
           await m.addColumn(chatRooms, chatRooms.avatarUrl);
+        }
+        if (from < 3) {
+          await m.addColumn(senders, senders.handle);
+          await m.addColumn(messages, messages.encrypted);
+          await m.addColumn(chatRooms, chatRooms.mlsChatID);
+        }
+        if (from < 4) {
+          await m.addColumn(senders, senders.pubkey);
         }
       },
     );
@@ -323,7 +331,7 @@ class MessageDatabase extends _$MessageDatabase {
   }
 
   // Check if a sender exists and insert if not
-  Future<void> checkAndInsertSenderATProto(Sender sender) async {
+  Future<void> insertOrUpdateSender(Sender sender) async {
     final senderExists = await (select(senders)
           ..where((tbl) => tbl.did.equals(sender.did)))
         .getSingleOrNull();
@@ -332,6 +340,7 @@ class MessageDatabase extends _$MessageDatabase {
       into(senders).insert(SendersCompanion.insert(
           did: sender.did,
           displayName: sender.displayName,
+          handle: Value(sender.handle),
           avatar: Value(sender.avatar),
           description: Value(sender.description)));
     } else {
@@ -347,6 +356,14 @@ class MessageDatabase extends _$MessageDatabase {
       if (senderExists.avatar != sender.avatar) {
         await (update(senders)..where((tbl) => tbl.did.equals(sender.did)))
             .write(SendersCompanion(avatar: Value(sender.avatar)));
+      }
+      if (senderExists.handle != sender.handle) {
+        await (update(senders)..where((tbl) => tbl.did.equals(sender.did)))
+            .write(SendersCompanion(handle: Value(sender.handle)));
+      }
+      if (senderExists.pubkey != sender.pubkey) {
+        await (update(senders)..where((tbl) => tbl.did.equals(sender.did)))
+            .write(SendersCompanion(pubkey: Value(sender.pubkey)));
       }
     }
   }
@@ -395,7 +412,7 @@ class MessageDatabase extends _$MessageDatabase {
 
     if (messageExists == null || messageExists.bskyID == null) {
       // Insert updated sender
-      checkAndInsertSenderATProto(sender);
+      insertOrUpdateSender(sender);
       // Insert the message
       await into(messages).insert(
           MessagesCompanion.insert(
@@ -477,13 +494,17 @@ class MessageDatabase extends _$MessageDatabase {
       // Pull sender dids
       final List<String> members = convo.members.map((obj) => obj.did).toList();
 
+      // Grab the sender that isn't you
+      final ProfileViewBasic otherMember =
+          convo.members.firstWhere((element) => element.did != did);
+
       // This section pulls avatar bytes based on platform
       Uint8List? avatarBytes;
       // Grabs the avatar if not on web
       if (!kIsWeb) {
         try {
           http.Response response = await http.get(
-            Uri.parse(convo.members.last.avatar!),
+            Uri.parse(otherMember.avatar!),
           );
           avatarBytes = response.bodyBytes;
         } catch (e) {
@@ -513,9 +534,8 @@ class MessageDatabase extends _$MessageDatabase {
           await into(chatRooms).insert(
             ChatRoomsCompanion.insert(
               id: convo.id,
-              roomName: convo.members.last.displayName ??
-                  convo.members.last
-                      .handle, // TODO: Make this dynamic for group chats
+              roomName: otherMember.displayName ??
+                  otherMember.handle, // TODO: Make this dynamic for group chats
               rev: convo.rev,
               members: json.encode(members),
               lastMessage: json.encode(lastMessageJson),
@@ -523,7 +543,7 @@ class MessageDatabase extends _$MessageDatabase {
               unreadCount: Value(convo.unreadCount),
               lastUpdated: lastMessage.sentAt,
               avatar: Value(avatarBytes),
-              avatarUrl: Value(convo.members.last.avatar),
+              avatarUrl: Value(otherMember.avatar),
             ),
             mode: InsertMode.insertOrReplace,
           );
@@ -532,9 +552,8 @@ class MessageDatabase extends _$MessageDatabase {
         await into(chatRooms).insert(
           ChatRoomsCompanion.insert(
             id: convo.id,
-            roomName: convo.members.last.displayName ??
-                convo.members.last
-                    .handle, // TODO: Make this dynamic for group chats
+            roomName: otherMember.displayName ??
+                otherMember.handle, // TODO: Make this dynamic for group chats
             rev: convo.rev,
             members: json.encode(members),
             lastMessage: chatRoomExists?.lastMessage ?? "",
@@ -542,7 +561,7 @@ class MessageDatabase extends _$MessageDatabase {
             unreadCount: Value(convo.unreadCount),
             lastUpdated: chatRoomExists?.lastUpdated ?? DateTime(0),
             avatar: Value(avatarBytes),
-            avatarUrl: Value(convo.members.last.avatar),
+            avatarUrl: Value(otherMember.avatar),
           ),
           mode: InsertMode.insertOrReplace,
         );
@@ -550,9 +569,28 @@ class MessageDatabase extends _$MessageDatabase {
     }
   }
 
+  // Updates chatRoom based on new contents
+  Future<void> updateChatRoom(ChatRoom chatRoom) async {
+    final ChatRoom? chatRoomOld = await (select(chatRooms)
+          ..where((tbl) => tbl.id.equals(chatRoom.id)))
+        .getSingleOrNull();
+    if (chatRoomOld != null) {
+      // just implementing updating mlsChatID for now, can add more later
+      if (chatRoomOld.mlsChatID != chatRoom.mlsChatID) {
+        await (update(chatRooms)..where((t) => t.id.equals(chatRoom.id)))
+            .write(ChatRoomsCompanion(mlsChatID: Value(chatRoom.mlsChatID)));
+      }
+      // Update other stuff later
+    }
+  }
+
   // Get message from local ID
   Future<Message?> getMessageFromLocalID(String messageID) async {
     final query = select(messages)..where((t) => t.id.equals(messageID));
     return query.getSingleOrNull();
+  }
+
+  Future<void> deleteLocalMessage(String messageID) async {
+    await (delete(messages)..where((t) => t.id.equals(messageID))).go();
   }
 }

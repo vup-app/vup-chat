@@ -16,7 +16,6 @@ import 'package:vup_chat/widgets/init_router.dart';
 import 'package:flutter/src/widgets/image.dart' as img;
 import 'package:vup_chat/widgets/restart_widget.dart';
 
-import 'package:vup_chat/src/rust/api/simple.dart';
 import 'package:vup_chat/src/rust/frb_generated.dart';
 
 // TODO: Move these to providers and stop mucking about with
@@ -70,7 +69,7 @@ class VupChatState extends State<VupChat> {
   @override
   void initState() {
     if (Platform.isAndroid || Platform.isIOS) {
-      subscription = FGBGEvents.stream.listen((event) {
+      subscription = FGBGEvents.instance.stream.listen((event) {
         switch (event) {
           case FGBGType.foreground:
             inBackground = false;

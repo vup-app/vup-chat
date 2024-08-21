@@ -19,6 +19,13 @@ class $SendersTable extends Senders with TableInfo<$SendersTable, Sender> {
   late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
       'display_name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _handleMeta = const VerificationMeta('handle');
+  @override
+  late final GeneratedColumn<String> handle = GeneratedColumn<String>(
+      'handle', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(""));
   static const VerificationMeta _avatarMeta = const VerificationMeta('avatar');
   @override
   late final GeneratedColumn<Uint8List> avatar = GeneratedColumn<Uint8List>(
@@ -36,9 +43,14 @@ class $SendersTable extends Senders with TableInfo<$SendersTable, Sender> {
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
       'description', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _pubkeyMeta = const VerificationMeta('pubkey');
+  @override
+  late final GeneratedColumn<String> pubkey = GeneratedColumn<String>(
+      'pubkey', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [did, displayName, avatar, avatarUrl, description];
+      [did, displayName, handle, avatar, avatarUrl, description, pubkey];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -63,6 +75,10 @@ class $SendersTable extends Senders with TableInfo<$SendersTable, Sender> {
     } else if (isInserting) {
       context.missing(_displayNameMeta);
     }
+    if (data.containsKey('handle')) {
+      context.handle(_handleMeta,
+          handle.isAcceptableOrUnknown(data['handle']!, _handleMeta));
+    }
     if (data.containsKey('avatar')) {
       context.handle(_avatarMeta,
           avatar.isAcceptableOrUnknown(data['avatar']!, _avatarMeta));
@@ -77,6 +93,10 @@ class $SendersTable extends Senders with TableInfo<$SendersTable, Sender> {
           description.isAcceptableOrUnknown(
               data['description']!, _descriptionMeta));
     }
+    if (data.containsKey('pubkey')) {
+      context.handle(_pubkeyMeta,
+          pubkey.isAcceptableOrUnknown(data['pubkey']!, _pubkeyMeta));
+    }
     return context;
   }
 
@@ -90,12 +110,16 @@ class $SendersTable extends Senders with TableInfo<$SendersTable, Sender> {
           .read(DriftSqlType.string, data['${effectivePrefix}did'])!,
       displayName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}display_name'])!,
+      handle: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}handle'])!,
       avatar: attachedDatabase.typeMapping
           .read(DriftSqlType.blob, data['${effectivePrefix}avatar']),
       avatarUrl: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}avatar_url']),
       description: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      pubkey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}pubkey']),
     );
   }
 
@@ -108,20 +132,25 @@ class $SendersTable extends Senders with TableInfo<$SendersTable, Sender> {
 class Sender extends DataClass implements Insertable<Sender> {
   final String did;
   final String displayName;
+  final String handle;
   final Uint8List? avatar;
   final String? avatarUrl;
   final String? description;
+  final String? pubkey;
   const Sender(
       {required this.did,
       required this.displayName,
+      required this.handle,
       this.avatar,
       this.avatarUrl,
-      this.description});
+      this.description,
+      this.pubkey});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['did'] = Variable<String>(did);
     map['display_name'] = Variable<String>(displayName);
+    map['handle'] = Variable<String>(handle);
     if (!nullToAbsent || avatar != null) {
       map['avatar'] = Variable<Uint8List>(avatar);
     }
@@ -131,6 +160,9 @@ class Sender extends DataClass implements Insertable<Sender> {
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
+    if (!nullToAbsent || pubkey != null) {
+      map['pubkey'] = Variable<String>(pubkey);
+    }
     return map;
   }
 
@@ -138,6 +170,7 @@ class Sender extends DataClass implements Insertable<Sender> {
     return SendersCompanion(
       did: Value(did),
       displayName: Value(displayName),
+      handle: Value(handle),
       avatar:
           avatar == null && nullToAbsent ? const Value.absent() : Value(avatar),
       avatarUrl: avatarUrl == null && nullToAbsent
@@ -146,6 +179,8 @@ class Sender extends DataClass implements Insertable<Sender> {
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
+      pubkey:
+          pubkey == null && nullToAbsent ? const Value.absent() : Value(pubkey),
     );
   }
 
@@ -155,9 +190,11 @@ class Sender extends DataClass implements Insertable<Sender> {
     return Sender(
       did: serializer.fromJson<String>(json['did']),
       displayName: serializer.fromJson<String>(json['displayName']),
+      handle: serializer.fromJson<String>(json['handle']),
       avatar: serializer.fromJson<Uint8List?>(json['avatar']),
       avatarUrl: serializer.fromJson<String?>(json['avatarUrl']),
       description: serializer.fromJson<String?>(json['description']),
+      pubkey: serializer.fromJson<String?>(json['pubkey']),
     );
   }
   @override
@@ -166,34 +203,42 @@ class Sender extends DataClass implements Insertable<Sender> {
     return <String, dynamic>{
       'did': serializer.toJson<String>(did),
       'displayName': serializer.toJson<String>(displayName),
+      'handle': serializer.toJson<String>(handle),
       'avatar': serializer.toJson<Uint8List?>(avatar),
       'avatarUrl': serializer.toJson<String?>(avatarUrl),
       'description': serializer.toJson<String?>(description),
+      'pubkey': serializer.toJson<String?>(pubkey),
     };
   }
 
   Sender copyWith(
           {String? did,
           String? displayName,
+          String? handle,
           Value<Uint8List?> avatar = const Value.absent(),
           Value<String?> avatarUrl = const Value.absent(),
-          Value<String?> description = const Value.absent()}) =>
+          Value<String?> description = const Value.absent(),
+          Value<String?> pubkey = const Value.absent()}) =>
       Sender(
         did: did ?? this.did,
         displayName: displayName ?? this.displayName,
+        handle: handle ?? this.handle,
         avatar: avatar.present ? avatar.value : this.avatar,
         avatarUrl: avatarUrl.present ? avatarUrl.value : this.avatarUrl,
         description: description.present ? description.value : this.description,
+        pubkey: pubkey.present ? pubkey.value : this.pubkey,
       );
   Sender copyWithCompanion(SendersCompanion data) {
     return Sender(
       did: data.did.present ? data.did.value : this.did,
       displayName:
           data.displayName.present ? data.displayName.value : this.displayName,
+      handle: data.handle.present ? data.handle.value : this.handle,
       avatar: data.avatar.present ? data.avatar.value : this.avatar,
       avatarUrl: data.avatarUrl.present ? data.avatarUrl.value : this.avatarUrl,
       description:
           data.description.present ? data.description.value : this.description,
+      pubkey: data.pubkey.present ? data.pubkey.value : this.pubkey,
     );
   }
 
@@ -202,65 +247,79 @@ class Sender extends DataClass implements Insertable<Sender> {
     return (StringBuffer('Sender(')
           ..write('did: $did, ')
           ..write('displayName: $displayName, ')
+          ..write('handle: $handle, ')
           ..write('avatar: $avatar, ')
           ..write('avatarUrl: $avatarUrl, ')
-          ..write('description: $description')
+          ..write('description: $description, ')
+          ..write('pubkey: $pubkey')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(did, displayName,
-      $driftBlobEquality.hash(avatar), avatarUrl, description);
+  int get hashCode => Object.hash(did, displayName, handle,
+      $driftBlobEquality.hash(avatar), avatarUrl, description, pubkey);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Sender &&
           other.did == this.did &&
           other.displayName == this.displayName &&
+          other.handle == this.handle &&
           $driftBlobEquality.equals(other.avatar, this.avatar) &&
           other.avatarUrl == this.avatarUrl &&
-          other.description == this.description);
+          other.description == this.description &&
+          other.pubkey == this.pubkey);
 }
 
 class SendersCompanion extends UpdateCompanion<Sender> {
   final Value<String> did;
   final Value<String> displayName;
+  final Value<String> handle;
   final Value<Uint8List?> avatar;
   final Value<String?> avatarUrl;
   final Value<String?> description;
+  final Value<String?> pubkey;
   final Value<int> rowid;
   const SendersCompanion({
     this.did = const Value.absent(),
     this.displayName = const Value.absent(),
+    this.handle = const Value.absent(),
     this.avatar = const Value.absent(),
     this.avatarUrl = const Value.absent(),
     this.description = const Value.absent(),
+    this.pubkey = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SendersCompanion.insert({
     required String did,
     required String displayName,
+    this.handle = const Value.absent(),
     this.avatar = const Value.absent(),
     this.avatarUrl = const Value.absent(),
     this.description = const Value.absent(),
+    this.pubkey = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : did = Value(did),
         displayName = Value(displayName);
   static Insertable<Sender> custom({
     Expression<String>? did,
     Expression<String>? displayName,
+    Expression<String>? handle,
     Expression<Uint8List>? avatar,
     Expression<String>? avatarUrl,
     Expression<String>? description,
+    Expression<String>? pubkey,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (did != null) 'did': did,
       if (displayName != null) 'display_name': displayName,
+      if (handle != null) 'handle': handle,
       if (avatar != null) 'avatar': avatar,
       if (avatarUrl != null) 'avatar_url': avatarUrl,
       if (description != null) 'description': description,
+      if (pubkey != null) 'pubkey': pubkey,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -268,16 +327,20 @@ class SendersCompanion extends UpdateCompanion<Sender> {
   SendersCompanion copyWith(
       {Value<String>? did,
       Value<String>? displayName,
+      Value<String>? handle,
       Value<Uint8List?>? avatar,
       Value<String?>? avatarUrl,
       Value<String?>? description,
+      Value<String?>? pubkey,
       Value<int>? rowid}) {
     return SendersCompanion(
       did: did ?? this.did,
       displayName: displayName ?? this.displayName,
+      handle: handle ?? this.handle,
       avatar: avatar ?? this.avatar,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       description: description ?? this.description,
+      pubkey: pubkey ?? this.pubkey,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -291,6 +354,9 @@ class SendersCompanion extends UpdateCompanion<Sender> {
     if (displayName.present) {
       map['display_name'] = Variable<String>(displayName.value);
     }
+    if (handle.present) {
+      map['handle'] = Variable<String>(handle.value);
+    }
     if (avatar.present) {
       map['avatar'] = Variable<Uint8List>(avatar.value);
     }
@@ -299,6 +365,9 @@ class SendersCompanion extends UpdateCompanion<Sender> {
     }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
+    }
+    if (pubkey.present) {
+      map['pubkey'] = Variable<String>(pubkey.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -311,9 +380,11 @@ class SendersCompanion extends UpdateCompanion<Sender> {
     return (StringBuffer('SendersCompanion(')
           ..write('did: $did, ')
           ..write('displayName: $displayName, ')
+          ..write('handle: $handle, ')
           ..write('avatar: $avatar, ')
           ..write('avatarUrl: $avatarUrl, ')
           ..write('description: $description, ')
+          ..write('pubkey: $pubkey, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -402,6 +473,16 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("starred" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _encryptedMeta =
+      const VerificationMeta('encrypted');
+  @override
+  late final GeneratedColumn<bool> encrypted = GeneratedColumn<bool>(
+      'encrypted', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("encrypted" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -414,7 +495,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
         persisted,
         read,
         embed,
-        starred
+        starred,
+        encrypted
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -479,6 +561,10 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
       context.handle(_starredMeta,
           starred.isAcceptableOrUnknown(data['starred']!, _starredMeta));
     }
+    if (data.containsKey('encrypted')) {
+      context.handle(_encryptedMeta,
+          encrypted.isAcceptableOrUnknown(data['encrypted']!, _encryptedMeta));
+    }
     return context;
   }
 
@@ -510,6 +596,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
           .read(DriftSqlType.string, data['${effectivePrefix}embed'])!,
       starred: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}starred'])!,
+      encrypted: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}encrypted'])!,
     );
   }
 
@@ -531,6 +619,7 @@ class Message extends DataClass implements Insertable<Message> {
   final bool read;
   final String embed;
   final bool starred;
+  final bool encrypted;
   const Message(
       {required this.id,
       this.bskyID,
@@ -542,7 +631,8 @@ class Message extends DataClass implements Insertable<Message> {
       required this.persisted,
       required this.read,
       required this.embed,
-      required this.starred});
+      required this.starred,
+      required this.encrypted});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -563,6 +653,7 @@ class Message extends DataClass implements Insertable<Message> {
     map['read'] = Variable<bool>(read);
     map['embed'] = Variable<String>(embed);
     map['starred'] = Variable<bool>(starred);
+    map['encrypted'] = Variable<bool>(encrypted);
     return map;
   }
 
@@ -584,6 +675,7 @@ class Message extends DataClass implements Insertable<Message> {
       read: Value(read),
       embed: Value(embed),
       starred: Value(starred),
+      encrypted: Value(encrypted),
     );
   }
 
@@ -602,6 +694,7 @@ class Message extends DataClass implements Insertable<Message> {
       read: serializer.fromJson<bool>(json['read']),
       embed: serializer.fromJson<String>(json['embed']),
       starred: serializer.fromJson<bool>(json['starred']),
+      encrypted: serializer.fromJson<bool>(json['encrypted']),
     );
   }
   @override
@@ -619,6 +712,7 @@ class Message extends DataClass implements Insertable<Message> {
       'read': serializer.toJson<bool>(read),
       'embed': serializer.toJson<String>(embed),
       'starred': serializer.toJson<bool>(starred),
+      'encrypted': serializer.toJson<bool>(encrypted),
     };
   }
 
@@ -633,7 +727,8 @@ class Message extends DataClass implements Insertable<Message> {
           bool? persisted,
           bool? read,
           String? embed,
-          bool? starred}) =>
+          bool? starred,
+          bool? encrypted}) =>
       Message(
         id: id ?? this.id,
         bskyID: bskyID.present ? bskyID.value : this.bskyID,
@@ -646,6 +741,7 @@ class Message extends DataClass implements Insertable<Message> {
         read: read ?? this.read,
         embed: embed ?? this.embed,
         starred: starred ?? this.starred,
+        encrypted: encrypted ?? this.encrypted,
       );
   Message copyWithCompanion(MessagesCompanion data) {
     return Message(
@@ -660,6 +756,7 @@ class Message extends DataClass implements Insertable<Message> {
       read: data.read.present ? data.read.value : this.read,
       embed: data.embed.present ? data.embed.value : this.embed,
       starred: data.starred.present ? data.starred.value : this.starred,
+      encrypted: data.encrypted.present ? data.encrypted.value : this.encrypted,
     );
   }
 
@@ -676,14 +773,15 @@ class Message extends DataClass implements Insertable<Message> {
           ..write('persisted: $persisted, ')
           ..write('read: $read, ')
           ..write('embed: $embed, ')
-          ..write('starred: $starred')
+          ..write('starred: $starred, ')
+          ..write('encrypted: $encrypted')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode => Object.hash(id, bskyID, revision, message, senderDid,
-      replyTo, sentAt, persisted, read, embed, starred);
+      replyTo, sentAt, persisted, read, embed, starred, encrypted);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -698,7 +796,8 @@ class Message extends DataClass implements Insertable<Message> {
           other.persisted == this.persisted &&
           other.read == this.read &&
           other.embed == this.embed &&
-          other.starred == this.starred);
+          other.starred == this.starred &&
+          other.encrypted == this.encrypted);
 }
 
 class MessagesCompanion extends UpdateCompanion<Message> {
@@ -713,6 +812,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<bool> read;
   final Value<String> embed;
   final Value<bool> starred;
+  final Value<bool> encrypted;
   final Value<int> rowid;
   const MessagesCompanion({
     this.id = const Value.absent(),
@@ -726,6 +826,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     this.read = const Value.absent(),
     this.embed = const Value.absent(),
     this.starred = const Value.absent(),
+    this.encrypted = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MessagesCompanion.insert({
@@ -740,6 +841,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     this.read = const Value.absent(),
     required String embed,
     this.starred = const Value.absent(),
+    this.encrypted = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         message = Value(message),
@@ -758,6 +860,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     Expression<bool>? read,
     Expression<String>? embed,
     Expression<bool>? starred,
+    Expression<bool>? encrypted,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -772,6 +875,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       if (read != null) 'read': read,
       if (embed != null) 'embed': embed,
       if (starred != null) 'starred': starred,
+      if (encrypted != null) 'encrypted': encrypted,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -788,6 +892,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       Value<bool>? read,
       Value<String>? embed,
       Value<bool>? starred,
+      Value<bool>? encrypted,
       Value<int>? rowid}) {
     return MessagesCompanion(
       id: id ?? this.id,
@@ -801,6 +906,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
       read: read ?? this.read,
       embed: embed ?? this.embed,
       starred: starred ?? this.starred,
+      encrypted: encrypted ?? this.encrypted,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -841,6 +947,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     if (starred.present) {
       map['starred'] = Variable<bool>(starred.value);
     }
+    if (encrypted.present) {
+      map['encrypted'] = Variable<bool>(encrypted.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -861,6 +970,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
           ..write('read: $read, ')
           ..write('embed: $embed, ')
           ..write('starred: $starred, ')
+          ..write('encrypted: $encrypted, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -884,6 +994,12 @@ class $ChatRoomsTable extends ChatRooms
   late final GeneratedColumn<String> roomName = GeneratedColumn<String>(
       'room_name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _mlsChatIDMeta =
+      const VerificationMeta('mlsChatID');
+  @override
+  late final GeneratedColumn<String> mlsChatID = GeneratedColumn<String>(
+      'mls_chat_i_d', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _revMeta = const VerificationMeta('rev');
   @override
   late final GeneratedColumn<String> rev = GeneratedColumn<String>(
@@ -956,6 +1072,7 @@ class $ChatRoomsTable extends ChatRooms
   List<GeneratedColumn> get $columns => [
         id,
         roomName,
+        mlsChatID,
         rev,
         members,
         lastMessage,
@@ -987,6 +1104,12 @@ class $ChatRoomsTable extends ChatRooms
           roomName.isAcceptableOrUnknown(data['room_name']!, _roomNameMeta));
     } else if (isInserting) {
       context.missing(_roomNameMeta);
+    }
+    if (data.containsKey('mls_chat_i_d')) {
+      context.handle(
+          _mlsChatIDMeta,
+          mlsChatID.isAcceptableOrUnknown(
+              data['mls_chat_i_d']!, _mlsChatIDMeta));
     }
     if (data.containsKey('rev')) {
       context.handle(
@@ -1057,6 +1180,8 @@ class $ChatRoomsTable extends ChatRooms
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       roomName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}room_name'])!,
+      mlsChatID: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}mls_chat_i_d']),
       rev: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}rev'])!,
       members: attachedDatabase.typeMapping
@@ -1089,6 +1214,7 @@ class $ChatRoomsTable extends ChatRooms
 class ChatRoom extends DataClass implements Insertable<ChatRoom> {
   final String id;
   final String roomName;
+  final String? mlsChatID;
   final String rev;
   final String members;
   final String lastMessage;
@@ -1108,6 +1234,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
   const ChatRoom(
       {required this.id,
       required this.roomName,
+      this.mlsChatID,
       required this.rev,
       required this.members,
       required this.lastMessage,
@@ -1123,6 +1250,9 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
     map['room_name'] = Variable<String>(roomName);
+    if (!nullToAbsent || mlsChatID != null) {
+      map['mls_chat_i_d'] = Variable<String>(mlsChatID);
+    }
     map['rev'] = Variable<String>(rev);
     map['members'] = Variable<String>(members);
     map['last_message'] = Variable<String>(lastMessage);
@@ -1144,6 +1274,9 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     return ChatRoomsCompanion(
       id: Value(id),
       roomName: Value(roomName),
+      mlsChatID: mlsChatID == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mlsChatID),
       rev: Value(rev),
       members: Value(members),
       lastMessage: Value(lastMessage),
@@ -1166,6 +1299,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     return ChatRoom(
       id: serializer.fromJson<String>(json['id']),
       roomName: serializer.fromJson<String>(json['roomName']),
+      mlsChatID: serializer.fromJson<String?>(json['mlsChatID']),
       rev: serializer.fromJson<String>(json['rev']),
       members: serializer.fromJson<String>(json['members']),
       lastMessage: serializer.fromJson<String>(json['lastMessage']),
@@ -1184,6 +1318,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'roomName': serializer.toJson<String>(roomName),
+      'mlsChatID': serializer.toJson<String?>(mlsChatID),
       'rev': serializer.toJson<String>(rev),
       'members': serializer.toJson<String>(members),
       'lastMessage': serializer.toJson<String>(lastMessage),
@@ -1200,6 +1335,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
   ChatRoom copyWith(
           {String? id,
           String? roomName,
+          Value<String?> mlsChatID = const Value.absent(),
           String? rev,
           String? members,
           String? lastMessage,
@@ -1213,6 +1349,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       ChatRoom(
         id: id ?? this.id,
         roomName: roomName ?? this.roomName,
+        mlsChatID: mlsChatID.present ? mlsChatID.value : this.mlsChatID,
         rev: rev ?? this.rev,
         members: members ?? this.members,
         lastMessage: lastMessage ?? this.lastMessage,
@@ -1228,6 +1365,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     return ChatRoom(
       id: data.id.present ? data.id.value : this.id,
       roomName: data.roomName.present ? data.roomName.value : this.roomName,
+      mlsChatID: data.mlsChatID.present ? data.mlsChatID.value : this.mlsChatID,
       rev: data.rev.present ? data.rev.value : this.rev,
       members: data.members.present ? data.members.value : this.members,
       lastMessage:
@@ -1251,6 +1389,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
     return (StringBuffer('ChatRoom(')
           ..write('id: $id, ')
           ..write('roomName: $roomName, ')
+          ..write('mlsChatID: $mlsChatID, ')
           ..write('rev: $rev, ')
           ..write('members: $members, ')
           ..write('lastMessage: $lastMessage, ')
@@ -1269,6 +1408,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
   int get hashCode => Object.hash(
       id,
       roomName,
+      mlsChatID,
       rev,
       members,
       lastMessage,
@@ -1285,6 +1425,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
       (other is ChatRoom &&
           other.id == this.id &&
           other.roomName == this.roomName &&
+          other.mlsChatID == this.mlsChatID &&
           other.rev == this.rev &&
           other.members == this.members &&
           other.lastMessage == this.lastMessage &&
@@ -1300,6 +1441,7 @@ class ChatRoom extends DataClass implements Insertable<ChatRoom> {
 class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
   final Value<String> id;
   final Value<String> roomName;
+  final Value<String?> mlsChatID;
   final Value<String> rev;
   final Value<String> members;
   final Value<String> lastMessage;
@@ -1314,6 +1456,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
   const ChatRoomsCompanion({
     this.id = const Value.absent(),
     this.roomName = const Value.absent(),
+    this.mlsChatID = const Value.absent(),
     this.rev = const Value.absent(),
     this.members = const Value.absent(),
     this.lastMessage = const Value.absent(),
@@ -1329,6 +1472,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
   ChatRoomsCompanion.insert({
     required String id,
     required String roomName,
+    this.mlsChatID = const Value.absent(),
     required String rev,
     required String members,
     required String lastMessage,
@@ -1349,6 +1493,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
   static Insertable<ChatRoom> custom({
     Expression<String>? id,
     Expression<String>? roomName,
+    Expression<String>? mlsChatID,
     Expression<String>? rev,
     Expression<String>? members,
     Expression<String>? lastMessage,
@@ -1364,6 +1509,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (roomName != null) 'room_name': roomName,
+      if (mlsChatID != null) 'mls_chat_i_d': mlsChatID,
       if (rev != null) 'rev': rev,
       if (members != null) 'members': members,
       if (lastMessage != null) 'last_message': lastMessage,
@@ -1381,6 +1527,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
   ChatRoomsCompanion copyWith(
       {Value<String>? id,
       Value<String>? roomName,
+      Value<String?>? mlsChatID,
       Value<String>? rev,
       Value<String>? members,
       Value<String>? lastMessage,
@@ -1395,6 +1542,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     return ChatRoomsCompanion(
       id: id ?? this.id,
       roomName: roomName ?? this.roomName,
+      mlsChatID: mlsChatID ?? this.mlsChatID,
       rev: rev ?? this.rev,
       members: members ?? this.members,
       lastMessage: lastMessage ?? this.lastMessage,
@@ -1417,6 +1565,9 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     }
     if (roomName.present) {
       map['room_name'] = Variable<String>(roomName.value);
+    }
+    if (mlsChatID.present) {
+      map['mls_chat_i_d'] = Variable<String>(mlsChatID.value);
     }
     if (rev.present) {
       map['rev'] = Variable<String>(rev.value);
@@ -1459,6 +1610,7 @@ class ChatRoomsCompanion extends UpdateCompanion<ChatRoom> {
     return (StringBuffer('ChatRoomsCompanion(')
           ..write('id: $id, ')
           ..write('roomName: $roomName, ')
+          ..write('mlsChatID: $mlsChatID, ')
           ..write('rev: $rev, ')
           ..write('members: $members, ')
           ..write('lastMessage: $lastMessage, ')
@@ -1693,17 +1845,21 @@ abstract class _$MessageDatabase extends GeneratedDatabase {
 typedef $$SendersTableCreateCompanionBuilder = SendersCompanion Function({
   required String did,
   required String displayName,
+  Value<String> handle,
   Value<Uint8List?> avatar,
   Value<String?> avatarUrl,
   Value<String?> description,
+  Value<String?> pubkey,
   Value<int> rowid,
 });
 typedef $$SendersTableUpdateCompanionBuilder = SendersCompanion Function({
   Value<String> did,
   Value<String> displayName,
+  Value<String> handle,
   Value<Uint8List?> avatar,
   Value<String?> avatarUrl,
   Value<String?> description,
+  Value<String?> pubkey,
   Value<int> rowid,
 });
 
@@ -1726,33 +1882,41 @@ class $$SendersTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> did = const Value.absent(),
             Value<String> displayName = const Value.absent(),
+            Value<String> handle = const Value.absent(),
             Value<Uint8List?> avatar = const Value.absent(),
             Value<String?> avatarUrl = const Value.absent(),
             Value<String?> description = const Value.absent(),
+            Value<String?> pubkey = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SendersCompanion(
             did: did,
             displayName: displayName,
+            handle: handle,
             avatar: avatar,
             avatarUrl: avatarUrl,
             description: description,
+            pubkey: pubkey,
             rowid: rowid,
           ),
           createCompanionCallback: ({
             required String did,
             required String displayName,
+            Value<String> handle = const Value.absent(),
             Value<Uint8List?> avatar = const Value.absent(),
             Value<String?> avatarUrl = const Value.absent(),
             Value<String?> description = const Value.absent(),
+            Value<String?> pubkey = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SendersCompanion.insert(
             did: did,
             displayName: displayName,
+            handle: handle,
             avatar: avatar,
             avatarUrl: avatarUrl,
             description: description,
+            pubkey: pubkey,
             rowid: rowid,
           ),
         ));
@@ -1771,6 +1935,11 @@ class $$SendersTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<String> get handle => $state.composableBuilder(
+      column: $state.table.handle,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ColumnFilters<Uint8List> get avatar => $state.composableBuilder(
       column: $state.table.avatar,
       builder: (column, joinBuilders) =>
@@ -1783,6 +1952,11 @@ class $$SendersTableFilterComposer
 
   ColumnFilters<String> get description => $state.composableBuilder(
       column: $state.table.description,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get pubkey => $state.composableBuilder(
+      column: $state.table.pubkey,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -1813,6 +1987,11 @@ class $$SendersTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
+  ColumnOrderings<String> get handle => $state.composableBuilder(
+      column: $state.table.handle,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
   ColumnOrderings<Uint8List> get avatar => $state.composableBuilder(
       column: $state.table.avatar,
       builder: (column, joinBuilders) =>
@@ -1825,6 +2004,11 @@ class $$SendersTableOrderingComposer
 
   ColumnOrderings<String> get description => $state.composableBuilder(
       column: $state.table.description,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get pubkey => $state.composableBuilder(
+      column: $state.table.pubkey,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
@@ -1841,6 +2025,7 @@ typedef $$MessagesTableCreateCompanionBuilder = MessagesCompanion Function({
   Value<bool> read,
   required String embed,
   Value<bool> starred,
+  Value<bool> encrypted,
   Value<int> rowid,
 });
 typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
@@ -1855,6 +2040,7 @@ typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
   Value<bool> read,
   Value<String> embed,
   Value<bool> starred,
+  Value<bool> encrypted,
   Value<int> rowid,
 });
 
@@ -1886,6 +2072,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             Value<bool> read = const Value.absent(),
             Value<String> embed = const Value.absent(),
             Value<bool> starred = const Value.absent(),
+            Value<bool> encrypted = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MessagesCompanion(
@@ -1900,6 +2087,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             read: read,
             embed: embed,
             starred: starred,
+            encrypted: encrypted,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1914,6 +2102,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             Value<bool> read = const Value.absent(),
             required String embed,
             Value<bool> starred = const Value.absent(),
+            Value<bool> encrypted = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               MessagesCompanion.insert(
@@ -1928,6 +2117,7 @@ class $$MessagesTableTableManager extends RootTableManager<
             read: read,
             embed: embed,
             starred: starred,
+            encrypted: encrypted,
             rowid: rowid,
           ),
         ));
@@ -1983,6 +2173,11 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<bool> get starred => $state.composableBuilder(
       column: $state.table.starred,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get encrypted => $state.composableBuilder(
+      column: $state.table.encrypted,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -2066,6 +2261,11 @@ class $$MessagesTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
+  ColumnOrderings<bool> get encrypted => $state.composableBuilder(
+      column: $state.table.encrypted,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
   $$SendersTableOrderingComposer get senderDid {
     final $$SendersTableOrderingComposer composer = $state.composerBuilder(
         composer: this,
@@ -2082,6 +2282,7 @@ class $$MessagesTableOrderingComposer
 typedef $$ChatRoomsTableCreateCompanionBuilder = ChatRoomsCompanion Function({
   required String id,
   required String roomName,
+  Value<String?> mlsChatID,
   required String rev,
   required String members,
   required String lastMessage,
@@ -2097,6 +2298,7 @@ typedef $$ChatRoomsTableCreateCompanionBuilder = ChatRoomsCompanion Function({
 typedef $$ChatRoomsTableUpdateCompanionBuilder = ChatRoomsCompanion Function({
   Value<String> id,
   Value<String> roomName,
+  Value<String?> mlsChatID,
   Value<String> rev,
   Value<String> members,
   Value<String> lastMessage,
@@ -2129,6 +2331,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String> roomName = const Value.absent(),
+            Value<String?> mlsChatID = const Value.absent(),
             Value<String> rev = const Value.absent(),
             Value<String> members = const Value.absent(),
             Value<String> lastMessage = const Value.absent(),
@@ -2144,6 +2347,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
               ChatRoomsCompanion(
             id: id,
             roomName: roomName,
+            mlsChatID: mlsChatID,
             rev: rev,
             members: members,
             lastMessage: lastMessage,
@@ -2159,6 +2363,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             required String roomName,
+            Value<String?> mlsChatID = const Value.absent(),
             required String rev,
             required String members,
             required String lastMessage,
@@ -2174,6 +2379,7 @@ class $$ChatRoomsTableTableManager extends RootTableManager<
               ChatRoomsCompanion.insert(
             id: id,
             roomName: roomName,
+            mlsChatID: mlsChatID,
             rev: rev,
             members: members,
             lastMessage: lastMessage,
@@ -2199,6 +2405,11 @@ class $$ChatRoomsTableFilterComposer
 
   ColumnFilters<String> get roomName => $state.composableBuilder(
       column: $state.table.roomName,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get mlsChatID => $state.composableBuilder(
+      column: $state.table.mlsChatID,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -2277,6 +2488,11 @@ class $$ChatRoomsTableOrderingComposer
 
   ColumnOrderings<String> get roomName => $state.composableBuilder(
       column: $state.table.roomName,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get mlsChatID => $state.composableBuilder(
+      column: $state.table.mlsChatID,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

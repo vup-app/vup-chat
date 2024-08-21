@@ -3,9 +3,11 @@ import 'package:drift/drift.dart';
 class Senders extends Table {
   TextColumn get did => text()();
   TextColumn get displayName => text()();
+  TextColumn get handle => text().withDefault(const Constant(""))();
   BlobColumn get avatar => blob().nullable()();
   TextColumn get avatarUrl => text().nullable()();
   TextColumn get description => text().nullable()();
+  TextColumn get pubkey => text().nullable()(); // pubkey for signing shite
 
   @override
   Set<Column> get primaryKey => {did};
@@ -25,6 +27,7 @@ class Messages extends Table {
   BoolColumn get read => boolean().withDefault(const Constant(false))();
   TextColumn get embed => text()(); // Serialized JSON
   BoolColumn get starred => boolean().withDefault(const Constant(false))();
+  BoolColumn get encrypted => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -34,6 +37,7 @@ class ChatRooms extends Table {
   // TODO: Move chatroom ID away from ATProto
   TextColumn get id => text()();
   TextColumn get roomName => text()();
+  TextColumn get mlsChatID => text().nullable()();
   TextColumn get rev => text()();
   TextColumn get members => text()(); // Serialized JSON
   TextColumn get lastMessage => text()(); // Serialized JSON
