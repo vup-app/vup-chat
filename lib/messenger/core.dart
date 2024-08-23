@@ -210,16 +210,33 @@ class MsgCore {
   // -------- DATABASE ACTIONS --------
 
   Future<void> sendMessage(
-      String text, String chatID, Sender sender, bool? sendNoEncrytiion) async {
-    if (bskyChatSession != null && text.isNotEmpty) {
-      final MessageView message = (await bskyChatSession!.convo
-              .sendMessage(convoId: chatID, message: MessageInput(text: text)))
-          .data;
-      // Ignore this return because shouldn't notify for own message obv
-      String messageID =
-          await db.insertMessageLocal(message.text, chatID, sender, null);
-      await db.checkAndInsertMessageATProto(
-          messageID, message, chatID, false, sender, null);
+      String text, String chatID, Sender sender, bool? sendEncrypted) async {
+    // If sendNoEncryption is set to null it will default to FALSE (as you should
+    // generally send to encrypted)
+    final ChatRoom? chatRoomData = await getChatRoomFromChatID(chatID);
+    if (chatRoomData != null && sendEncrypted == null) {
+      if (chatRoomData.mlsChatID != null) {
+        sendEncrypted = true;
+      } else {
+        sendEncrypted = false;
+      }
+    }
+    if (sendEncrypted == null || sendEncrypted == false) {
+      if (bskyChatSession != null && text.isNotEmpty) {
+        final MessageView message = (await bskyChatSession!.convo.sendMessage(
+                convoId: chatID, message: MessageInput(text: text)))
+            .data;
+        // Ignore this return because shouldn't notify for own message obv
+        String messageID =
+            await db.insertMessageLocal(message.text, chatID, sender, null);
+        await db.checkAndInsertMessageATProto(
+            messageID, message, chatID, false, sender, null);
+      }
+    } else if (chatRoomData?.mlsChatID != null) {
+      await db.insertMessageLocal(text, chatID, sender, null);
+      await mls5.group(chatRoomData!.mlsChatID!).sendMessage(text);
+    } else {
+      logger.e("Contitions are not met to send message.");
     }
   }
 
@@ -356,13 +373,24 @@ class MsgCore {
   }
 
   Future<void> deleteMessages(List<Message> msgs, String chatID) async {
+    // First delete locally to make things fast
+    for (Message msg in msgs) {
+      try {
+        logger.d("deleting local: ${msg.id}");
+        await db.deleteLocalMessage(msg.id);
+      } catch (e) {
+        logger.e(e);
+      }
+    }
+    // then delete remote if necesary
     for (Message msg in msgs) {
       if (msg.bskyID != null) {
         try {
-          logger.d("deleting ${msg.bskyID}");
+          logger.d("deleting bsky: ${msg.bskyID}");
           await bskyChatSession?.convo
               .deleteMessageForSelf(convoId: chatID, messageId: msg.bskyID!);
-          await db.deleteLocalMessage(msg.id);
+          await db.deleteLocalMessage(
+              msg.id); // just in case it got fetched again (crude)
         } catch (e) {
           logger.e(e);
         }
@@ -414,6 +442,7 @@ class MsgCore {
         }
       }
     } catch (e) {
+      logger.d(e);
       // Yes I know this is a crude way of getting the error code, I'll fix it later
       if (e.toString().contains("400")) {
         attemptLogin(null, null);

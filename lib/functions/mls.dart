@@ -137,69 +137,73 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
           return false;
         }
       }
-    }
-    final GroupState mlsGroup = mls5.group(chatRoom.mlsChatID!);
-    final List<Message> messagesPreCull = (await msg.searchMessages(
-        "Vup Chat Encrypted Chat Invite", chatRoom.id));
-    // Do this to make sure users typing in Vup Chat Encrypted Chat Invite in the middle of
-    // messages won't collide
-    final List<Message> messages = messagesPreCull.where((message) {
-      return message.message.startsWith("Vup Chat Encrypted Chat Invite");
-    }).toList();
-    // We're assuming that there is ONLY ONE invite sent per channel it is possible that
-    // both clients send an invite within a couple seconds of each other and shit breaks.
-    // But for now I think this is a reasonable assumption to make.
-    if (messages.isNotEmpty) {
-      if (messages.first.senderDid != did) {
-        // If the other party has sent an invite, join it.
-        // TODO: red encrypt invite here
-        // Have to concat the invite link back together
-        // Map each Message object to  its message content and convert to a list of strings
-        List<String> messageContents =
-            messages.map((message) => message.message).toList();
-        String invite = messageContents
-                .where((m) => m.contains("(1)"))
-                .first
-                .substring(35) +
-            messageContents.where((m) => m.contains("(2)")).first.substring(35);
-        // logLongMessage(invite);
+      final GroupState mlsGroup = mls5.group(chatRoom.mlsChatID!);
+      final List<Message> messagesPreCull = (await msg.searchMessages(
+          "Vup Chat Encrypted Chat Invite", chatRoom.id));
+      // Do this to make sure users typing in Vup Chat Encrypted Chat Invite in the middle of
+      // messages won't collide
+      final List<Message> messages = messagesPreCull.where((message) {
+        return message.message.startsWith("Vup Chat Encrypted Chat Invite");
+      }).toList();
+      // We're assuming that there is ONLY ONE invite sent per channel it is possible that
+      // both clients send an invite within a couple seconds of each other and shit breaks.
+      // But for now I think this is a reasonable assumption to make.
+      if (messages.isNotEmpty) {
+        if (messages.first.senderDid != did) {
+          // If the other party has sent an invite, join it.
+          // TODO: red encrypt invite here
+          // Have to concat the invite link back together
+          // Map each Message object to  its message content and convert to a list of strings
+          List<String> messageContents =
+              messages.map((message) => message.message).toList();
+          String invite = messageContents
+                  .where((m) => m.contains("(1)"))
+                  .first
+                  .substring(35) +
+              messageContents
+                  .where((m) => m.contains("(2)"))
+                  .first
+                  .substring(35);
+          // logLongMessage(invite);
+          try {
+            final String mlsGroupID = await mls5
+                .acceptInviteAndJoinGroup(base64UrlNoPaddingDecode(invite));
+            logger.d("Sucessfully joined group: $mlsGroupID");
+            chatRoom = chatRoom.copyWith(mlsChatID: Value(mlsGroupID));
+            await msg.db.updateChatRoom(chatRoom);
+            return true;
+          } catch (e) {
+            logger.e(e);
+            return false;
+          }
+        }
+      } else {
+        // If there are no invites, create one and send it.
         try {
-          final String mlsGroupID = await mls5
-              .acceptInviteAndJoinGroup(base64UrlNoPaddingDecode(invite));
-          chatRoom = chatRoom.copyWith(mlsChatID: Value(mlsGroupID));
-          await msg.db.updateChatRoom(chatRoom);
-          return true;
+          // TODO: red encrypt invite here
+          final record = (await msg.bskySession!.atproto.repo.getRecord(
+                  uri: AtUri.parse(
+                      "at://$otherDID/app.vup.chat.mlsKeys/default")))
+              .data;
+          KeyEntry ke = KeyEntry.fromString(record.value["keys"]);
+          logger.d(ke);
+          String invite = await mlsGroup.addMemberToGroup(ke.kp);
+          // logLongMessage(invite);
+          // bsky limits messages to 1000 chars long, but this invite is about 1100
+          // we need to split it into two, and then reconsitute it later
+          List<String> invites = [
+            "Vup Chat Encrypted Chat Invite(1): ${invite.substring(0, (invite.length / 2).round())}",
+            "Vup Chat Encrypted Chat Invite(2): ${invite.substring((invite.length / 2).round(), invite.length)}"
+          ];
+          Sender sender = await msg.getSenderFromDID(did!);
+          // obv don't send this over encrypted because it has to go over ATProto
+          for (String invite in invites) {
+            msg.sendMessage(invite, chatRoom.id, sender, false);
+            await Future.delayed(const Duration(seconds: 1));
+          }
         } catch (e) {
           logger.e(e);
-          return false;
         }
-      }
-    } else {
-      // If there are no invites, create one and send it.
-      try {
-        // TODO: red encrypt invite here
-        final record = (await msg.bskySession!.atproto.repo.getRecord(
-                uri:
-                    AtUri.parse("at://$otherDID/app.vup.chat.mlsKeys/default")))
-            .data;
-        KeyEntry ke = KeyEntry.fromString(record.value["keys"]);
-        logger.d(ke);
-        String invite = await mlsGroup.addMemberToGroup(ke.kp);
-        // logLongMessage(invite);
-        // bsky limits messages to 1000 chars long, but this invite is about 1100
-        // we need to split it into two, and then reconsitute it later
-        List<String> invites = [
-          "Vup Chat Encrypted Chat Invite(1): ${invite.substring(0, (invite.length / 2).round())}",
-          "Vup Chat Encrypted Chat Invite(2): ${invite.substring((invite.length / 2).round(), invite.length)}"
-        ];
-        Sender sender = await msg.getSenderFromDID(did!);
-        // obv don't send this over encrypted because it has to go over ATProto
-        for (String invite in invites) {
-          msg.sendMessage(invite, chatRoom.id, sender, true);
-          await Future.delayed(const Duration(seconds: 1));
-        }
-      } catch (e) {
-        logger.e(e);
       }
     }
   }

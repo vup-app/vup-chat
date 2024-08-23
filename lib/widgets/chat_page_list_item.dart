@@ -33,6 +33,10 @@ class ChatRoomListItemState extends State<ChatRoomListItem> {
 
   @override
   Widget build(BuildContext context) {
+    String text = "";
+    try {
+      text = jsonDecode(widget.chat.lastMessage)["text"] ?? "";
+    } catch (_) {}
     return SizeTransition(
       sizeFactor: widget.animation,
       child: ListTile(
@@ -43,7 +47,7 @@ class ChatRoomListItemState extends State<ChatRoomListItem> {
           softWrap: true,
         ),
         subtitle: Text(
-          jsonDecode(widget.chat.lastMessage)["text"] ?? "",
+          text,
           overflow: TextOverflow.ellipsis,
           maxLines: 2,
           softWrap: true,

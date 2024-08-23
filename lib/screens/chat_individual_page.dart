@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
@@ -7,6 +8,7 @@ import 'package:vup_chat/functions/getAvatar.dart';
 import 'package:vup_chat/functions/mls.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
+import 'package:vup_chat/mls5/mls5.dart';
 import 'package:vup_chat/screens/chat_info_page.dart';
 import 'package:vup_chat/widgets/message_item.dart';
 
@@ -62,10 +64,11 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     super.dispose();
   }
 
-  void _schedulePeriodicUpdate() {
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      msg.checkForMessageUpdatesATProto(widget.id);
-    });
+  void _schedulePeriodicUpdate() async {
+    while (true) {
+      await msg.checkForMessageUpdatesATProto(widget.id);
+      await Future.delayed(const Duration(seconds: 3));
+    }
   }
 
   void _subscribeToChat() {
@@ -102,6 +105,7 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
             )
           : null;
     });
+    _listenForMessages(); // once chatRoomData is set I can listen for messages
   }
 
   void _scrollToBottom() {
@@ -123,8 +127,8 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   void _sendmsg() async {
     final String tmpText = _messageController.text;
     _messageController.clear();
-    await msg.sendMessage(
-        tmpText, widget.id, (await msg.getSenderFromDID(did!)), null);
+    await msg.sendMessage(tmpText, widget.id,
+        (await msg.getSenderFromDID(did!)), encryptedEnabled);
     _scrollToBottom();
   }
 
@@ -204,6 +208,20 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     await msg.deleteMessages(tmpSelectedMessages, widget.id);
   }
 
+  void _listenForMessages() async {
+    if (_chatRoomData != null && _chatRoomData!.mlsChatID != null) {
+      final GroupState groupState = mls5.group(_chatRoomData!.mlsChatID!);
+      groupState.messageListStateNotifier.stream
+          .listen((v) => logger.d(groupState.messagesMemory.first));
+    }
+  }
+
+  void _debugButtonPress() async {
+    if (_chatRoomData?.mlsChatID != null) {
+      GroupState groupState = mls5.group(_chatRoomData!.mlsChatID!);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -249,6 +267,16 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                                       encryptedEnabled = !encryptedEnabled;
                                     }),
                                   ),
+                                  // Debug button
+                                  (kDebugMode)
+                                      ? SizedBox(
+                                          width: 50,
+                                          child: ElevatedButton(
+                                              onPressed: _debugButtonPress,
+                                              child:
+                                                  const Icon(Icons.bug_report)),
+                                        )
+                                      : Container(),
                                 ],
                               )
                             : Container(),
