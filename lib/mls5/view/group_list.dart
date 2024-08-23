@@ -52,11 +52,10 @@ class _GroupListViewState extends State<GroupListView> {
                   );
                   if (res == null) return;
                   final String welcome = res.first;
-                  if (!welcome.startsWith('mls5-group-invite:')) throw 'TODO1';
 
                   final groupId = await mls5.acceptInviteAndJoinGroup(
                     base64UrlNoPaddingDecode(
-                      welcome.substring(18),
+                      welcome,
                     ),
                   );
                   mls5.mainWindowState.groupId = groupId;

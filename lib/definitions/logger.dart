@@ -81,3 +81,11 @@ class DebugLogger extends Logger {
     logger.d(e);
   }
 }
+
+void logLongMessage(String message) {
+  const int chunkSize = 1000; // Set chunk size
+  for (int i = 0; i < message.length; i += chunkSize) {
+    logger.d(message.substring(
+        i, i + chunkSize > message.length ? message.length : i + chunkSize));
+  }
+}

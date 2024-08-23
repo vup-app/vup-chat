@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lib5/util.dart';
+import 'package:vup_chat/definitions/logger.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/mls5/mls5.dart';
 import 'package:vup_chat/mls5/model/message.dart';
@@ -124,7 +126,7 @@ class _GroupChatViewState extends State<GroupChatView> {
                         final welcomeMessage =
                             await group.addMemberToGroup(bytes);
 
-                        print(welcomeMessage);
+                        logLongMessage(welcomeMessage);
 
                         Clipboard.setData(
                           ClipboardData(

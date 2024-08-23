@@ -120,9 +120,9 @@ Future<void> backupSQLiteToS5() async {
     try {
       final res = await s5.api.registryGet(s5User.publicKey);
       existing = res;
-      logger.i(
-        'Revision ${existing!.revision} -> ${existing.revision + 1}',
-      );
+      // logger.i(
+      //   'Revision ${existing!.revision} -> ${existing.revision + 1}',
+      // );
     } catch (e) {
       existing = null;
 
@@ -153,7 +153,9 @@ Future<void> backupSQLiteToS5() async {
         logger.i("Registry emtpy");
       }
     } catch (e) {
-      logger.e(e);
+      // TODO: Fix downloading reg entries not working
+      // TODO: red, could you take a look at this? I'm not sure why this always fails
+      // logger.e(e);
     }
 
     entries ??= BackupEntries(backupEntries: []);
@@ -172,7 +174,7 @@ Future<void> backupSQLiteToS5() async {
 
     await s5.api.registrySet(sre);
 
-    logger.i(resolverCID);
+    // logger.i(resolverCID);
     // debug zone
     if (kDebugMode) {
       try {
@@ -185,7 +187,7 @@ Future<void> backupSQLiteToS5() async {
           logger.d(entries.toJson().toString());
         }
       } catch (e) {
-        logger.e(e);
+        // logger.e(e);
       }
     }
   }

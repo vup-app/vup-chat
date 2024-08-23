@@ -174,13 +174,14 @@ class ChatListPageState extends State<ChatListPage> {
         (mlsDisabled == null || mlsDisabled == false) &&
         did != null) {
       try {
-        final record = (await msg.bskySession?.atproto.repo.getRecord(
-            uri: AtUri.parse("at://$did/app.vup.chat.mlsKeys/default")));
-        // if this sucseeds, then no need to nag
-        logger.d(record);
+        await updateOwnMLSRecord();
       } catch (e) {
+        logger.d(e);
         // TODO: this is a bad way of error handling
-        if ((e as InvalidRequestException).response.status.equalsByCode(400)) {
+        if ((e as InternalServerErrorException)
+            .response
+            .status
+            .equalsByCode(400)) {
           setState(() {
             _shouldNagForMLS = true;
           });
@@ -268,6 +269,12 @@ class ChatListPageState extends State<ChatListPage> {
                         ),
                       )
                     : Container(),
+                ElevatedButton(
+                    onPressed: () =>
+                        Navigator.of(context).push(MaterialPageRoute(
+                          builder: (context) => const MLS5DemoAppView(),
+                        )),
+                    child: const Text("MLS chat debug")),
                 // Here is the banner that nags the user to enable encryped chats
                 // This section swaps views if search is happening or not
                 (_shouldNagForMLS)

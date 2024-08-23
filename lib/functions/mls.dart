@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:bluesky/atproto.dart';
 import 'package:bluesky/core.dart';
@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 import 'package:lib5/identity.dart';
 import 'package:lib5/util.dart';
 import 'package:vup_chat/definitions/key_entries.dart';
+import 'package:vup_chat/definitions/logger.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/mls5/mls5.dart';
@@ -18,8 +19,41 @@ Future<void> enableMLS() async {
   // - create MLS keypair
   // - put those in json & stringify them
   // Set app.vup.chat.keys/default to this keypair
-  //
-  // TODO: red, check my work here
+  final KeyEntry? ke = await getLocalKeyEntry();
+  if (ke != null) {
+    try {
+      final XRPCResponse<StrongRef> createdRecord =
+          await msg.bskySession!.atproto.repo.createRecord(
+              collection: NSID.create(
+                'chat.vup.app',
+                'mlsKeys',
+              ),
+              record: {'keys': ke.toString()},
+              rkey: "default",
+              validate: false);
+      logger.d(createdRecord);
+    } catch (e) {
+      // If it fails due to already having been set, try putting instead
+      if (e.toString().contains("500")) {
+        final XRPCResponse<StrongRef> createdRecord =
+            await msg.bskySession!.atproto.repo.putRecord(
+                uri: AtUri.parse("at://$did/app.vup.chat.mlsKeys/default"),
+                record: {'keys': ke.toString()},
+                validate: false);
+        logger.d(createdRecord);
+      }
+    }
+  }
+}
+
+void disableMLS() {
+  // For now just set the shared preferences to disable it
+  preferences.setBool("disable-mls", true);
+}
+
+// Creates the local key entry from user seed
+// TODO: red, check my work here
+Future<KeyEntry?> getLocalKeyEntry() async {
   final String? seed = await secureStorage.read(key: "seed");
   if (seed != null && msg.s5 != null && msg.bskySession != null) {
     final Uint8List hashedSeed = msg.s5!.api.crypto
@@ -29,22 +63,38 @@ Future<void> enableMLS() async {
             .publicKey;
     final Uint8List keyPackage = await mls5.createKeyPackage();
     final KeyEntry ke = KeyEntry(kp: keyPackage, pk: publicKey);
-    final XRPCResponse<StrongRef> createdRecord =
-        await msg.bskySession!.atproto.repo.createRecord(
-            collection: NSID.create(
-              'chat.vup.app',
-              'mlsKeys',
-            ),
-            record: {'keys': ke.toString()},
-            rkey: "default",
-            validate: false);
-    logger.d(createdRecord);
+    return ke;
   }
+  return null;
 }
 
-void disableMLS() {
-  // For now just set the shared preferences to disable it
-  preferences.setBool("disable-mls", true);
+// if the user is able to sucessfully recover from backups, this should never be called
+// but in case the user swaps to a new node without restoring from backups, the MLS record
+// should update
+// This function purposely doesn't handle errors because I want to handle them up the stack
+Future<void> updateOwnMLSRecord() async {
+  if (did != null) {
+    var record = (await msg.bskySession!.atproto.repo.getRecord(
+            uri: AtUri.parse("at://$did/app.vup.chat.mlsKeys/default")))
+        .data;
+    KeyEntry keRemote = KeyEntry.fromString(record.value["keys"]);
+    final KeyEntry? keLocal = await getLocalKeyEntry();
+    logger.d(keLocal);
+    if (keLocal != null) {
+      // The pk should remain the same, so only need to compare the keypairs
+      if (keRemote.kp != keLocal.kp) {
+        final XRPCResponse<StrongRef> _ = await msg.bskySession!.atproto.repo
+            .putRecord(
+                uri: AtUri.make(did!, "app.vup.chat.mlsKeys", "default"),
+                record: {'keys': keLocal.toString()},
+                validate: false);
+      }
+    }
+    record = (await msg.bskySession!.atproto.repo.getRecord(
+            uri: AtUri.parse("at://$did/app.vup.chat.mlsKeys/default")))
+        .data;
+    keRemote = KeyEntry.fromString(record.value["keys"]);
+  }
 }
 
 // This function does a couple things:
@@ -57,6 +107,7 @@ void disableMLS() {
 Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
   // If mlsChatID is null, and the OTHER USER has posted MLS keys,
   // create a room and write it to the db
+  await getLocalKeyEntry();
   if (msg.bskySession != null && did != null) {
     String otherDID = ((await msg.getSendersFromDIDList(chatRoom.members))
         .firstWhere((t) => t.did != did)).did;
@@ -64,10 +115,11 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
       try {
         // We don't actually currently care about the record itself, just that it exists
         // should probably build out code to lint it's contents at some point.
-        final _ = (await msg.bskySession!.atproto.repo.getRecord(
+        final record = (await msg.bskySession!.atproto.repo.getRecord(
                 uri:
                     AtUri.parse("at://$otherDID/app.vup.chat.mlsKeys/default")))
             .data;
+        logger.d(record);
         logger.i("MLS record found for ${chatRoom.id}");
         final String mlsGroupID = await mls5.createNewGroup();
         // Now that we have a group, make sure to add it to the DB
@@ -75,11 +127,9 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
         // Don't write to DB for now so I can keep creating new ones to test
         await msg.db.updateChatRoom(chatRoom);
       } catch (e) {
-        final XRPCResponse<XRPCError> errResp =
-            (e as InvalidRequestException).response;
-        logger.e(errResp);
+        logger.e(e);
         // A 400 resp means that the entry was not found
-        if (errResp.status.equalsByCode(400)) {
+        if (e.toString().contains("400")) {
           // Since the other user has not posted keys, we can safely disable these chats
           // This is the only real case where it makes sense to disable encrypted chats, as that
           // user has explicitly not posted MLS keys yet.
@@ -88,8 +138,6 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
         }
       }
     }
-    // Check current MLS group to see how many members there are
-    // If there is only 1 member, search the db for invite links
     final GroupState mlsGroup = mls5.group(chatRoom.mlsChatID!);
     final List<Message> messagesPreCull = (await msg.searchMessages(
         "Vup Chat Encrypted Chat Invite", chatRoom.id));
@@ -106,7 +154,7 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
         // If the other party has sent an invite, join it.
         // TODO: red encrypt invite here
         // Have to concat the invite link back together
-        // Map each Message object to its message content and convert to a list of strings
+        // Map each Message object to  its message content and convert to a list of strings
         List<String> messageContents =
             messages.map((message) => message.message).toList();
         String invite = messageContents
@@ -114,12 +162,17 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
                 .first
                 .substring(35) +
             messageContents.where((m) => m.contains("(2)")).first.substring(35);
-        print("${invite.length} $invite");
-        final String mlsGroupID = await mls5
-            .acceptInviteAndJoinGroup(base64UrlNoPaddingDecode(invite));
-        chatRoom = chatRoom.copyWith(mlsChatID: Value(mlsGroupID));
-        await msg.db.updateChatRoom(chatRoom);
-        return true;
+        // logLongMessage(invite);
+        try {
+          final String mlsGroupID = await mls5
+              .acceptInviteAndJoinGroup(base64UrlNoPaddingDecode(invite));
+          chatRoom = chatRoom.copyWith(mlsChatID: Value(mlsGroupID));
+          await msg.db.updateChatRoom(chatRoom);
+          return true;
+        } catch (e) {
+          logger.e(e);
+          return false;
+        }
       }
     } else {
       // If there are no invites, create one and send it.
@@ -130,8 +183,9 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
                     AtUri.parse("at://$otherDID/app.vup.chat.mlsKeys/default")))
             .data;
         KeyEntry ke = KeyEntry.fromString(record.value["keys"]);
+        logger.d(ke);
         String invite = await mlsGroup.addMemberToGroup(ke.kp);
-        print("${invite.length} $invite");
+        // logLongMessage(invite);
         // bsky limits messages to 1000 chars long, but this invite is about 1100
         // we need to split it into two, and then reconsitute it later
         List<String> invites = [
