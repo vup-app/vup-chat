@@ -24,7 +24,7 @@ Future<void> enableMLS() async {
           await msg.bskySession!.atproto.repo.createRecord(
               collection: NSID.create(
                 'chat.vup.app',
-                'mlsKeys',
+                'mlskeys',
               ),
               record: {'keys': ke.toString()},
               rkey: "default",
@@ -35,7 +35,7 @@ Future<void> enableMLS() async {
       if (e.toString().contains("500")) {
         final XRPCResponse<StrongRef> createdRecord =
             await msg.bskySession!.atproto.repo.putRecord(
-                uri: AtUri.parse("at://$did/app.vup.chat.mlsKeys/default"),
+                uri: AtUri.parse("at://$did/app.vup.chat.mlskeys/default"),
                 record: {'keys': ke.toString()},
                 validate: false);
         logger.d(createdRecord);
@@ -73,16 +73,17 @@ Future<KeyEntry?> getLocalKeyEntry() async {
 Future<void> updateOwnMLSRecord() async {
   if (did != null) {
     var record = (await msg.bskySession!.atproto.repo.getRecord(
-            uri: AtUri.parse("at://$did/app.vup.chat.mlsKeys/default")))
+            uri: AtUri.parse("at://$did/app.vup.chat.mlskeys/default")))
         .data;
     KeyEntry keRemote = KeyEntry.fromString(record.value["keys"]);
     final KeyEntry? keLocal = await getLocalKeyEntry();
     if (keLocal != null) {
+      logger.d("updating record $keLocal");
       // The pk should remain the same, so only need to compare the keypairs
       if (keRemote.kp != keLocal.kp) {
         final XRPCResponse<StrongRef> _ = await msg.bskySession!.atproto.repo
             .putRecord(
-                uri: AtUri.make(did!, "app.vup.chat.mlsKeys", "default"),
+                uri: AtUri.make(did!, "app.vup.chat.mlskeys", "default"),
                 record: {'keys': keLocal.toString()},
                 validate: false);
       }
@@ -111,7 +112,7 @@ Future<List<bool>> ensureMLSEnabled(ChatRoom chatRoom) async {
         // We don't actually currently care about the record itself, just that it exists
         // should probably build out code to lint it's contents at some point.
         final _ =
-            await getContentRecord(otherDID, "app.vup.chat.mlsKeys", "default");
+            await getContentRecord(otherDID, "app.vup.chat.mlskeys", "default");
         logger.i("MLS record found for ${chatRoom.id}");
       } catch (e) {
         logger.e(e);
@@ -180,7 +181,7 @@ Future<List<bool>> ensureMLSEnabled(ChatRoom chatRoom) async {
           await msg.db.updateChatRoom(chatRoom);
           final GroupState mlsGroup = mls5.group(chatRoom.mlsChatID!);
           final Map<String, dynamic>? record = await getContentRecord(
-              otherDID, "app.vup.chat.mlsKeys", "default");
+              otherDID, "app.vup.chat.mlskeys", "default");
           if (record != null) {
             KeyEntry ke = KeyEntry.fromString(record["value"]["keys"]);
             String invite = await mlsGroup.addMemberToGroup(ke.kp);
