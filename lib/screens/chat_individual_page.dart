@@ -8,7 +8,6 @@ import 'package:vup_chat/functions/getAvatar.dart';
 import 'package:vup_chat/functions/mls.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
-import 'package:vup_chat/mls5/mls5.dart';
 import 'package:vup_chat/screens/chat_info_page.dart';
 import 'package:vup_chat/widgets/message_item.dart';
 
@@ -86,26 +85,27 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
   // Update the chatRoomData but guard against not being mounted
   void _getChatRoomData() async {
     await msg.getChatRoomFromChatID(widget.id).then((val) {
-      (mounted)
-          ? setState(() {
-              _chatRoomData = val;
-              if (_chatRoomData != null &&
-                  _chatRoomData!.avatar != avatarCache) {
-                avatarCache = _chatRoomData!.avatar;
-              }
-            })
-          : null;
-      (val != null)
-          ? ensureMLSEnabled(val).then(
-              (isEnabled) => (mounted)
-                  ? setState(() {
-                      encryptedEnabled = isEnabled;
-                    })
-                  : null,
-            )
-          : null;
+      if (mounted) {
+        setState(() {
+          _chatRoomData = val;
+          if (_chatRoomData != null && _chatRoomData!.avatar != avatarCache) {
+            avatarCache = _chatRoomData!.avatar;
+          }
+        });
+      }
+      if (val != null) {
+        ensureMLSEnabled(val).then((returnVal) {
+          if (returnVal.last) {
+            _getChatRoomData();
+          }
+          if (mounted && encryptedEnabled != returnVal.first) {
+            setState(() {
+              encryptedEnabled = returnVal.first;
+            });
+          }
+        });
+      }
     });
-    _listenForMessages(); // once chatRoomData is set I can listen for messages
   }
 
   void _scrollToBottom() {
@@ -208,20 +208,6 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
     await msg.deleteMessages(tmpSelectedMessages, widget.id);
   }
 
-  void _listenForMessages() async {
-    if (_chatRoomData != null && _chatRoomData!.mlsChatID != null) {
-      final GroupState groupState = mls5.group(_chatRoomData!.mlsChatID!);
-      groupState.messageListStateNotifier.stream
-          .listen((v) => logger.d(groupState.messagesMemory.first));
-    }
-  }
-
-  void _debugButtonPress() async {
-    if (_chatRoomData?.mlsChatID != null) {
-      GroupState groupState = mls5.group(_chatRoomData!.mlsChatID!);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -231,26 +217,35 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                   ? const CircularProgressIndicator()
                   : Row(
                       children: [
-                        getCircleAvatar(
-                            _chatRoomData?.avatar, _chatRoomData?.avatarUrl),
+                        getCircleAvatar(avatarCache, _chatRoomData?.avatarUrl),
                         const SizedBox(width: 8),
                         InkWell(
                           onTap: () {
                             if (_chatRoomData != null) {
-                              // TODO: make this properly update on pop
                               vupSplitViewKey.currentState
                                   ?.push(
                                 MaterialPageRoute(
-                                    builder: (context) => ChatInfoPage(
-                                          chatRoomData: _chatRoomData!,
-                                        )),
+                                  builder: (context) => ChatInfoPage(
+                                    chatRoomData: _chatRoomData!,
+                                  ),
+                                ),
                               )
                                   .then((_) {
                                 _getChatRoomData();
                               });
                             }
                           },
-                          child: Text(_chatRoomData?.roomName ?? "Erm"),
+                          child: Container(
+                            constraints: BoxConstraints(maxWidth: 145.w),
+                            child: Text(
+                              (_chatRoomData != null &&
+                                      _chatRoomData!.roomName.isNotEmpty)
+                                  ? _chatRoomData!.roomName
+                                  : "null",
+                              overflow: TextOverflow.ellipsis, // Adds ellipsis
+                              maxLines: 1, // Ensures it's a single line
+                            ),
+                          ),
                         ),
                         (_chatRoomData!.mlsChatID != null)
                             ? Row(
@@ -267,16 +262,6 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
                                       encryptedEnabled = !encryptedEnabled;
                                     }),
                                   ),
-                                  // Debug button
-                                  (kDebugMode)
-                                      ? SizedBox(
-                                          width: 50,
-                                          child: ElevatedButton(
-                                              onPressed: _debugButtonPress,
-                                              child:
-                                                  const Icon(Icons.bug_report)),
-                                        )
-                                      : Container(),
                                 ],
                               )
                             : Container(),
@@ -293,13 +278,15 @@ class _ChatIndividualPageState extends State<ChatIndividualPage> {
               ),
               actions: [
                 IconButton(
-                    onPressed: () => _starHelper(null),
-                    icon: (doesSelectedMessagesContainStar)
-                        ? const Icon(Icons.star)
-                        : const Icon(Icons.star_outline)),
+                  onPressed: () => _starHelper(null),
+                  icon: (doesSelectedMessagesContainStar)
+                      ? const Icon(Icons.star)
+                      : const Icon(Icons.star_outline),
+                ),
                 IconButton(
-                    onPressed: () => _deleteHelper(null),
-                    icon: const Icon(Icons.delete)),
+                  onPressed: () => _deleteHelper(null),
+                  icon: const Icon(Icons.delete),
+                ),
               ],
             ),
       body: Center(

@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
-
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -91,7 +89,7 @@ class _GroupChatViewState extends State<GroupChatView> {
                   labelText: 'Your message',
                 ),
                 onSubmitted: (text) async {
-                  await group.sendMessage(text);
+                  await group.sendMessage(text, null);
                   textCtrl.clear();
                   textCtrlFocusNode.requestFocus();
                 },

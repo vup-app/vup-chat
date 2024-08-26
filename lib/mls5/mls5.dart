@@ -8,6 +8,7 @@ import 'package:lib5/util.dart';
 import 'package:ntp/ntp.dart';
 import 'package:s5/s5.dart';
 import 'package:s5/src/hive_key_value_db.dart';
+import 'package:vup_chat/definitions/s5_embed.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/mls5/state/main_window.dart';
 import 'package:vup_chat/src/rust/api/simple.dart';
@@ -203,7 +204,7 @@ class MLS5 {
     return keyPackage;
   }
 
-  Future<String> acceptInviteAndJoinGroup(Uint8List welcomeIn) async {
+  Future<String?> acceptInviteAndJoinGroup(Uint8List welcomeIn) async {
     final group = await openmlsGroupJoin(
       welcomeIn: welcomeIn,
       config: config,
@@ -229,7 +230,7 @@ class MLS5 {
         'name': 'Group #${groupsBox.length + 1}',
       },
     );
-    groups[groupId]!.sendMessage('joined the group');
+    groups[groupId]!.sendMessage('joined the group', null);
     return groupId;
   }
 }
@@ -410,32 +411,41 @@ class GroupState {
     return base64UrlNoPaddingEncode(res.welcomeOut);
   }
 
-  Future<void> sendMessage(String text) async {
-    final msg = TextMessage(
-      text: text,
-      ts: DateTime.now().millisecondsSinceEpoch,
-    );
-    final message = Uint8List.fromList(
-      msg.prefix + msg.serialize(),
-    );
+  // Returns it's message id
+  Future<String?> sendMessage(String text, S5Embed? embed) async {
+    if (did != null) {
+      final msg = TextMessage(
+        text: text,
+        ts: DateTime.now().millisecondsSinceEpoch,
+        did: did!,
+        embed: embed,
+      );
+      final message = Uint8List.fromList(
+        msg.prefix + msg.serialize(),
+      );
 
-    final payload = await openmlsGroupCreateMessage(
-      group: group,
-      signer: mls.identity.signer,
-      message: message,
-      config: mls.config,
-    );
-    final ts = await sendMessageToStreamChannel(payload);
-    await mls.saveKeyStore();
+      final payload = await openmlsGroupCreateMessage(
+        group: group,
+        signer: mls.identity.signer,
+        message: message,
+        config: mls.config,
+      );
+      final ts = await sendMessageToStreamChannel(payload);
+      await mls.saveKeyStore();
 
-    _processNewMessage(
-      MLSApplicationMessage(
-        msg: msg,
-        identity: Uint8List(0),
-        sender: Uint8List(0),
-        ts: ts,
-      ),
-    );
+      _processNewMessage(
+        MLSApplicationMessage(
+          msg: msg,
+          identity: Uint8List(0),
+          sender: Uint8List(0),
+          ts: ts,
+        ),
+      );
+      return msg.id;
+    } else {
+      logger.e("DID is not set. Cannot send message");
+    }
+    return null;
   }
 
   Future<int> sendMessageToStreamChannel(Uint8List message) async {

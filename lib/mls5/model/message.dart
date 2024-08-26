@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:uuid/uuid.dart';
+import 'package:vup_chat/definitions/s5_embed.dart';
 import 'package:vup_chat/mls5/constants.dart';
 import 'package:vup_chat/src/rust/api/simple.dart';
 
@@ -85,11 +87,20 @@ class TextMessage extends Message {
 
   final String text;
   final int ts; // when this post was created, in milliseconds?
+  final String did; // sender ATProto DID
+  final S5Embed? embed;
+  final String id;
+
+  // Create an instance of Uuid
+  static const Uuid uuid = Uuid();
 
   TextMessage({
     required this.text,
     required this.ts,
-  });
+    required this.did,
+    this.embed,
+    String? id,
+  }) : id = id ?? uuid.v4(); // If `id` is null, assign `Uuid().v4()` to `id`.
 
   @override
   Uint8List serialize() => utf8.encode(
@@ -97,6 +108,9 @@ class TextMessage extends Message {
           {
             'text': text,
             'ts': ts,
+            'did': did,
+            'embed': (embed != null) ? jsonEncode(embed!.toJson()) : null,
+            'id': id,
           },
         ),
       );
@@ -109,6 +123,11 @@ class TextMessage extends Message {
     return TextMessage(
       text: body['text'],
       ts: body['ts'],
+      did: body['did'],
+      embed: (body['embed'] != null)
+          ? S5Embed.fromJson(jsonDecode(body['embed']))
+          : null,
+      id: body['id'],
     );
   }
 }

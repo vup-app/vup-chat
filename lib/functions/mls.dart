@@ -1,12 +1,10 @@
-import 'dart:convert';
-
 import 'package:bluesky/atproto.dart';
 import 'package:bluesky/core.dart';
 import 'package:drift/drift.dart';
 import 'package:lib5/identity.dart';
 import 'package:lib5/util.dart';
+import 'package:vup_chat/bsky/general.dart';
 import 'package:vup_chat/definitions/key_entries.dart';
-import 'package:vup_chat/definitions/logger.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/mls5/mls5.dart';
@@ -79,7 +77,6 @@ Future<void> updateOwnMLSRecord() async {
         .data;
     KeyEntry keRemote = KeyEntry.fromString(record.value["keys"]);
     final KeyEntry? keLocal = await getLocalKeyEntry();
-    logger.d(keLocal);
     if (keLocal != null) {
       // The pk should remain the same, so only need to compare the keypairs
       if (keRemote.kp != keLocal.kp) {
@@ -90,10 +87,6 @@ Future<void> updateOwnMLSRecord() async {
                 validate: false);
       }
     }
-    record = (await msg.bskySession!.atproto.repo.getRecord(
-            uri: AtUri.parse("at://$did/app.vup.chat.mlsKeys/default")))
-        .data;
-    keRemote = KeyEntry.fromString(record.value["keys"]);
   }
 }
 
@@ -104,10 +97,12 @@ Future<void> updateOwnMLSRecord() async {
 //    it sends out an invite to the other user using their pub keys. This will fail
 //    if they haven't yet published their keys yet.
 // 2. Return if the room is ready to send MLS chats or not.
-Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
+// RETURN:
+// - First bool is if MLS is enabled
+// - Second bool is if chat room should rebuild (due to MLS _just_ being enabled)
+Future<List<bool>> ensureMLSEnabled(ChatRoom chatRoom) async {
   // If mlsChatID is null, and the OTHER USER has posted MLS keys,
   // create a room and write it to the db
-  await getLocalKeyEntry();
   if (msg.bskySession != null && did != null) {
     String otherDID = ((await msg.getSendersFromDIDList(chatRoom.members))
         .firstWhere((t) => t.did != did)).did;
@@ -115,17 +110,9 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
       try {
         // We don't actually currently care about the record itself, just that it exists
         // should probably build out code to lint it's contents at some point.
-        final record = (await msg.bskySession!.atproto.repo.getRecord(
-                uri:
-                    AtUri.parse("at://$otherDID/app.vup.chat.mlsKeys/default")))
-            .data;
-        logger.d(record);
+        final _ =
+            await getContentRecord(otherDID, "app.vup.chat.mlsKeys", "default");
         logger.i("MLS record found for ${chatRoom.id}");
-        final String mlsGroupID = await mls5.createNewGroup();
-        // Now that we have a group, make sure to add it to the DB
-        chatRoom = chatRoom.copyWith(mlsChatID: Value(mlsGroupID));
-        // Don't write to DB for now so I can keep creating new ones to test
-        await msg.db.updateChatRoom(chatRoom);
       } catch (e) {
         logger.e(e);
         // A 400 resp means that the entry was not found
@@ -134,10 +121,10 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
           // This is the only real case where it makes sense to disable encrypted chats, as that
           // user has explicitly not posted MLS keys yet.
           logger.i("MLS record not found for ${chatRoom.id}");
-          return false;
+          return [false, false];
         }
       }
-      final GroupState mlsGroup = mls5.group(chatRoom.mlsChatID!);
+
       final List<Message> messagesPreCull = (await msg.searchMessages(
           "Vup Chat Encrypted Chat Invite", chatRoom.id));
       // Do this to make sure users typing in Vup Chat Encrypted Chat Invite in the middle of
@@ -166,40 +153,51 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
                   .substring(35);
           // logLongMessage(invite);
           try {
-            final String mlsGroupID = await mls5
+            final String? mlsGroupID = await mls5
                 .acceptInviteAndJoinGroup(base64UrlNoPaddingDecode(invite));
-            logger.d("Sucessfully joined group: $mlsGroupID");
-            chatRoom = chatRoom.copyWith(mlsChatID: Value(mlsGroupID));
-            await msg.db.updateChatRoom(chatRoom);
-            return true;
+            if (mlsGroupID != null) {
+              logger.d("Sucessfully joined group: $mlsGroupID");
+              chatRoom = chatRoom.copyWith(mlsChatID: Value(mlsGroupID));
+              await msg.db.updateChatRoom(chatRoom);
+              return [true, true];
+            } else {
+              logger.e("Failed to join group: $mlsGroupID");
+              return [false, false];
+            }
           } catch (e) {
             logger.e(e);
-            return false;
+            return [false, false];
           }
         }
       } else {
         // If there are no invites, create one and send it.
         try {
           // TODO: red encrypt invite here
-          final record = (await msg.bskySession!.atproto.repo.getRecord(
-                  uri: AtUri.parse(
-                      "at://$otherDID/app.vup.chat.mlsKeys/default")))
-              .data;
-          KeyEntry ke = KeyEntry.fromString(record.value["keys"]);
-          logger.d(ke);
-          String invite = await mlsGroup.addMemberToGroup(ke.kp);
-          // logLongMessage(invite);
-          // bsky limits messages to 1000 chars long, but this invite is about 1100
-          // we need to split it into two, and then reconsitute it later
-          List<String> invites = [
-            "Vup Chat Encrypted Chat Invite(1): ${invite.substring(0, (invite.length / 2).round())}",
-            "Vup Chat Encrypted Chat Invite(2): ${invite.substring((invite.length / 2).round(), invite.length)}"
-          ];
-          Sender sender = await msg.getSenderFromDID(did!);
-          // obv don't send this over encrypted because it has to go over ATProto
-          for (String invite in invites) {
-            msg.sendMessage(invite, chatRoom.id, sender, false);
-            await Future.delayed(const Duration(seconds: 1));
+          final String mlsGroupID = await mls5.createNewGroup();
+          // Now that we have a group, make sure to add it to the DB
+          chatRoom = chatRoom.copyWith(mlsChatID: Value(mlsGroupID));
+          // Don't write to DB for now so I can keep creating new ones to test
+          await msg.db.updateChatRoom(chatRoom);
+          final GroupState mlsGroup = mls5.group(chatRoom.mlsChatID!);
+          final Map<String, dynamic>? record = await getContentRecord(
+              otherDID, "app.vup.chat.mlsKeys", "default");
+          if (record != null) {
+            KeyEntry ke = KeyEntry.fromString(record["value"]["keys"]);
+            String invite = await mlsGroup.addMemberToGroup(ke.kp);
+            // logLongMessage(invite);
+            // bsky limits messages to 1000 chars long, but this invite is about 1100
+            // we need to split it into two, and then reconsitute it later
+            List<String> invites = [
+              "Vup Chat Encrypted Chat Invite(1): ${invite.substring(0, (invite.length / 2).round())}",
+              "Vup Chat Encrypted Chat Invite(2): ${invite.substring((invite.length / 2).round(), invite.length)}"
+            ];
+            Sender sender = await msg.getSenderFromDID(did!);
+            // obv don't send this over encrypted because it has to go over ATProto
+            for (String invite in invites) {
+              msg.sendMessage(invite, chatRoom.id, sender, false);
+              await Future.delayed(const Duration(seconds: 1));
+            }
+            return [true, true];
           }
         } catch (e) {
           logger.e(e);
@@ -214,8 +212,8 @@ Future<bool> ensureMLSEnabled(ChatRoom chatRoom) async {
   // hasn't officially joined the room yet. In theory, the S5 node should hold the messages until you fetch them
   // anyway, so this is *probably* fine
   if (chatRoom.mlsChatID != null) {
-    return true;
+    return [true, false];
   } else {
-    return false;
+    return [false, false];
   }
 }

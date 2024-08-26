@@ -55,6 +55,8 @@ dependencies:
   flutter_rust_bridge: 2.2.0
   ntp: ^2.0.0
   adaptive_dialog: ^2.1.0
+  xrpc: ^0.5.2
+  did_plc: ^0.0.21
 
 dev_dependencies:
   flutter_test:

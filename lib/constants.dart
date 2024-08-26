@@ -8,3 +8,4 @@ const darkBackgroungColor = Color(0xFF313131);
 const lightCardColor = Color(0xffffffff);
 const darkCardColor = Color(0xff424242);
 const darkTextColor = Color(0xffffffff);
+const bskyColor = Color.fromARGB(255, 10, 122, 255);

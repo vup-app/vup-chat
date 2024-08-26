@@ -236,7 +236,6 @@ class SearchActorPageState extends State<SearchActorPage> {
 
   Widget _buildActorListItem(
       Actor actor, BuildContext context, ActorProfile profile) {
-    final String? title = actor.displayName;
     final CircleAvatar avatar = CircleAvatar(
       backgroundImage:
           actor.avatar != null ? NetworkImage(actor.avatar!) : null,
@@ -340,7 +339,12 @@ class SearchActorPageState extends State<SearchActorPage> {
     }
 
     return ListTile(
-      title: Text(title ?? "null"),
+      title: Text((actor.displayName == null || actor.displayName!.isEmpty)
+          ? actor.handle
+          : actor.displayName!),
+      subtitle: (actor.displayName == null || actor.displayName!.isEmpty)
+          ? null
+          : Text(actor.handle),
       leading: avatar,
       trailing: SizedBox(
         width: 55,

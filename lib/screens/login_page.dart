@@ -163,7 +163,7 @@ class LoginPageState extends State<LoginPage>
                       textAlign: TextAlign.center,
                       autofillHints: const [AutofillHints.username],
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'Email/Handle',
                         hintText: 'foo@bar.com',
                         border: OutlineInputBorder(
                           borderSide: BorderSide(

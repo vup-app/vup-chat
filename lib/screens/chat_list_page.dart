@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'package:bluesky/core.dart';
 import 'package:flutter/material.dart';
 import 'package:vup_chat/functions/mls.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
-import 'package:vup_chat/mls5/view/demo_main_view.dart';
 import 'package:vup_chat/screens/profile_page.dart';
 import 'package:vup_chat/screens/s5_login_page.dart';
 import 'package:vup_chat/screens/search_actor.page.dart';
@@ -149,9 +147,14 @@ class ChatListPageState extends State<ChatListPage> {
     bool? s5Disabled = preferences.getBool("disable-s5");
     if ((s5Disabled == null || s5Disabled == false) && seed == null) {
       if (!context.mounted) return;
-      Navigator.of(context).push(MaterialPageRoute(
+      Navigator.of(context)
+          .push(MaterialPageRoute(
         builder: (context) => const S5LoginPage(),
-      ));
+      ))
+          // Should check after login so on first login it will nag
+          .then((_) async {
+        _checkIfShouldNagToAnnounceMLS();
+      });
     }
   }
 
@@ -178,10 +181,7 @@ class ChatListPageState extends State<ChatListPage> {
       } catch (e) {
         logger.d(e);
         // TODO: this is a bad way of error handling
-        if ((e as InternalServerErrorException)
-            .response
-            .status
-            .equalsByCode(400)) {
+        if (e.toString().contains("400")) {
           setState(() {
             _shouldNagForMLS = true;
           });
@@ -269,12 +269,6 @@ class ChatListPageState extends State<ChatListPage> {
                         ),
                       )
                     : Container(),
-                ElevatedButton(
-                    onPressed: () =>
-                        Navigator.of(context).push(MaterialPageRoute(
-                          builder: (context) => const MLS5DemoAppView(),
-                        )),
-                    child: const Text("MLS chat debug")),
                 // Here is the banner that nags the user to enable encryped chats
                 // This section swaps views if search is happening or not
                 (_shouldNagForMLS)
@@ -288,6 +282,13 @@ class ChatListPageState extends State<ChatListPage> {
                                   _checkIfShouldNagToAnnounceMLS();
                                 },
                                 child: const Text("Disable")),
+                            TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _shouldNagForMLS = false;
+                                  });
+                                },
+                                child: const Text("Dismiss")),
                             TextButton(
                                 onPressed: () async {
                                   setState(() {

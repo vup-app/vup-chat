@@ -29,9 +29,11 @@ import 'package:vup_chat/functions/thumbhash.dart';
 import 'package:vup_chat/main.dart';
 import 'package:vup_chat/messenger/database.dart';
 import 'package:vup_chat/messenger/lock.dart';
+import 'package:vup_chat/mls5/mls5.dart';
 import 'package:vup_chat/screens/chat_individual_page.dart';
 import 'package:vup_chat/widgets/init_router.dart';
 import 'package:universal_io/io.dart';
+import 'package:vup_chat/mls5/model/message.dart' as m;
 
 class MsgCore {
   final MessageDatabase db;
@@ -96,6 +98,9 @@ class MsgCore {
     if (!kIsWeb) {
       _initNotifications();
     }
+
+    _fetchMLSAfterOffline();
+    _watchForMLSUpdates();
   }
 
   Future<void> msgInitS5() async {
@@ -115,6 +120,88 @@ class MsgCore {
             android: initializationSettingsAndroid);
     await notifier?.initialize(initializationSettings,
         onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
+  }
+
+  // This function watches the groupChat stream to make sure all MLS chats
+  // are being listened to
+  void _watchForMLSUpdates() async {
+    Map<String, StreamSubscription<void>> listeners =
+        {}; // contains listeners to
+    // Watch the groupChat stream
+    subscribeChatRoom().listen(
+      (chatRooms) async {
+        for (ChatRoom chatRoom in chatRooms) {
+          // if group now has MLS ID, subscribe to it and add subscription to map
+          if (chatRoom.mlsChatID != null &&
+              !listeners.keys.contains(chatRoom.id)) {
+            GroupState groupState = mls5.group(chatRoom.mlsChatID!);
+            listeners[chatRoom.id] =
+                groupState.messageListStateNotifier.stream.listen((_) async {
+              String otherDID =
+                  ((await msg.getSendersFromDIDList(chatRoom.members))
+                      .firstWhere((t) => t.did != did)).did;
+              Sender sender = await getSenderFromDID(otherDID);
+              if (did !=
+                  (groupState.messagesMemory.first.msg as m.TextMessage).did) {
+                String localMessageID = await db.insertMessageLocal(
+                  (groupState.messagesMemory.first.msg as m.TextMessage).text,
+                  chatRoom.id,
+                  sender,
+                  null,
+                  true,
+                  (groupState.messagesMemory.first.msg as m.TextMessage).id,
+                );
+                Message? msg = await db.getMessageFromLocalID(localMessageID);
+                if (msg != null) {
+                  await db.updateChatRoomsLastMessage(chatRoom.id, msg);
+                  await notifyUserOfMessage(localMessageID, chatRoom.id);
+                  logger.d(
+                      (groupState.messagesMemory.first.msg as m.TextMessage)
+                          .text);
+                }
+              }
+            });
+            // if group no longer has MLS id, dispose of it's listener and remove from map
+          } else if (chatRoom.mlsChatID == null &&
+              listeners.keys.contains(chatRoom.id)) {
+            await listeners[chatRoom.id]?.cancel();
+            listeners.remove(chatRoom.id);
+          }
+        }
+      },
+    );
+  }
+
+  void _fetchMLSAfterOffline() async {
+    // Get the iterator for the entries of the map
+    final iterator = mls5.groups.entries.iterator;
+
+    // Iterate through the map using the iterator
+    while (iterator.moveNext()) {
+      final GroupState groupState = iterator.current.value;
+      final String? chatID =
+          await db.getChatRoomIDFromMLSGroupID(groupState.groupId);
+      // Now fetch history of group and insert any messages that need inserting
+      // This truncates the message history at the previous 100 messages so the client
+      // doesn't rescan a huge amount of messages
+      final int mml = groupState.messagesMemory.length;
+      for (var msg
+          in groupState.messagesMemory.sublist(0, (mml < 99) ? mml : 99)) {
+        // TODO: implement checking and inserting
+        m.TextMessage message = (msg.msg as m.TextMessage);
+        Sender? sender = await db.getSenderByDID(message.did);
+        Message? messageExists = await db.getMessageFromMLSID(message.id);
+        // Message DOES NOT exist
+        if (messageExists == null && chatID != null && sender != null) {
+          String localMessageID = await db.insertMessageLocal(
+              message.text, chatID, sender, null, true, message.id);
+          Message? msg = await db.getMessageFromLocalID(localMessageID);
+          if (msg != null) {
+            await db.updateChatRoomsLastMessage(chatID, msg);
+          }
+        }
+      }
+    }
   }
 
   Future<void> attemptLogin(String? user, String? password) async {
@@ -227,14 +314,20 @@ class MsgCore {
                 convoId: chatID, message: MessageInput(text: text)))
             .data;
         // Ignore this return because shouldn't notify for own message obv
-        String messageID =
-            await db.insertMessageLocal(message.text, chatID, sender, null);
+        String messageID = await db.insertMessageLocal(
+            message.text, chatID, sender, null, false, null);
         await db.checkAndInsertMessageATProto(
             messageID, message, chatID, false, sender, null);
       }
     } else if (chatRoomData?.mlsChatID != null) {
-      await db.insertMessageLocal(text, chatID, sender, null);
-      await mls5.group(chatRoomData!.mlsChatID!).sendMessage(text);
+      String? mlsMessageID =
+          await mls5.group(chatRoomData!.mlsChatID!).sendMessage(text, null);
+      String localMessageID = await db.insertMessageLocal(
+          text, chatID, sender, null, true, mlsMessageID);
+      Message? msg = await db.getMessageFromLocalID(localMessageID);
+      if (msg != null) {
+        await db.updateChatRoomsLastMessage(chatID, msg);
+      }
     } else {
       logger.e("Contitions are not met to send message.");
     }
@@ -413,6 +506,10 @@ class MsgCore {
 
     if (ref != null) {
       for (var convo in ref.convos) {
+        // check if chatroom exists first to make sure it gets inserted right
+        if (await db.getChatRoomFromChatID(convo.id) == null) {
+          db.checkAndInsertChatRoom(convo);
+        }
         await checkForMessageUpdatesATProto(convo.id);
       }
     }
@@ -434,15 +531,14 @@ class MsgCore {
           String? localMessageID =
               await db.getMessageIDFromBskyValues(chatID, message.id);
           if (localMessageID == null) {}
-          localMessageID ??=
-              await db.insertMessageLocal(message.text, chatID, snd, null);
+          localMessageID ??= await db.insertMessageLocal(
+              message.text, chatID, snd, null, false, null);
           final bool shouldNotify = await db.checkAndInsertMessageATProto(
               localMessageID, message, chatID, true, snd, null);
           shouldNotify ? notifyUserOfMessage(localMessageID, chatID) : null;
         }
       }
     } catch (e) {
-      logger.d(e);
       // Yes I know this is a crude way of getting the error code, I'll fix it later
       if (e.toString().contains("400")) {
         attemptLogin(null, null);

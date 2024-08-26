@@ -22,7 +22,7 @@ class MessageDatabase extends _$MessageDatabase {
 
   // Database migrations!
   @override
-  int get schemaVersion => 4; // bump because the tables have changed.
+  int get schemaVersion => 5; // bump because the tables have changed.
 
   @override
   MigrationStrategy get migration {
@@ -42,6 +42,9 @@ class MessageDatabase extends _$MessageDatabase {
         }
         if (from < 4) {
           await m.addColumn(senders, senders.pubkey);
+        }
+        if (from < 5) {
+          await m.addColumn(messages, messages.mlsID);
         }
       },
     );
@@ -257,6 +260,15 @@ class MessageDatabase extends _$MessageDatabase {
     return result?.chatRoomId;
   }
 
+  // Pull from chatRoomMessages table to find chatRoomID from messageID
+  Future<String?> getChatRoomIDFromMLSGroupID(String mlsGroupID) async {
+    final query = select(chatRooms)
+      ..where((tbl) => tbl.mlsChatID.equals(mlsGroupID));
+
+    final result = await query.getSingleOrNull();
+    return result?.id;
+  }
+
   // Grab the chat room associated with chatID
   Future<ChatRoom?> getChatRoomFromChatID(String chatID) async {
     final query = select(chatRooms)..where((t) => t.id.equals(chatID));
@@ -330,6 +342,12 @@ class MessageDatabase extends _$MessageDatabase {
     return query.watch();
   }
 
+  // Streams to watch for changes in a chatRoom itself
+  Stream<ChatRoom> watchChatRoom(String chatID) {
+    final query = select(chatRooms)..where((t) => t.id.equals(chatID));
+    return query.watchSingle();
+  }
+
   // Check if a sender exists and insert if not
   Future<void> insertOrUpdateSender(Sender sender) async {
     final senderExists = await (select(senders)
@@ -369,15 +387,19 @@ class MessageDatabase extends _$MessageDatabase {
   }
 
   // DOES NOT check if message exists, returns message UUID
-  Future<String> insertMessageLocal(
-      String message, String roomID, Sender sender, S5Embed? embed) async {
+  Future<String> insertMessageLocal(String message, String roomID,
+      Sender sender, S5Embed? embed, bool encrypted, String? mlsID) async {
     String id = const Uuid().v4();
     await into(messages).insert(MessagesCompanion.insert(
-        id: id,
-        message: message,
-        senderDid: did ?? "",
-        sentAt: DateTime.now(),
-        embed: embed?.toJson().toString() ?? ""));
+      id: id,
+      message: message,
+      senderDid: sender.did,
+      sentAt: DateTime.now(),
+      embed: embed?.toJson().toString() ?? "",
+      encrypted: Value(encrypted),
+      persisted: encrypted ? const Value(true) : const Value(false),
+      mlsID: Value(mlsID),
+    ));
 
     // Check if the chatRoomMessage already exists
     final chatRoomMessageExists = await (select(chatRoomMessages)
@@ -443,7 +465,18 @@ class MessageDatabase extends _$MessageDatabase {
         ));
       }
 
-      _updateChatRoomsLastMessage(roomID, message);
+      final Message msg = Message(
+          id: messageID,
+          message: message.text,
+          senderDid: message.sender.did,
+          sentAt: message.sentAt,
+          persisted: persisted,
+          read: false,
+          embed: "",
+          starred: false,
+          encrypted: false);
+
+      updateChatRoomsLastMessage(roomID, msg);
 
       return true;
     }
@@ -458,8 +491,8 @@ class MessageDatabase extends _$MessageDatabase {
   }
 
   // Updates the chatroom last message
-  Future<void> _updateChatRoomsLastMessage(
-      String roomID, MessageView message) async {
+  Future<void> updateChatRoomsLastMessage(
+      String roomID, Message message) async {
     // first gotta check if there already is a newer message
     final croom = await (select(chatRooms)..where((t) => t.id.equals(roomID)))
         .getSingleOrNull();
@@ -467,10 +500,9 @@ class MessageDatabase extends _$MessageDatabase {
       // Then if it's newer update it
       final lastMessageJson = json.encode({
         'id': message.id,
-        'rev': message.rev,
-        'text': message.text,
+        'text': message.message,
         'sender': {
-          'did': message.sender.did,
+          'did': message.senderDid,
         },
         'sentAt': message.sentAt.toIso8601String(),
         // Add other fields as needed
@@ -534,8 +566,11 @@ class MessageDatabase extends _$MessageDatabase {
           await into(chatRooms).insert(
             ChatRoomsCompanion.insert(
               id: convo.id,
-              roomName: otherMember.displayName ??
-                  otherMember.handle, // TODO: Make this dynamic for group chats
+              roomName: (otherMember.displayName == null ||
+                      otherMember.displayName!.isEmpty)
+                  ? otherMember.handle
+                  : otherMember
+                      .displayName!, // TODO: Make this dynamic for group chats
               rev: convo.rev,
               members: json.encode(members),
               lastMessage: json.encode(lastMessageJson),
@@ -552,8 +587,11 @@ class MessageDatabase extends _$MessageDatabase {
         await into(chatRooms).insert(
           ChatRoomsCompanion.insert(
             id: convo.id,
-            roomName: otherMember.displayName ??
-                otherMember.handle, // TODO: Make this dynamic for group chats
+            roomName: (otherMember.displayName == null ||
+                    otherMember.displayName!.isEmpty)
+                ? otherMember.handle
+                : otherMember
+                    .displayName!, // TODO: Make this dynamic for group chats
             rev: convo.rev,
             members: json.encode(members),
             lastMessage: chatRoomExists?.lastMessage ?? "",
@@ -587,6 +625,12 @@ class MessageDatabase extends _$MessageDatabase {
   // Get message from local ID
   Future<Message?> getMessageFromLocalID(String messageID) async {
     final query = select(messages)..where((t) => t.id.equals(messageID));
+    return query.getSingleOrNull();
+  }
+
+  // Get message from MLS ID
+  Future<Message?> getMessageFromMLSID(String mlsID) async {
+    final query = select(messages)..where((t) => t.mlsID.equals(mlsID));
     return query.getSingleOrNull();
   }
 

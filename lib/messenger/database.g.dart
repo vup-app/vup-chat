@@ -406,6 +406,11 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
   late final GeneratedColumn<String> bskyID = GeneratedColumn<String>(
       'bsky_i_d', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _mlsIDMeta = const VerificationMeta('mlsID');
+  @override
+  late final GeneratedColumn<String> mlsID = GeneratedColumn<String>(
+      'mls_i_d', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _revisionMeta =
       const VerificationMeta('revision');
   @override
@@ -487,6 +492,7 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
   List<GeneratedColumn> get $columns => [
         id,
         bskyID,
+        mlsID,
         revision,
         message,
         senderDid,
@@ -516,6 +522,10 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
     if (data.containsKey('bsky_i_d')) {
       context.handle(_bskyIDMeta,
           bskyID.isAcceptableOrUnknown(data['bsky_i_d']!, _bskyIDMeta));
+    }
+    if (data.containsKey('mls_i_d')) {
+      context.handle(_mlsIDMeta,
+          mlsID.isAcceptableOrUnknown(data['mls_i_d']!, _mlsIDMeta));
     }
     if (data.containsKey('revision')) {
       context.handle(_revisionMeta,
@@ -578,6 +588,8 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       bskyID: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}bsky_i_d']),
+      mlsID: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}mls_i_d']),
       revision: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}revision']),
       message: attachedDatabase.typeMapping
@@ -610,6 +622,7 @@ class $MessagesTable extends Messages with TableInfo<$MessagesTable, Message> {
 class Message extends DataClass implements Insertable<Message> {
   final String id;
   final String? bskyID;
+  final String? mlsID;
   final String? revision;
   final String message;
   final String senderDid;
@@ -623,6 +636,7 @@ class Message extends DataClass implements Insertable<Message> {
   const Message(
       {required this.id,
       this.bskyID,
+      this.mlsID,
       this.revision,
       required this.message,
       required this.senderDid,
@@ -639,6 +653,9 @@ class Message extends DataClass implements Insertable<Message> {
     map['id'] = Variable<String>(id);
     if (!nullToAbsent || bskyID != null) {
       map['bsky_i_d'] = Variable<String>(bskyID);
+    }
+    if (!nullToAbsent || mlsID != null) {
+      map['mls_i_d'] = Variable<String>(mlsID);
     }
     if (!nullToAbsent || revision != null) {
       map['revision'] = Variable<String>(revision);
@@ -662,6 +679,8 @@ class Message extends DataClass implements Insertable<Message> {
       id: Value(id),
       bskyID:
           bskyID == null && nullToAbsent ? const Value.absent() : Value(bskyID),
+      mlsID:
+          mlsID == null && nullToAbsent ? const Value.absent() : Value(mlsID),
       revision: revision == null && nullToAbsent
           ? const Value.absent()
           : Value(revision),
@@ -685,6 +704,7 @@ class Message extends DataClass implements Insertable<Message> {
     return Message(
       id: serializer.fromJson<String>(json['id']),
       bskyID: serializer.fromJson<String?>(json['bskyID']),
+      mlsID: serializer.fromJson<String?>(json['mlsID']),
       revision: serializer.fromJson<String?>(json['revision']),
       message: serializer.fromJson<String>(json['message']),
       senderDid: serializer.fromJson<String>(json['senderDid']),
@@ -703,6 +723,7 @@ class Message extends DataClass implements Insertable<Message> {
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'bskyID': serializer.toJson<String?>(bskyID),
+      'mlsID': serializer.toJson<String?>(mlsID),
       'revision': serializer.toJson<String?>(revision),
       'message': serializer.toJson<String>(message),
       'senderDid': serializer.toJson<String>(senderDid),
@@ -719,6 +740,7 @@ class Message extends DataClass implements Insertable<Message> {
   Message copyWith(
           {String? id,
           Value<String?> bskyID = const Value.absent(),
+          Value<String?> mlsID = const Value.absent(),
           Value<String?> revision = const Value.absent(),
           String? message,
           String? senderDid,
@@ -732,6 +754,7 @@ class Message extends DataClass implements Insertable<Message> {
       Message(
         id: id ?? this.id,
         bskyID: bskyID.present ? bskyID.value : this.bskyID,
+        mlsID: mlsID.present ? mlsID.value : this.mlsID,
         revision: revision.present ? revision.value : this.revision,
         message: message ?? this.message,
         senderDid: senderDid ?? this.senderDid,
@@ -747,6 +770,7 @@ class Message extends DataClass implements Insertable<Message> {
     return Message(
       id: data.id.present ? data.id.value : this.id,
       bskyID: data.bskyID.present ? data.bskyID.value : this.bskyID,
+      mlsID: data.mlsID.present ? data.mlsID.value : this.mlsID,
       revision: data.revision.present ? data.revision.value : this.revision,
       message: data.message.present ? data.message.value : this.message,
       senderDid: data.senderDid.present ? data.senderDid.value : this.senderDid,
@@ -765,6 +789,7 @@ class Message extends DataClass implements Insertable<Message> {
     return (StringBuffer('Message(')
           ..write('id: $id, ')
           ..write('bskyID: $bskyID, ')
+          ..write('mlsID: $mlsID, ')
           ..write('revision: $revision, ')
           ..write('message: $message, ')
           ..write('senderDid: $senderDid, ')
@@ -780,14 +805,15 @@ class Message extends DataClass implements Insertable<Message> {
   }
 
   @override
-  int get hashCode => Object.hash(id, bskyID, revision, message, senderDid,
-      replyTo, sentAt, persisted, read, embed, starred, encrypted);
+  int get hashCode => Object.hash(id, bskyID, mlsID, revision, message,
+      senderDid, replyTo, sentAt, persisted, read, embed, starred, encrypted);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Message &&
           other.id == this.id &&
           other.bskyID == this.bskyID &&
+          other.mlsID == this.mlsID &&
           other.revision == this.revision &&
           other.message == this.message &&
           other.senderDid == this.senderDid &&
@@ -803,6 +829,7 @@ class Message extends DataClass implements Insertable<Message> {
 class MessagesCompanion extends UpdateCompanion<Message> {
   final Value<String> id;
   final Value<String?> bskyID;
+  final Value<String?> mlsID;
   final Value<String?> revision;
   final Value<String> message;
   final Value<String> senderDid;
@@ -817,6 +844,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   const MessagesCompanion({
     this.id = const Value.absent(),
     this.bskyID = const Value.absent(),
+    this.mlsID = const Value.absent(),
     this.revision = const Value.absent(),
     this.message = const Value.absent(),
     this.senderDid = const Value.absent(),
@@ -832,6 +860,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   MessagesCompanion.insert({
     required String id,
     this.bskyID = const Value.absent(),
+    this.mlsID = const Value.absent(),
     this.revision = const Value.absent(),
     required String message,
     required String senderDid,
@@ -851,6 +880,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   static Insertable<Message> custom({
     Expression<String>? id,
     Expression<String>? bskyID,
+    Expression<String>? mlsID,
     Expression<String>? revision,
     Expression<String>? message,
     Expression<String>? senderDid,
@@ -866,6 +896,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (bskyID != null) 'bsky_i_d': bskyID,
+      if (mlsID != null) 'mls_i_d': mlsID,
       if (revision != null) 'revision': revision,
       if (message != null) 'message': message,
       if (senderDid != null) 'sender_did': senderDid,
@@ -883,6 +914,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
   MessagesCompanion copyWith(
       {Value<String>? id,
       Value<String?>? bskyID,
+      Value<String?>? mlsID,
       Value<String?>? revision,
       Value<String>? message,
       Value<String>? senderDid,
@@ -897,6 +929,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     return MessagesCompanion(
       id: id ?? this.id,
       bskyID: bskyID ?? this.bskyID,
+      mlsID: mlsID ?? this.mlsID,
       revision: revision ?? this.revision,
       message: message ?? this.message,
       senderDid: senderDid ?? this.senderDid,
@@ -919,6 +952,9 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     }
     if (bskyID.present) {
       map['bsky_i_d'] = Variable<String>(bskyID.value);
+    }
+    if (mlsID.present) {
+      map['mls_i_d'] = Variable<String>(mlsID.value);
     }
     if (revision.present) {
       map['revision'] = Variable<String>(revision.value);
@@ -961,6 +997,7 @@ class MessagesCompanion extends UpdateCompanion<Message> {
     return (StringBuffer('MessagesCompanion(')
           ..write('id: $id, ')
           ..write('bskyID: $bskyID, ')
+          ..write('mlsID: $mlsID, ')
           ..write('revision: $revision, ')
           ..write('message: $message, ')
           ..write('senderDid: $senderDid, ')
@@ -2016,6 +2053,7 @@ class $$SendersTableOrderingComposer
 typedef $$MessagesTableCreateCompanionBuilder = MessagesCompanion Function({
   required String id,
   Value<String?> bskyID,
+  Value<String?> mlsID,
   Value<String?> revision,
   required String message,
   required String senderDid,
@@ -2031,6 +2069,7 @@ typedef $$MessagesTableCreateCompanionBuilder = MessagesCompanion Function({
 typedef $$MessagesTableUpdateCompanionBuilder = MessagesCompanion Function({
   Value<String> id,
   Value<String?> bskyID,
+  Value<String?> mlsID,
   Value<String?> revision,
   Value<String> message,
   Value<String> senderDid,
@@ -2063,6 +2102,7 @@ class $$MessagesTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<String> id = const Value.absent(),
             Value<String?> bskyID = const Value.absent(),
+            Value<String?> mlsID = const Value.absent(),
             Value<String?> revision = const Value.absent(),
             Value<String> message = const Value.absent(),
             Value<String> senderDid = const Value.absent(),
@@ -2078,6 +2118,7 @@ class $$MessagesTableTableManager extends RootTableManager<
               MessagesCompanion(
             id: id,
             bskyID: bskyID,
+            mlsID: mlsID,
             revision: revision,
             message: message,
             senderDid: senderDid,
@@ -2093,6 +2134,7 @@ class $$MessagesTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             required String id,
             Value<String?> bskyID = const Value.absent(),
+            Value<String?> mlsID = const Value.absent(),
             Value<String?> revision = const Value.absent(),
             required String message,
             required String senderDid,
@@ -2108,6 +2150,7 @@ class $$MessagesTableTableManager extends RootTableManager<
               MessagesCompanion.insert(
             id: id,
             bskyID: bskyID,
+            mlsID: mlsID,
             revision: revision,
             message: message,
             senderDid: senderDid,
@@ -2133,6 +2176,11 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<String> get bskyID => $state.composableBuilder(
       column: $state.table.bskyID,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get mlsID => $state.composableBuilder(
+      column: $state.table.mlsID,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -2218,6 +2266,11 @@ class $$MessagesTableOrderingComposer
 
   ColumnOrderings<String> get bskyID => $state.composableBuilder(
       column: $state.table.bskyID,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get mlsID => $state.composableBuilder(
+      column: $state.table.mlsID,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

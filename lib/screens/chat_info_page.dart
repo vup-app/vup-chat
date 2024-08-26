@@ -1,6 +1,5 @@
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
 import 'package:drift/drift.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:vup_chat/main.dart';
@@ -77,6 +76,8 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
             return SmartWidth(
                 child: ListView(
               children: [
+                ElevatedButton(
+                    onPressed: _removeMLSID, child: const Text("nuke MLS")),
                 // Displays the circle avatar of room
                 CircleAvatar(
                   radius: 80.h,
@@ -285,13 +286,6 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                 ),
 
                 // TODO: Display media & Links like whatsapp
-
-                // DEBUG:
-                (kDebugMode)
-                    ? ElevatedButton(
-                        onPressed: _removeMLSID,
-                        child: const Text("Clear MLS ID"))
-                    : Container(),
               ],
             ));
           },

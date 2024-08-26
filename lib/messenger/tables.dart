@@ -16,6 +16,7 @@ class Senders extends Table {
 class Messages extends Table {
   TextColumn get id => text()();
   TextColumn get bskyID => text().nullable()();
+  TextColumn get mlsID => text().nullable()();
   TextColumn get revision => text().nullable()();
   TextColumn get message => text()();
   TextColumn get senderDid =>
