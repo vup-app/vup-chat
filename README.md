@@ -1,3 +1,5 @@
+> ⚠️ This app is now deprecated and is not maintained. However, the core of it still lives on in the [s5_messenger](https://github.com/s5-dev/s5_messenger) package. This allows anyone to use this messaging protocol to handle inter-app communication in a decentralized & private manner. An example app using this tech is [luogo](https://github.com/lukehmcc/luogo). To see the more finished state of this app, check out the [rust branch](https://github.com/vup-app/vup-chat/tree/rust).
+
 # Vup Chat
 
 A cross-platform, ATProto & S5 powered chat client.
